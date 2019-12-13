@@ -211,8 +211,10 @@ Resources:
           date '+%Y-%m-%d %H:%M:%S'
 
           # setup development account
-          useradd devel
-          printf "%s\n" ltdsdev ltdsdev | passwd devel
+          su -c "useradd devel -s /bin/bash" # https://askubuntu.com/questions/319714/proper-way-to-add-a-user-account-via-bash-script
+          echo devel:stdf | sudo chpasswd
+          #useradd devel
+          #printf "%s\n" ltdsdev ltdsdev | passwd devel
 
           # set up sudo permissions
           echo "pr-candrews ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
@@ -285,6 +287,7 @@ Resources:
           R -e "install.packages('hexbin', repos='http://cran.rstudio.com/')"
           R -e "install.packages('tidyr', repos='http://cran.rstudio.com/')"
           R -e "install.packages('rmarkdown', repos='http://cran.rstudio.com/')"
+          R -e "install.packages('lubridate', repos='http://cran.rstudio.com/')"
 
           # Get dev version of plotly
           git clone 'https://github.com/ropensci/plotly'
@@ -328,8 +331,8 @@ Resources:
 
 
           #aws cli
-  #        apt-get install -y awscli
-  #        aws s3 sync s3://sbsc-upload-data/Data .
+          #apt-get install -y awscli
+          #aws s3 sync s3://sbsc-upload-data/Data .
 
           echo END
           date '+%Y-%m-%d %H:%M:%S'
