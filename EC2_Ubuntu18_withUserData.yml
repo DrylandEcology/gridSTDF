@@ -276,9 +276,7 @@ Resources:
           R -e "install.packages('RSQLite', repos='http://cran.rstudio.com/')"
           R -e "install.packages('rgdal', repos='http://cran.rstudio.com/')"
           R -e "install.packages('rgeos', repos='http://cran.rstudio.com/')"
-          #R -e "install.packages('ncdf4', repos='http://cran.rstudio.com/')"
           R -e "install.packages('RCurl', repos='http://cran.rstudio.com/')"
-          #  R -e "install.packages('gridGraphics', repos='http://cran.rstudio.com/')"
           R -e "install.packages('dplyr', repos='http://cran.rstudio.com/')"
           R -e "install.packages('maps', repos='http://cran.rstudio.com/')"
           R -e "install.packages('maptools', repos='http://cran.rstudio.com/')"
@@ -304,13 +302,13 @@ Resources:
           R CMD INSTALL rSFSW2
 
           # clone and install Shiny App Code
-          git clone -b master --single-branch https://code.chs.usgs.gov/candrews/longtermdroughtsimulator /srv/shiny-server/longtermdroughtsimulator
+          git clone -b master --single-branch https://code.chs.usgs.gov/candrews/shorttermdroughtforecaster /srv/shiny-server/shorttermdroughtforecaster
 
           # copy rshiny conf file
-          cp /srv/shiny-server/longtermdroughtsimulator/shiny-server.conf /etc/shiny-server/shiny-server.conf
+          cp /srv/shiny-server/shorttermdroughtforecaster/shiny-server.conf /etc/shiny-server/shiny-server.conf
 
           # copy awslog conf file, get latest awslog agents, enable cloud watch agents, setup to start on boot
-          #cp /srv/shiny-server/longtermdroughtsimulator/awslogs.conf /etc/awslogs/awslogs.conf
+          #cp /srv/shiny-server/shorttermdroughtforecaster/awslogs.conf /etc/awslogs/awslogs.conf
           #apt-get install -y awslogs
           #systemctl start awslogsd
           #systemctl enable awslogsd.service
@@ -325,23 +323,13 @@ Resources:
           groupadd appallow
           usermod -a -G appallow devel
           usermod -a -G appallow shiny
-          chown -R :appallow /srv/shiny-server/longtermdroughtsimulator
-          chmod -R g+rwx /srv/shiny-server/longtermdroughtsimulator
+          chown -R :appallow /srv/shiny-server/shorttermdroughtforecaster
+          chmod -R g+rwx /srv/shiny-server/shorttermdroughtforecaster
 
-          # download data from the S3 environment to the longtermdroughtsimulator using boto
-          #apt-get install -y python-pip
-          #apt-get install -y python-boto3
-          #cd /srv/shiny-server/longtermdroughtsimulator
-          #python s3-download-all-contents-of-bucket.py 'sbsc-upload-data' . 500000000000
-
-          # download data from the S3 environment to the longtermdroughtsimulator folder
-          apt-get install -y s3cmd
-          cd /srv/shiny-server/longtermdroughtsimulator
-          s3cmd sync --region us-west-2 s3://sbsc-upload-data/Data .
 
           #aws cli
-          apt-get install -y awscli
-          aws s3 sync s3://sbsc-upload-data/Data .
+  #        apt-get install -y awscli
+  #        aws s3 sync s3://sbsc-upload-data/Data .
 
           echo END
           date '+%Y-%m-%d %H:%M:%S'
