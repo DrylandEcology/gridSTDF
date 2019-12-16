@@ -211,10 +211,11 @@ Resources:
           date '+%Y-%m-%d %H:%M:%S'
 
           # setup development account
-          su -c "useradd devel -s /bin/bash" # https://askubuntu.com/questions/319714/proper-way-to-add-a-user-account-via-bash-script
-          echo devel:stdf | sudo chpasswd
-          #useradd devel
-          #printf "%s\n" ltdsdev ltdsdev | passwd devel
+          sudo adduser devel --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password
+          echo "devel:stdf" | sudo chpasswd
+          # https://askubuntu.com/questions/319714/proper-way-to-add-a-user-account-via-bash-script
+          # https://community.rstudio.com/t/rserver-1692-error-system-error-13-permission-denied/46972/2
+
 
           # set up sudo permissions
           echo "pr-candrews ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
