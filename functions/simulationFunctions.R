@@ -1,19 +1,38 @@
-# 
-# # for testing
-lat <- 35.1266
-lng <- -111.5854
-soils <- 2
-sand <- 50
-clay <- 23
-comp <- 2
-shrubs <- .5
-grasses <- .5
-forbs <- bg <- trees <- 0
+# # # for testing
+# lat <- 35.1266
+# lng <- -111.5854
+# soils <- 2
+# sand <- 50
+# clay <- 23
+# comp <- 2
+# shrubs <- .5
+# grasses <- .5
+# forbs <- bg <- trees <- 0
 
+#* gather user data, execute soilwat simulations, and return outputs
+#* @param lat latitude of site
+#* @param long longitude of site
+#* @param soils binary decision of user 1 is extract from a gridded source 2 is user input
+#* @param sand user input of sand texture
+#* @param clay user input of clay texture
+#* @param comp binary decision of user 1 is generate composition from climate 2 is user inputs
+#* @param trees user input of tree composition
+#* @param shrubs user input of shrub composition
+#* @param grasses user input of grass composition
+#* @param forbs user input of forb composition
+#* @param bg user input of bareground composition
+#* @get /gatherDataAndExecuteSW
 gatherDataAndExecuteSW <- function(lat, lng,
                                    soils, sand = 33, clay = 33,
                                    comp, trees = 0, shrubs = 0.5, grasses = 0.5, forbs = 0, bg = 0){
-  
+    
+    ################### ----------------------------------------------------------------
+    # Part 0 - format data from HTTP request 
+    ################### ----------------------------------------------------------------
+    lat <- as.numeric(lat)
+    lng <- as.numeric(lng)
+    print(lat)
+    print(lng)
     ################### ----------------------------------------------------------------
     # Part 1 - Getting and formatting weather data for the historical and future runs 
     ################### ----------------------------------------------------------------
@@ -23,14 +42,14 @@ gatherDataAndExecuteSW <- function(lat, lng,
     #wdata <- getWeatherData(lat, lng)
     #write.csv(wdata, 'wdata.csv', row.names = FALSE)
     wdata <- fread('wdata.csv')
-    
+
     # get weather coefficients data for weather generator
     res2 <- getWeatherCoefficientsFromHistorical(wdata)    
     
     # get and integrate weather anomaly data for short-term forecast run
     Anoms <- getFormatAnomalies(lat, lng, wdata)
     res3 <- integrateAnomalyData(res2, Anoms[[1]], Anoms[[2]])
-    
+
     ################### ----------------------------------------------------------------
     # Part 2 - Sets soils and veg 
     ################### ----------------------------------------------------------------
@@ -143,4 +162,4 @@ gatherDataAndExecuteSW <- function(lat, lng,
     
     return(list(AnomalyData, HistData, VWC_AllYears1, VWC_AllYears2))
     
-    }
+}
