@@ -1,6 +1,8 @@
 library(shiny)
 library(shinydashboard)
 library(leaflet)
+# web interface
+library(plumber)
 # analysis
 library(rSFSW2)
 library(rSOILWAT2)
@@ -15,10 +17,8 @@ library(raster)
 library(ggplot2)
 library(plotly)
 
-source("functions/simulationFunctions.R")
-source("functions/soilsAndComp.R")
-source("functions/weatherFunctions.R")
-
+functionFiles <- list.files('functions', full.names = TRUE)
+sapply(functionFiles, source)
 
 # Define UI --------------------------------------
 ui <- fluidPage(
