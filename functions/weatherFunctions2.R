@@ -78,18 +78,6 @@ getWeatherData <- function(lat, lng) {
   return(wdata2)
 }
 
-getWeatherCoefficientsFromHistorical <- function(wdata) {
-  
-  # Step 1 - standardized coefficients from historical data
-  wdata2 <- wdata[wdata$Year %in% c(1980:2010),]
-  
-  # Generate coefss
-  res2 <- dbW_estimate_WGen_coefs(wdata2)
-  res2[["mkv_doy"]]$PPT_sd[is.na(res2[["mkv_doy"]]$PPT_sd)] <- 0 #this is an error - email Daniel
-  
-  return(res2)
-}
-
 runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
   
   # Determine Region from coordinates and shapefile ------------------------------------------
@@ -136,8 +124,8 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
   for(nn in seq(n)) { # Create n years of data
     print(nn)
     
-    TempMonthlyAnoms$Realization <-  realization_SDs_temp[nn]
-    PPTMonthlyAnoms$Realization <-  realization_SDs_ppt[nn]
+    TempMonthlyAnoms$Modifier <-  realization_SDs_temp[nn]
+    PPTMonthlyAnoms$Modifier <-  realization_SDs_ppt[nn]
     PPTMonthlyAnoms$ForecastedSD_in <- NA
     TempMonthlyAnoms$RandPull <- PPTMonthlyAnoms$RandPull_in <- PPTMonthlyAnoms$RandPull <- NA
     TempMonthlyAnoms$Anom_C <-  TempMonthlyAnoms$Anom_F <- PPTMonthlyAnoms$Anom_CF <- NA
