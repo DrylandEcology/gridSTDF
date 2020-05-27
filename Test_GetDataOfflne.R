@@ -1,4 +1,4 @@
-rm(list = ls(all = TRUE))
+#rm(list = ls(all = TRUE))
 
 library(rvest)
 library(zoo)
@@ -49,31 +49,22 @@ getCPCData <- function(url, var) {
   names(tmpData4) <- Names
   tmpData4[] <- lapply(tmpData4, as.numeric)
   
-  # get mean of anomalies ------------------------------------------------------------------------------------------
-  if(var == 'temp'){
-    tmpData4[,c('ForecastedMEAN', 'ClimatologicalMEAN', 'ForecastedSD', 'ClimatologicalSD')] <- (tmpData4[,c('ForecastedMEAN', 'ClimatologicalMEAN', 'ForecastedSD', 'ClimatologicalSD')] - 32) * (5/9)
-  }
+  if(var == 'temp'){ #
+   # tmpData4[,c('ForecastedMEAN', 'ClimatologicalMEAN', 'ForecastedSD', 'ClimatologicalSD')] <- (tmpData4[,c('ForecastedMEAN', 'ClimatologicalMEAN', 'ForecastedSD', 'ClimatologicalSD')] - 32) * (5/9)
+    tmpData4 <- tmpData4[,c('YEAR', 'MN', 'LEAD', 'CD','ForecastedMEAN', 'ClimatologicalMEAN', 'ForecastedSD', 'ClimatologicalSD')]
+    }
   if(var == 'ppt'){
-    tmpData4[,c('ForecastedMEAN', 'ClimatologicalMEAN', 'ForecastedSD', 'ClimatologicalSD')] <- tmpData4[,c('ForecastedMEAN', 'ClimatologicalMEAN', 'ForecastedSD', 'ClimatologicalSD')] * 2.54
-  }
+    #tmpData4[,c('ForecastedMEAN', 'ClimatologicalMEAN', 'ForecastedSD', 'ClimatologicalSD')] <- tmpData4[,c('ForecastedMEAN', 'ClimatologicalMEAN', 'ForecastedSD', 'ClimatologicalSD')] * 2.54
+    tmpData4 <- tmpData4[,c('YEAR', 'MN', 'LEAD', 'CD','ForecastedMEAN', 'ClimatologicalMEAN', 'ForecastedSD', 'ClimatologicalSD', 'PO')]
+    
+    }
   
-  tmpData4$AnomalyMEAN <- tmpData4$ForecastedMEAN -  tmpData4$ClimatologicalMEAN
-  tmpData4$AnomalySD <-  tmpData4$ForecastedSD -  tmpData4$ClimatologicalSD
-  
+  # get anomalies ------------------------------------------------------------------------------------------
   tmpData4 <- tmpData4[order(tmpData4$CD, tmpData4$LEAD),]
   
-  tmpData5 <- setDT(tmpData4)[,.( MeanAnomaly = round(rollapply(AnomalyMEAN, 3, mean, na.rm = TRUE, fill = NA, align = 'right', partial = 1), 4),
-                                  SDAnomaly = round(rollapply(AnomalySD, 3, mean, na.rm = TRUE, fill = NA, align = 'right', partial = 1), 4)),
-    .(MN, CD)]
+ # tmpData4 <- tmpData4[,c('YEAR', 'MN', 'LEAD', 'CD', 'AnomalyMEAN', 'AnomalySD')]
+  tmpData4
   
-  # format months... just keep 12 months, and eliminate the 13th (i.e. if it is Nov. 2019, keep Nov. 2019 -> Oct. 2020, and elminate Nov. 2020)
-  CurrentMN <- unique(tmpData5$MN)
-  MNseq <- c(CurrentMN:12, 1:CurrentMN) # create sequence for months that these calculated means now represent
-  MNseq[13] <- NA
-  tmpData5$MN <- rep(MNseq, 102)
-  tmpData5 <- tmpData5[complete.cases(tmpData5), ]
-  
-  tmpData5
 }
 
 tempurl <- 'https://www.cpc.ncep.noaa.gov/pacdir/NFORdir/HUGEdir2/cpcllftd.dat'
@@ -85,5 +76,5 @@ pptData <- getCPCData(ppturl, 'ppt')
 summary(pptData)
 
 
-write.csv(tempData, 'CurrentAnomalyTempData.csv', row.names = FALSE)
-write.csv(pptData, 'CurrentAnomalyPPTData.csv', row.names = FALSE)
+write.csv(tempData, 'CurrentAnomalyTempData.csv', row.names = FALSE) # farenheit
+write.csv(pptData, 'CurrentAnomalyPPTData.csv', row.names = FALSE) # inches

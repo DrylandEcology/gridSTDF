@@ -319,20 +319,20 @@ server <- function(input, output, session) {
     MEAN <- plot_ly() %>%
       # historical pattern ---------------------------------------------------
     ### ------------- sd -------------
-    add_trace(data = HistDataSub, x = ~Day, y = ~SWP_max, type = 'scatter', mode = 'lines',
+    add_trace(data = HistData, x = ~Day, y = ~SWP_max, type = 'scatter', mode = 'lines',
               line = list(color = 'transparent'),
               showlegend = FALSE, name = 'SD (1980 - 2015') %>%
-      add_trace(data = HistDataSub, x = ~Day, y = ~SWP_min, type = 'scatter', mode = 'lines',
+      add_trace(data = HistData, x = ~Day, y = ~SWP_min, type = 'scatter', mode = 'lines',
                 fill = 'tonexty', fillcolor = 'rgba(190, 144, 212,.3)',
                 line = list(color = 'transparent'),
                 showlegend = FALSE, name = 'SD (1980 - 2015)') %>%
       ### ------------- mean -------------
-    add_trace(data = HistDataSub, x = ~Day, y = ~SWP_mean,  mode = 'lines',
+    add_trace(data = HistData, x = ~Day, y = ~SWP_mean,  mode = 'lines',
               line = list(color='purple', width = 3),
               # marker = list(color = 'white', size = 10, line = list(color = 'black', width = 2)),
               name = 'Historical Average (1980 - 2018)') %>%
       #upcoming pattern ---------------------------------------------------
-    add_trace(data = AnomalyDataSub, x = ~Day, y = ~SWP_mean, mode = 'lines',
+    add_trace(data = AnomalyData, x = ~Day, y = ~SWP_mean, mode = 'lines',
               line = list(color='black', width = 5),
               # marker = list(color = 'white', size = 10, line = list(color = 'purple', width = 2)),
               name = 'Coming Year') %>%
