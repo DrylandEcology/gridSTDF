@@ -1,3 +1,4 @@
+set.seed(5)
 # # for testing
 library(rSFSW2)
 library(rSOILWAT2)
@@ -59,7 +60,7 @@ forbs <- bg <- trees <- 0
      # wdata <- getWeatherData(lat, lng)
      #  print(Sys.time())
      # write.csv(wdata, 'wdata.csv', row.names = FALSE)
-    wdata <- fread('wdata.csv')
+    wdata <- fread('ExampleData/wdata.csv')
     wdata$Date <- NULL
     # get weather coefficients data for weather generator
     #res2 <- getWeatherCoefficientsFromHistorical(wdata)
@@ -99,11 +100,7 @@ forbs <- bg <- trees <- 0
     
     # Run 2 - with future anomaly data
     AnomalyData1 <- suppressMessages(runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 30, SoilsDF))
-    
-    AnomSave <- AnomalyData1[[2]]
-    TempMonthlyAnomsAll <- AnomalyData1[[3]]
-    PPTMonthlyAnomsAll <- AnomalyData1[[4]]
-    AnomalyData <- AnomalyData1[[1]]
+
 
     ################### ----------------------------------------------------------------
     # Part 4 - Returned formatted outputs

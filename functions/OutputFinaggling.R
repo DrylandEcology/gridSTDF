@@ -10,8 +10,8 @@ HistDataNormMean <- setnames(setDT(HistDataNormMean)[ ,sapply(.SD, function(x) l
 
 # Run 2 - with future anomaly data
 AnomSave <- AnomalyData1[[2]]
-PPTMonthlyAnoms <- AnomalyData1[[3]]
-TempMonthlyAnoms <- AnomalyData1[[4]]
+TempAnoms <- AnomalyData1[[3]]
+PPTAnoms <- AnomalyData1[[4]]
 AnomalyData <- AnomalyData1[[1]]
 
 head(AnomalyData)
@@ -35,9 +35,10 @@ AnomRunStats$Time <- ifelse(AnomRunStats$Date < Sys.Date(), 'Observed', 'Future'
 
 # write out consolidated data ---------------------------------------------------------------
 fwrite(HistDataNormMean, 'ExampleData/HistDataNormMean.csv') 
+names(AnomSave)[4] <- 'Month'
 fwrite(AnomSave, 'ExampleData/AnomSave.csv')
-PPTMonthlyAnomsAll <- PPTMonthlyAnomsAll[PPTMonthlyAnomsAll$LEAD != 13, ]
-fwrite(PPTMonthlyAnomsAll, 'ExampleData/PPTMonthlyAnomsAll.csv')
-TempMonthlyAnomsAll <- TempMonthlyAnomsAll[TempMonthlyAnomsAll$LEAD != 13, ]
-fwrite(TempMonthlyAnomsAll, 'ExampleData/TempMonthlyAnomsAll.csv')
+PPTAnoms <- PPTAnoms[PPTAnoms$LEAD != 13, ]
+fwrite(PPTAnoms, 'ExampleData/PPTMonthlyAnomsAll.csv')
+TempAnoms <- TempAnoms[TempAnoms$LEAD != 13, ]
+fwrite(TempAnoms, 'ExampleData/TempMonthlyAnomsAll.csv')
 fwrite(AnomRunStats, 'ExampleData/AnomRunStats.csv')
