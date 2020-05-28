@@ -38,6 +38,8 @@ AnomRunStats <- AnomRunStats[AnomRunStats$Date > Sys.Date() - 183, ] # 6 month l
 AnomRunStats$Time <- ifelse(AnomRunStats$Date < Sys.Date(), 'Observed', 'Future')
 
 fwrite(AnomSave, 'ExampleData/AnomSave.csv')
+PPTMonthlyAnomsAll <- PPTMonthlyAnomsAll[PPTMonthlyAnomsAll$LEAD != 13, ]
 fwrite(PPTMonthlyAnomsAll, 'ExampleData/PPTMonthlyAnomsAll.csv')
+TempMonthlyAnomsAll <- TempMonthlyAnomsAll[TempMonthlyAnomsAll$LEAD != 13, ]
 fwrite(TempMonthlyAnomsAll, 'ExampleData/TempMonthlyAnomsAll.csv')
 fwrite(AnomRunStats, 'ExampleData/AnomRunStats.csv')
