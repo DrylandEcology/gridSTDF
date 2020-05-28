@@ -2,13 +2,11 @@ getOutputs <- function(sw_out, future = FALSE) {
   
   # Temp and Precip
   Temp1 <- data.frame(sw_out@TEMP@Day)
-  if(!future) Temp1 <- Temp1[, c('Year', 'Day', 'avg_C')]
-  if(future) Temp1 <- Temp1#[, c('Year', 'Day', 'avg_C')]
-  
+  Temp1 <- Temp1[, c('Year', 'Day', 'avg_C')]
+ 
   PPT1 <-  data.frame(sw_out@PRECIP@Day)
-  if(!future) PPT1 <- PPT1[, c('Year', 'Day', 'ppt')]
-  if(future) PPT1 <- PPT1[, c('Year', 'Day', 'ppt')]
-  
+  PPT1 <- PPT1[, c('Year', 'Day', 'ppt')]
+
   # SWP ---------------------------------------------------
   # Step 1 - Get weighted mean across depths for VWC
   VWC1 <-  data.frame(sw_out@VWCMATRIC@Day)
@@ -25,6 +23,22 @@ getOutputs <- function(sw_out, future = FALSE) {
   Data <- merge(Temp1, PPT1)
   Data <- merge(Data, VWC1)
   
-  return(Data)
+  # testing .....
+  Data2 <- Data[Data$Day != 366,]
+
+  # get rolling sums and means for ppt and temps
+  Data2 <- setorder(Data2, Year, Day)
+  Data2$ppt_rollsum <- rollapply(Data2$ppt,  width = 30, FUN = sum, fill = 'extend', align = 'center')# for historical data can just calc continuously 30 day sum
+  
+  Data2$avgC_rollmean <- runmean(Data2$avg_C,  k = 30, endrule = 'mean', align = 'right')# for historical data can just calc continuously 30 day sum
+  Data2$VWCShallow_rollmean <- runmean(Data2$Shallow,  k = 30, endrule = 'mean', align = 'right')# for historical data can just calc continuously 30 day sum
+  Data2$VWCInter_rollmean <- runmean(Data2$Intermediate,  k = 30, endrule = 'mean', align = 'right')# for historical data can just calc continuously 30 day sum
+  Data2$VWCDeep_rollmean <- runmean(Data2$Deep,  k = 30, endrule = 'mean', align = 'right')# for historical data can just calc continuously 30 day sum
+  
+  if(future == TRUE) {
+  Data2$Date <- as.Date(strptime(paste(Data2$Year, Data2$Day), format="%Y %j"), format="%m-%d-%Y")
+  Data2 <- Data2[Data2$Date < as.Date(paste0('2021-', '06','-01' )),] # as.Date(paste('2021-', month(Sys.Date()),'-01' ))
+  }
+   return(Data2)
   
 }

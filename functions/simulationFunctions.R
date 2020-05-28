@@ -12,7 +12,7 @@ library(caTools)
 library(geoknife)
 
 functionFiles <- list.files('functions', full.names = TRUE)
-sapply(functionFiles[3:5], source)
+sapply(functionFiles[c(2,4,5)], source)
 #debug(integrateAnomalyData)
 lat <- 35.1266
 lng <- -111.5854
@@ -88,46 +88,27 @@ forbs <- bg <- trees <- 0
     SoilsDF <- merge(Soils, SoilsDF)
     SoilsDF$variable <- paste0('Lyr_',1:dim(SoilsDF)[1])
 
-    # Run 0 - with observed historical data
+    # Run 1 - with observed historical data
     swCarbon_Use_Bio(sw_in0) <- FALSE
     swCarbon_Use_WUE(sw_in0) <- FALSE
     swYears_EndYear(sw_in0) <- year(Sys.Date()) - 1
 
     weath <- dbW_dataframe_to_weatherData(wdata[wdata$Year %in% c(1979:2019),], round = 4)
     sw_out0 <- sw_exec(inputData = sw_in0, weatherList = weath)
-
-    # return outputs
-    # HistDataAll <- getOutputs(sw_out0)
-    # 
-    # HistDataNormMean <- HistDataAll[HistDataAll$Year %in% 1980:2010, ]
-    # 
-    # HistDataNormMean <- setnames(setDT(HistDataNormMean)[ ,sapply(.SD, function(x) list(med=median(x), x10=quantile(x, .1), x90 = quantile(x, .9))),
-    #                                      .(Day)],
-    #                        c('Day', sapply(names(HistDataNormMean)[-c(2)], paste0, c(".med", ".10", ".90"))))# get all means and sds!!!
-    # 
-    # Run 1 - historical - weather generator data
-    # x_empty <- list(new("swWeatherData"))
-    # weathGen <- dbW_generateWeather(x_empty, years = 1980:2010, wgen_coeffs = res2)
-    # swYears_EndYear(sw_in0) <- 2010
-    # sw_out1 <- sw_exec(inputData = sw_in0, weatherList = weathGen)
-    # HistGenDataAll <- getOutputs(sw_out1)
-    # HistGenData <- setnames(setDT(HistGenDataAll)[, sapply(.SD, function(x) list(med=median(x), x10=quantile(x, .1), x90 = quantile(x, .9))),
-    #                                                      .(Day)],
-    #                         c('Day', sapply(names(HistGenDataAll)[-c(2)], paste0, c(".med", ".10", '.90'))))# get all means and sds!!!
-
+    HistDataAll <- getOutputs(sw_out0)
+    
     # Run 2 - with future anomaly data
     AnomalyData1 <- suppressMessages(runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 30, SoilsDF))
     
     AnomSave <- AnomalyData1[[2]]
-    PPTMonthlyAnoms <- AnomalyData1[[3]]
-    TempMonthlyAnoms <- AnomalyData1[[4]]
+    TempMonthlyAnomsAll <- AnomalyData1[[3]]
+    PPTMonthlyAnomsAll <- AnomalyData1[[4]]
     AnomalyData <- AnomalyData1[[1]]
-    AnomalyData$Type <- 'Future'
 
     ################### ----------------------------------------------------------------
     # Part 4 - Returned formatted outputs
     ################### ----------------------------------------------------------------
-#    return(list(AnomalyData, HistData, HistDataAll)) # AnomalyData, HistData, VWC_AllYears1, VWC_AllYears2
+#    return(list(AnomalyData, HistDataAll)) # AnomalyData, HistData, VWC_AllYears1, VWC_AllYears2
 
 #}
 

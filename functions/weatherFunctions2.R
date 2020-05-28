@@ -80,6 +80,11 @@ getWeatherData <- function(lat, lng) {
 
 runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
   
+  AnomSave <- data.frame() # for testing
+  AllOut <- data.frame()
+  TempMonthlyAnomsAll <- data.frame()  # for testing
+  PPTMonthlyAnomsAll <- data.frame()  # for testing
+  
   # Determine Region from coordinates and shapefile ------------------------------------------
   CD102 <- shapefile(x = 'CD102/CD102.shp')
   points <- data.frame(x = lng, y = lat)
@@ -105,19 +110,24 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
   currDOY <- yday(Sys.Date()) - 1
   currYear <- year(Sys.Date())
     
-  monthDF <- data.frame(TempMonthlyAnoms[,'LEAD'])
+  monthLeads <- data.frame(TempMonthlyAnoms[,'LEAD'])
+  
   if(day(Sys.Date()) < 15){
-    monthDF$Month <- monthDF$LEAD + currMonth - 1
-  } else {
-    monthDF$Month <- monthDF$LEAD + currMonth
-  }
+    monthLeads$Month <- monthLeads$LEAD + currMonth - 1
+    } else {
+    monthLeads$Month <- monthLeads$LEAD + currMonth
+    }
   
-  monthDF$Month <- ifelse(monthDF$Month > 12, monthDF$Month - 12, monthDF$Month)
-  monthDF <- monthDF[1:12,] # don't need that 13th forecast
+  # leads
+  monthLeads$lead1 <- monthLeads$LEAD
+  monthLeads$lead2 <-  monthLeads$LEAD - 1
+  monthLeads$lead3 <-  monthLeads$LEAD - 2
   
-  AnomSave <- data.frame()
-  AllOut <- data.frame()
-
+  monthLeads[monthLeads <= 0] <- NA 
+  monthLeads$Month <- ifelse(monthLeads$Month > 12, monthLeads$Month - 12, monthLeads$Month)
+  monthLeads <- monthLeads[1:12,]
+  
+  # Begin generating futures! ----------------------------------------------------------------------
   realization_SDs_temp <- rnorm(n)
   realization_SDs_ppt <- rnorm(n)
   
@@ -126,56 +136,51 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
     
     TempMonthlyAnoms$Modifier <-  realization_SDs_temp[nn]
     PPTMonthlyAnoms$Modifier <-  realization_SDs_ppt[nn]
-    PPTMonthlyAnoms$ForecastedSD_in <- NA
-    TempMonthlyAnoms$RandPull <- PPTMonthlyAnoms$RandPull_in <- PPTMonthlyAnoms$RandPull <- NA
-    TempMonthlyAnoms$Anom_C <-  TempMonthlyAnoms$Anom_F <- PPTMonthlyAnoms$Anom_CF <- NA
-    PPTMonthlyAnoms$Anom_Predicted <- NA
     
-    for(l in 1:13) { 
-      # Step 2 - select an anomaly for each lead by
-      # - A. A sd modifier for each temp and ppt will be selected for each run. This modifier is consistent for each run
-      # - B. Apply the modifier to generate forecast: forecasted mean + (forecasted sd * modifier)
-      # - C. Subtract climatological mean from forecasted #
-     
-       # Temp
-      TempMonthlyAnoms$RandPull[l] <-  as.numeric(TempMonthlyAnoms[TempMonthlyAnoms$LEAD == l, 'ForecastedMEAN']) + 
-                          (as.numeric(TempMonthlyAnoms[TempMonthlyAnoms$LEAD == l, 'ForecastedSD']) *  TempMonthlyAnoms$Realization[l])
-      TempMonthlyAnoms$Anom_F[l] <- TempMonthlyAnoms$RandPull[l] - TempMonthlyAnoms$ClimatologicalMEAN[l]
-      TempMonthlyAnoms$Anom_C[l] <- (TempMonthlyAnoms$Anom_F[l]) * (5/9)
+    # Step 1 - generate an anomaly for each lead and future by --------------------------------------------------
+    # - A. A sd modifier for each temp and ppt will be selected for each run. This modifier is consistent for each run
+    # - B. Apply the modifier to generate forecast: forecasted mean + (forecasted sd * modifier)
+    # - C. Subtract climatological mean from forecasted #
+
+     # Temp
+    TempMonthlyAnoms$Prediction_F <-  as.numeric(TempMonthlyAnoms$ForecastedMEAN) +
+                        (as.numeric(TempMonthlyAnoms$ForecastedSD) *  TempMonthlyAnoms$Modifier)
+    TempMonthlyAnoms$Anom_F <- TempMonthlyAnoms$Prediction_F - TempMonthlyAnoms$ClimatologicalMEAN
+    TempMonthlyAnoms$Anom_C <- TempMonthlyAnoms$Anom_F * (5/9)
+
+    # PPT
+    backT <- 1/PPTMonthlyAnoms$PO
+    PPTMonthlyAnoms$ForecastedSD_in <- as.numeric(PPTMonthlyAnoms$ForecastedSD) ^ backT
+    PPTMonthlyAnoms$Prediction_in <- as.numeric(PPTMonthlyAnoms$ForecastedMEAN ^ PPTMonthlyAnoms$PO) +
+                        (as.numeric(PPTMonthlyAnoms$ForecastedSD) * PPTMonthlyAnoms$Modifier)
+   
+    PPTMonthlyAnoms$Prediction_in <- PPTMonthlyAnoms$Prediction_in ^ backT
     
-      # PPT
-      backT <- (1/PPTMonthlyAnoms$PO[l])
-      PPTMonthlyAnoms$ForecastedSD_in[l] <- as.numeric(PPTMonthlyAnoms[PPTMonthlyAnoms$LEAD == l, 'ForecastedSD']) ^ backT
-      PPTMonthlyAnoms$RandPull[l] <- as.numeric(PPTMonthlyAnoms[PPTMonthlyAnoms$LEAD == l, 'ForecastedMEAN'] ^ PPTMonthlyAnoms$PO[l]) +
-                          (as.numeric(PPTMonthlyAnoms[PPTMonthlyAnoms$LEAD == l, 'ForecastedSD']) * realization_SDs_ppt[nn])
-      PPTMonthlyAnoms$RandPull_in[l] <- PPTMonthlyAnoms$RandPull[l] ^ backT
-      PPTMonthlyAnoms$Anom_CF[l] <- PPTMonthlyAnoms$RandPull_in[l] / (PPTMonthlyAnoms$ClimatologicalMEAN[l])
-      PPTMonthlyAnoms$Anom_Predicted[l] <- PPTMonthlyAnoms$RandPull_in[l] - PPTMonthlyAnoms$ClimatologicalMEAN[l]
-         }
+    PPTMonthlyAnoms$Anom_CF <- PPTMonthlyAnoms$Prediction_in / PPTMonthlyAnoms$ClimatologicalMEAN
+    PPTMonthlyAnoms$Anom_in <- PPTMonthlyAnoms$Prediction_in - PPTMonthlyAnoms$ClimatologicalMEAN
+    PPTMonthlyAnoms$Anom_cm <- PPTMonthlyAnoms$Anom_in * 2.54
     
+    PPTMonthlyAnomsAll <- rbind(PPTMonthlyAnomsAll, PPTMonthlyAnoms)# for testing purposes only
+    TempMonthlyAnomsAll <- rbind(TempMonthlyAnomsAll, TempMonthlyAnoms)# for testing purposes only
+    
+    # Step 2 Get monthly averages -------------------------------------------------------------------------------
     yearlydat <- data.frame(matrix(nrow = 12, ncol = 3))
-    names(yearlydat) <- c('tempAnom', 'pptAnom_CF', 'Anom_Predicted')
+    names(yearlydat) <- c('tempAnom', 'pptAnom_CF', 'pptAnom_cm')
     yearlydat$MN <- as.numeric(row.names(yearlydat))
     
-    for(m in c(monthDF$Month)){ # for each month, m, in a year, nn
-     #print(m)
-     leadMain <- monthDF[monthDF$Month == m, 'LEAD']
-     leads <- c(leadMain, leadMain -1, leadMain - 2)
-     
-     if(m == currMonth) leads <- 1
-     if(m == currMonth + 1) leads <- c(1, 2)
-    # print(leads)
-     
-     yearlydat[m, 1] <- mean(TempMonthlyAnoms$Anom_C[leads]) 
-     # ppt
-     yearlydat[m, 2] <- mean(PPTMonthlyAnoms$Anom_CF[leads])
-  
-     # ppt2 
-     yearlydat[m, 3] <- mean(PPTMonthlyAnoms$Anom_Predicted[leads])/3
-     
+    for(m in c(yearlydat$MN)){ # for each month, m, in a year, nn
+      
+      leads <- c(t(monthLeads[monthLeads$Month == m, 3:5]))
+
+      yearlydat[m, 1] <- mean(TempMonthlyAnoms$Anom_C[leads], na.rm = TRUE) 
+      # ppt
+      yearlydat[m, 2] <- mean(PPTMonthlyAnoms$Anom_CF[leads], na.rm = TRUE)
+      # ppt2 .. for testing
+      yearlydat[m, 3] <- mean(PPTMonthlyAnoms$Anom_cm[leads], na.rm = TRUE)/sum(!is.na(leads))
     }
     AnomSave <- rbind(AnomSave, yearlydat)
     
+    # Step 3 ----------------------------------------------------------------------------------------------
     # Create future weather / integrate anomaly data into historical weather ----------------------------------------------------------
     wdata2 <- wdata[wdata$Year %in% 1980:2010, ]
     weathAnomAll <- suppressWarnings(integrateAnomalyData(wdata2, yearlydat))
@@ -194,20 +199,25 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
     
     for(y in 1:30){
    #   print(y)
+      ### ---------
       ### year 2 - observed data for this year until today's date and then future, weathAnom data
+      ### ---------
       year2 <- thisYearObservedWData
       
       year2Fut <- weathAnomAll[[y]]
       year2Fut@year <- as.integer(currYear) # change year
       
       # add future data where appropriate
+       # add to leap years data ....
       if(days == 366 & y %in% seq(1,30,4)) year2[[1]]@data[currDOY:days,] <- year2Fut@data[currDOY:days,] 
+      # not a leap year but days taken from leap year...
       if(days == 366 & y %in% c(2:4,6:8,10:12,14:16,18:20,22:24,26:28,30)) year2[[1]]@data[currDOY:365,] <- year2Fut@data[currDOY:365,] 
       
-      #if(days == 365) year2[[1]]@data[currDOY:365,] <- year2Fut@data[currDOY:365,] 
-     # what if days = 365 & y is leap year - will need to add aextra days (if days == 365 & y %in% seq(1,30,4) )
+      if(days == 365) year2[[1]]@data[currDOY:365,] <- year2Fut@data[currDOY:365,] #what if days = 365 & y is leap year - will need to add aextra days (if days == 365 & y %in% seq(1,30,4) )
       
+      ### ---------
       ## year 3 ... forecasts that run into next year (aka 2021) and then scratch data for the rest of 2021
+      ### ---------
       year3 <- year2Fut 
       if(days == 366) year3@data <- year3@data[1:365,] #if this year is 366 days, next year needs to be 365
       year3@year <- as.integer(currYear + 1)
@@ -229,7 +239,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
     }
       }
   
-  return(list(AllOut, AnomSave, PPTMonthlyAnoms, TempMonthlyAnoms))
+  return(list(AllOut, AnomSave, TempMonthlyAnomsAll, PPTMonthlyAnomsAll))
 
 }
 
