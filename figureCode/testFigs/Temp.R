@@ -14,7 +14,7 @@ currMonth <- month(Sys.Date())
 HistDataNormMean <- fread('ExampleData/HistDataNormMean.csv')
 AnomRunStats <- fread('ExampleData/AnomRunStats.csv')
 AnomSave <- fread('ExampleData/AnomSave.csv')
-
+TempMonthlyAnoms <- fread('ExampleData/TempMonthlyAnomsAll.csv')
 ############### Manipulate historical data --------------------------------------------------
 
 # fix dates so that (1) Time repearts itself 1.5 times and (2) it sees these averages as historical date . 
@@ -95,10 +95,10 @@ TempDF$Hist.avg_C.rollmean.10.diff <- TempDF$Hist.avgC_rollmean.10 - TempDF$Hist
 TempDF$Type <- ifelse(TempDF$Diffs.Med > 0, 'pos', 'neg')
 
 # Put anomalies on the figure
-AnomSave$Year <- ifelse(AnomSave$MN < 5, 2021, 2020)
-AnomSave$Date <- as.Date(paste0(AnomSave$Year, '-' , AnomSave$MN, '-15'), format = '%Y-%m-%d')
+AnomSave$Year <- ifelse(AnomSave$Month < 6, 2021, 2020)
+AnomSave$Date <- as.Date(paste0(AnomSave$Year, '-' , AnomSave$Month, '-15'), format = '%Y-%m-%d')
 TempMonthlyAnoms$ForecastDiff <- TempMonthlyAnoms$ForecastedMEAN - TempMonthlyAnoms$ClimatologicalMEAN
-PPTMonthlyAnoms$ForecastDiff <- PPTMonthlyAnoms$ForecastedMEAN - PPTMonthlyAnoms$ClimatologicalMEAN
+#PPTMonthlyAnoms$ForecastDiff <- PPTMonthlyAnoms$ForecastedMEAN - PPTMonthlyAnoms$ClimatologicalMEAN
 
 
 ForecastedAnoms1 <- ForecastedAnoms2 <-  data.frame()
