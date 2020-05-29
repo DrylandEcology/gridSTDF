@@ -28,12 +28,12 @@ getOutputs <- function(sw_out, future = FALSE) {
 
   # get rolling sums and means for ppt and temps
   Data2 <- setorder(Data2, Year, Day)
-  Data2$ppt_rollsum <- rollapply(Data2$ppt,  width = 30, FUN = sum, fill = 'extend', align = 'center')# for historical data can just calc continuously 30 day sum
   
-  Data2$avgC_rollmean <- runmean(Data2$avg_C,  k = 30, endrule = 'mean', align = 'right')# for historical data can just calc continuously 30 day sum
-  Data2$VWCShallow_rollmean <- runmean(Data2$Shallow,  k = 30, endrule = 'mean', align = 'right')# for historical data can just calc continuously 30 day sum
-  Data2$VWCInter_rollmean <- runmean(Data2$Intermediate,  k = 30, endrule = 'mean', align = 'right')# for historical data can just calc continuously 30 day sum
-  Data2$VWCDeep_rollmean <- runmean(Data2$Deep,  k = 30, endrule = 'mean', align = 'right')# for historical data can just calc continuously 30 day sum
+  Data2$ppt_rollsum <- rollapply(Data2$ppt,  width = 30, FUN = sum, fill = 'extend', align = 'center')# for historical data can just calc continuously 30 day sum
+  Data2$avgC_rollmean <- runmean(Data2$avg_C,  k = 30, endrule = 'mean', align = 'center')#
+  Data2$VWCShallow_rollmean <- runmean(Data2$Shallow,  k = 30, endrule = 'mean', align = 'center')
+  Data2$VWCInter_rollmean <- runmean(Data2$Intermediate,  k = 30, endrule = 'mean', align = 'center')
+  Data2$VWCDeep_rollmean <- runmean(Data2$Deep,  k = 30, endrule = 'mean', align = 'center')
   
   if(future == TRUE) {
   Data2$Date <- as.Date(strptime(paste(Data2$Year, Data2$Day), format="%Y %j"), format="%m-%d-%Y")

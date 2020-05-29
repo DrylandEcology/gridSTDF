@@ -46,6 +46,8 @@ TempDF$Type <- ifelse(TempDF$Diffs.Med > 0, 'pos', 'neg')
 
 # Panel 1 ----------------------------------------------------------------------------
 TempDF$Fut.avg_C.med <- ifelse(TempDF$Time == 'Future', NA, TempDF$Fut.avg_C.med)
+TempDF$Diffs.10 <- ifelse(TempDF$Time == 'Observed', NA, TempDF$Diffs.10)
+TempDF$Diffs.90 <- ifelse(TempDF$Time == 'Observed', NA, TempDF$Diffs.90)
 
 Panel1 <- ggplot(TempDF) +
   # repeating long-term historical daily median

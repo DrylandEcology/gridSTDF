@@ -14,7 +14,7 @@ NWSMeans$Year <- c(rep(2021,5), rep(2020, 7))
 NWSMeans$Date <- as.Date(paste0(NWSMeans$Year, '-', NWSMeans$Month, '-05'))
 
 ggplot(AnomSave2, aes(tempAnom)) +
-  geom_histogram(aes(y=..density..), colour="black", fill="white")+
+  geom_histogram(aes(y=..density..), colour="black", fill="white", binwidth =.1)+
   geom_density(alpha=.2, fill="#FF6666") +
   facet_wrap(~Month, scales = 'free') +
   labs(title = 'Temperature anomalies by Month') +
@@ -48,7 +48,7 @@ NWSMeans$Date <- as.Date(paste0(NWSMeans$Year, '-', NWSMeans$Month, '-05'))
 
 # hists
 ggplot(AnomSave2, aes(pptAnom_cm)) +
-  geom_histogram(aes(y=..density..), colour="black", fill="white")+
+  geom_histogram(aes(y=..density..), colour="black", fill="white", binwidth = .5)+
   geom_density(alpha=.2, fill="#FF6666") +
   facet_wrap(~Month, scales = 'free') +
   labs(title = 'Precipitation anomalies by Month') +
