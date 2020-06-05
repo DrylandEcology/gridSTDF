@@ -59,9 +59,9 @@ forbs <- bg <- trees <- 0
      # print(Sys.time())
      # wdata <- getWeatherData(lat, lng)
      #  print(Sys.time())
-     # write.csv(wdata, 'wdata.csv', row.names = FALSE)
+    # write.csv(wdata, 'wdata.csv', row.names = FALSE)
     wdata <- fread('ExampleData/wdata.csv')
-    wdata$Date <- NULL
+    #wdata$Date <- NULL
     # get weather coefficients data for weather generator
     #res2 <- getWeatherCoefficientsFromHistorical(wdata)
 
@@ -94,7 +94,7 @@ forbs <- bg <- trees <- 0
     swCarbon_Use_WUE(sw_in0) <- FALSE
     swYears_EndYear(sw_in0) <- year(Sys.Date()) - 1
 
-    weath <- dbW_dataframe_to_weatherData(wdata[wdata$Year %in% c(1979:2019),], round = 4)
+    weath <- dbW_dataframe_to_weatherData(wdata[wdata$Year %in% c(1979:2019), c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')], round = 4)
     sw_out0 <- sw_exec(inputData = sw_in0, weatherList = weath)
     HistDataAll <- getOutputs(sw_out0)
     

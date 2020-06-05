@@ -6,13 +6,11 @@ library(plyr)
 # Diagnostic plot ---- scatters of dailys ...
 names(FutureData)
 FutureData$runx <- sapply(strsplit(FutureData$run, '_'), '[', 1)
-FutureData$runy <- sapply(strsplit(FutureData$run, '_'), '[', 2)
-runYear <- data.frame(runy = 1:30, Year = 1980:2009)
 FutureData$Year <- NULL
-FutureData <- plyr::join(FutureData, runYear)
+FutureData$Year <- sapply(strsplit(FutureData$run, '_'), '[', 2)
 
 # Historical 
-HistDataNormMean <- HistDataAll[HistDataAll$Year %in% 1980:2009, ]
+HistDataNormMean <- HistDataAll[HistDataAll$Year %in% 1981:2010, ]
 HistDataNormMean$Date <- as.Date(strptime(paste(HistDataNormMean$Year, HistDataNormMean$Day), format="%Y %j"), format="%m-%d-%Y")
 HistDataNormMean$Month <- month(HistDataNormMean$Date)
 names(HistDataNormMean)[3:4] <- c('Hist.Temp', 'Hist.ppt')
@@ -23,13 +21,10 @@ DiffDaily$SW_TempAnom <- DiffDaily$avg_C - DiffDaily$Hist.Temp
 DiffDaily$SW_PPTAnom <- DiffDaily$ppt / DiffDaily$Hist.ppt
 summary(DiffDaily)
 
-
 # join with the anomaly data ------------------------------------------------------------------------------
-names(AnomSave)[4] <- 'Month'
-AnomSave$runx <- rep(1:30, each = 12)
+MonthlyAnoms$runx <- rep(1:10, each = 12)
 
-DiffDaily <- plyr::join(DiffDaily, AnomSave)
-DiffDaily <- DiffDaily[DiffDaily$Month != 5, ]
+DiffDaily <- plyr::join(DiffDaily, MonthlyAnoms)
 dim(DiffDaily)
 
 Sample <- DiffDaily[sample(nrow(DiffDaily), 30000), ]

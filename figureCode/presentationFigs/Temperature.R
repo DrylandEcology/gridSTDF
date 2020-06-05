@@ -45,7 +45,7 @@ TempDF$Type <- ifelse(TempDF$Diffs.Med > 0, 'pos', 'neg')
 ######################################################################################
 
 # Panel 1 ----------------------------------------------------------------------------
-TempDF$Fut.avg_C.med <- ifelse(TempDF$Time == 'Future', NA, TempDF$Fut.avg_C.med)
+#TempDF$Fut.avg_C.med <- ifelse(TempDF$Time == 'Future', NA, TempDF$Fut.avg_C.med)
 TempDF$Diffs.10 <- ifelse(TempDF$Time == 'Observed', NA, TempDF$Diffs.10)
 TempDF$Diffs.90 <- ifelse(TempDF$Time == 'Observed', NA, TempDF$Diffs.90)
 
@@ -61,6 +61,9 @@ Panel1 <- ggplot(TempDF) +
   
   # observed past dailys
   geom_line(aes(Date, Fut.avg_C.med, color = Time), size = .3) +
+  
+  # observed futures - for testing
+  #geom_line(data = testData, aes(Date, avgC_rollmean, color = runy)) +
   
   # observed and future median
   geom_line(aes(Date, Fut.avgC_rollmean.med, color = Time), size = 1.1) +
@@ -109,15 +112,15 @@ plot(Panel2)
 
 Panel2Anoms <- Panel2 + 
   # Generated Anoms
-  geom_boxplot(data = AnomSave, aes(Date, tempAnom, group = Month), fatten = NULL, width = 7, alpha = 0.8) +
-  stat_summary(data = AnomSave, aes(Date, tempAnom, group = Month, ymax = ..y.., ymin = ..y..),
+  geom_boxplot(data = MonthlyAnoms, aes(Date, tempAnom, group = Month), fatten = NULL, width = 7, alpha = 0.8) +
+  stat_summary(data = MonthlyAnoms, aes(Date, tempAnom, group = Month, ymax = ..y.., ymin = ..y..),
                fun.y = mean, geom = "errorbar", size = 1.2, color = 'limegreen') +
-  geom_point(data = AnomSave, aes(Date, tempAnom, group = Month), shape = 21, size =.5, fill = NA) +
+  geom_point(data = MonthlyAnoms, aes(Date, tempAnom, group = Month), shape = 21, size =.5, fill = NA) +
   # NWS dots and lines
-  stat_summary(data = NWSAnomsAll1, aes(Date, ForecastDiff, ymax = ..y.., ymin = ..y..),
+  stat_summary(data = NWSAnomsAll1, aes(Date, Anom_C, ymax = ..y.., ymin = ..y..),
                fun.y = mean, geom = "errorbar", size = 1.2, color = 'purple') +
-  geom_pointrange(data = NWSAnomsAll1, aes(Date, ForecastDiff,
-                                               ymin = ForecastDiff - ForecastedSD,
-                                               ymax = ForecastDiff + ForecastedSD), shape = 21, fill = 'black', color = 'magenta') 
+  geom_pointrange(data = NWSAnomsAll1, aes(Date, Anom_C,
+                                               ymin = Anom_C - ForecastedSD_Temp_C,
+                                               ymax = Anom_C + ForecastedSD_Temp_C), shape = 21, fill = 'black', color = 'magenta') 
 plot(Panel2Anoms)
   
