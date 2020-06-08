@@ -18,7 +18,7 @@ for(m in 1:12){
   NWSAnomsAll1 <- rbind(NWSAnomsAll1, data.frame( m, NWSAnoms))
   
   # PPT
-  NWSAnoms <- PPTAnoms[PPTAnoms$LEAD %in% mLeads,c('Anom_cm', 'ForecastedSD_PPT_cm')]
+  NWSAnoms <- PPTAnoms[PPTAnoms$LEAD %in% mLeads,c('Anom_cm', 'Anom_CF','ForecastedSD_PPT_cm')]
   NWSAnomsAll2 <- rbind(NWSAnomsAll2, data.frame( m, NWSAnoms))
 }
 
