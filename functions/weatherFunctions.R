@@ -189,11 +189,13 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
     
     # Step 3 Get monthly averages across leads --------------------------------------------------
     OneYearAnom <- generatedAnomData[ , nn, ]
+    OneYearAnom  <- cbind(OneYearAnom, Climatological_Mean_cm = PPTAnoms$ClimatatologicalMEAN_PPT_cm[1:12])
+    OneYearAnom <- cbind(OneYearAnom, Anom_cm = OneYearAnom[,4] - OneYearAnom[,6])
     
     yearlydat <- data.frame(matrix(nrow = 12, ncol = 3))
     names(yearlydat) <- c('tempAnom', 'pptAnom_cm', 'pptAnom_CF')
     yearlydat$Month <- as.numeric(row.names(yearlydat))
-  
+    
     for(m in c(yearlydat$Month)){ # for each month, m, in a year, nn
     
       mLeads <- c(t(monthLeads[monthLeads$Month == m, 3:5]))
@@ -202,8 +204,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
       yearlydat[m, 1] <- mean(OneYearAnom[mLeads, 'dT_C'], na.rm = TRUE) 
       
       # ppt cm
-      OneYearAnom  <- cbind(OneYearAnom, Anom_cm =  OneYearAnom[,4] - PPTAnoms$ClimatatologicalMEAN_PPT_cm[1:12])
-      yearlydat[m, 2] <-  mean(OneYearAnom[mLeads, 'Anom_cm'], na.rm = TRUE)/sum(!is.na(mLeads))
+      yearlydat[m, 2] <-  mean(OneYearAnom[mLeads, 'Anom_cm'], na.rm = TRUE)/3
       
       # ppt correction factor
       yearlydat[m, 3] <-  mean(OneYearAnom[mLeads, 'PPT_CF'], na.rm = TRUE)
@@ -284,7 +285,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
 generateAnomalyData <- function(monthlyWdata, TempAnoms, PPTAnoms, 
                                 leads, Nleads, n = 30) {
   
-  set.seed(125)
+  set.seed(1125)
   
   # one table
   forecast_NWS <- merge(TempAnoms[,c('LEAD','ClimatologicalMEAN_Temp_C', 'ForecastedSD_Temp_C', 'Anom_C')],

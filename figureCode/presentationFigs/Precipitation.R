@@ -110,16 +110,14 @@ plot(Panel2)
 #ggsave('~/Desktop/CDI_2019/Figures/ObservedAndFuture_PPT_Median_DIFFERENCES.png', height = 4, width = 8)
 
 Panel2Anoms <- Panel2 + 
-  # generated anomalies boxplots and points
-  geom_boxplot(data = AnomSave, aes(Date, pptAnom_cm, group = Month), fatten = NULL, width = 7, alpha = 0.8) +
-  stat_summary(data = AnomSave, aes(Date, pptAnom_cm, group = Month, ymax = ..y.., ymin = ..y..),
+  geom_boxplot(data = MonthlyAnoms2, aes(Date, pptAnom_cm, group = Month), fatten = NULL, width = 7, alpha = 0.8) +
+  stat_summary(data = MonthlyAnoms2, aes(Date, pptAnom_cm, group = Month, ymax = ..y.., ymin = ..y..),
                fun.y = mean, geom = "errorbar", size = 1.2, color = 'limegreen') +
-  geom_point(data = AnomSave, aes(Date, pptAnom_cm, group = Month), shape = 21, size =.5, fill = NA) +
+  geom_point(data = MonthlyAnoms2, aes(Date, pptAnom_cm, group = Month), shape = 21, size =.5, fill = NA) +
   # NWS dots and lines
-  stat_summary(data = NWSAnomsAll2, aes(Date, ForecastDiff, ymax = ..y.., ymin = ..y..),
+  stat_summary(data = NWSMeans, aes(Date, meanForecastDiff, ymax = ..y.., ymin = ..y..),
                fun.y = mean, geom = "errorbar", size = 1.2, color = 'purple') +
-  geom_pointrange(data = NWSAnomsAll2, aes(Date, ForecastDiff,
-                                           ymin = ForecastDiff - ForecastedSD_cm,
-                                           ymax = ForecastDiff + ForecastedSD_cm), shape = 21, fill = 'black', color = 'magenta') 
-
+  geom_pointrange(data = NWSAnomsAll2, aes(Date, Anom_cm,
+                                           ymin = Anom_cm - ForecastedSD_PPT_cm,
+                                           ymax = Anom_cm + ForecastedSD_PPT_cm), shape = 21, fill = 'black', color = 'magenta')
 plot(Panel2Anoms)

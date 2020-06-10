@@ -1,6 +1,6 @@
 
 # Anomalies -------------------------------------------------------------------------------------------------
-
+currMonth <- month(Sys.Date())
 # these are the 12 monthly anomalies generated
 MonthlyAnoms$Year <- ifelse(MonthlyAnoms$Month < currMonth, 2021, 2020)
 MonthlyAnoms$Date <- as.Date(paste0(MonthlyAnoms$Year, '-' , MonthlyAnoms$Month, '-15'), format = '%Y-%m-%d')

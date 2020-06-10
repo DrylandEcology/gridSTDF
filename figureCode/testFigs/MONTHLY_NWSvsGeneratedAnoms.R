@@ -56,7 +56,7 @@ ggplot(MonthlyAnoms2, aes(pptAnom_cm)) +
   geom_histogram(aes(y=..density..), colour="black", fill="white")+
   geom_density(alpha=.2, fill="#FF6666") +
   facet_wrap(~Month, scales = 'free') +
-  labs(title = 'Precipitation anomalies by Month') +
+  labs(title = 'Precipitation anomalies (cm) by Month') +
   geom_vline(data = NWSMeans, aes(xintercept = meanForecastDiff), color = 'purple') +
   geom_vline(data = generatedMean, aes(xintercept = meanGenAnom), color = 'limegreen', linetype = 'dashed')+
   theme_bw()
@@ -75,21 +75,22 @@ ggplot() +
                                            ymax = Anom_cm + ForecastedSD_PPT_cm), shape = 21, fill = 'black', color = 'magenta') +
   theme_bw()
 
+
 # CF
 NWSMeans <- setDT(NWSAnomsAll2)[,.(meanForecastDiff = mean(Anom_CF)), .(m)]
 names(NWSMeans)[1] <- 'Month'
-
-generatedMean <- setDT(MonthlyAnoms2)[,.(meanGenAnom = mean(pptAnom_CF)), .(Month)]
 NWSMeans$Month <- factor(NWSMeans$Month, levels = c(6:12, 1:5))
 NWSMeans$Year <- c(rep(2021,5), rep(2020, 7))
 NWSMeans$Date <- as.Date(paste0(NWSMeans$Year, '-', NWSMeans$Month, '-05'))
+
+generatedMean <- setDT(MonthlyAnoms2)[,.(meanGenAnom = mean(pptAnom_CF)), .(Month)]
 
 # hists
 ggplot(MonthlyAnoms2, aes(pptAnom_CF)) +
   geom_histogram(aes(y=..density..), colour="black", fill="white")+
   geom_density(alpha=.2, fill="#FF6666") +
   facet_wrap(~Month, scales = 'free') +
-  labs(title = 'Precipitation anomalies by Month') +
+  labs(title = 'Precipitation anomalies (CF) by Month') +
   geom_vline(data = NWSMeans, aes(xintercept = meanForecastDiff), color = 'purple') +
   geom_vline(data = generatedMean, aes(xintercept = meanGenAnom), color = 'limegreen', linetype = 'dashed')+
   theme_bw()
@@ -103,5 +104,7 @@ ggplot() +
   # NWS dots and lines
   stat_summary(data = NWSMeans, aes(Date, meanForecastDiff, ymax = ..y.., ymin = ..y..),
                fun.y = mean, geom = "errorbar", size = 1.2, color = 'purple') +
+  geom_point(data = NWSAnomsAll2, aes(Date, Anom_CF), shape = 21, fill = 'black', color = 'magenta') +
+  
   theme_bw()
 
