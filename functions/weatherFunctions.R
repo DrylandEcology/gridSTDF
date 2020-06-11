@@ -42,6 +42,7 @@ getWeatherData <- function(lat, lng) {
     
     nc <- suppressWarnings(brick(files[f], varname = 'air_temperature'))
     vals <- extract(nc, matrix(c(lng, lat), ncol = 2))[1,]
+    vals <- vals - 273.15
     wdata2[wdata2$Year == year, 'Tmax_C'][1:length(vals)] <- vals
     }
   # Tmin_C
@@ -51,6 +52,7 @@ getWeatherData <- function(lat, lng) {
     
     nc <- suppressWarnings(brick(files[f], varname = 'air_temperature'))
     vals <- extract(nc, matrix(c(lng, lat), ncol = 2))[1,]
+    vals <- vals - 273.15
     wdata2[wdata2$Year == year, 'Tmin_C'][1:length(vals)] <- vals
     }
   
@@ -61,14 +63,10 @@ getWeatherData <- function(lat, lng) {
     
     nc <- suppressWarnings(brick(files[f], varname = 'precipitation_amount'))
     vals <- extract(nc, matrix(c(lng, lat), ncol = 2))[1,]
+    vals <- vals/10
     wdata2[wdata2$Year == year, 'PPT_cm'][1:length(vals)] <- vals
       }
-  
-  # Convert 
-  wdata2$Tmax_C <- wdata2$Tmax_C - 273.15
-  wdata2$Tmin_C <- wdata2$Tmin_C - 273.15
-  wdata2$PPT_cm <- wdata2$PPT_cm/10
-  
+
   # if there isn't 365 days in each year ... na.locf for temp and put 0 for ppt?
   # fill in missing with weather generator when running SOILWAT
   wdata2$Tmax_C <- zoo::na.locf(wdata2$Tmax_C)
@@ -159,6 +157,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
   
   # PPT - keep in transformed units
   backT <- 1/PPTAnoms$PO
+  
   # convert
   PPTAnoms$ClimatatologicalMEAN_PPT_PO <- PPTAnoms$ClimatologicalMEAN ^ PPTAnoms$PO
   PPTAnoms$ClimatatologicalMEAN_PPT_cm <- PPTAnoms$ClimatologicalMEAN * 2.54
@@ -237,29 +236,25 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
       ### ---------
       ### year 2 - observed data for this year until today's date and then future, weathAnom data
       ### ---------
-      year2 <- thisYearObservedWData
+      year2 <- year2Fut <- weathAnomAll[weathAnomAll$Year == y, ]
+      year2$Year <- as.integer(currYear) # change year
       
-      year2Fut <- weathAnomAll[weathAnomAll$Year == y, ]
-      year2Fut$Year <- as.integer(currYear) # change year
+      # add observed data where appropriate
+      year2[1:currDOY,] <- thisYearObservedWData[1:currDOY,] # this works even when currDOY is 366 and year2 DF only has 365 rows
       
-      # add future data where appropriate
-      if(days == 366 & y %in% seq(1980, 2010, 4)) 
-        year2[currDOY:days,] <- year2Fut[currDOY:days,] 
-      
-      # not a leap year but days taken from leap year...
-      if(days == 366 & y %in% years[! years %in% seq(1980, 2010, 4)]) 
-        year2[currDOY:365,] <- year2Fut[currDOY:365,] 
-      
-      if(days == 365) 
-        year2[currDOY:365,] <- year2Fut[currDOY:365,] #what if days = 365 & y is leap year - will need to add aextra days (if days == 365 & y %in% seq(1,30,4) )
-      
+      # if "year2" is 365 days but current year is 366 days 
+      ## what to do?
+      if(days == 366 & nrow(year2) != 366) {
+        year2 <- rbind(year2, year2[365,])
+        year2$DOY[366] <- 366
+      }
       ### ---------
       ## year 3 ... forecasts that run into next year (aka 2021) and then scratch data for the rest of 2021
       ### ---------
-      year3 <- year2Fut 
+      year3 <- year2Fut  
       if(days == 366) year3 <- year3[1:365,] #if this year is 366 days, next year needs to be 365
       year3$Year <- as.integer(currYear + 1)
-      
+
       weathAnomOneSim <- rbind(year1, year2, year3)
       weathAnomOneSim <- dbW_dataframe_to_weatherData(weathAnomOneSim, round = 4)
       
@@ -285,7 +280,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
 generateAnomalyData <- function(monthlyWdata, TempAnoms, PPTAnoms, 
                                 leads, Nleads, n = 30) {
   
-  set.seed(1125)
+  #set.seed(1125)
   
   # one table
   forecast_NWS <- merge(TempAnoms[,c('LEAD','ClimatologicalMEAN_Temp_C', 'ForecastedSD_Temp_C', 'Anom_C')],

@@ -57,13 +57,10 @@ forbs <- bg <- trees <- 0
     # get historical weather data -> using geoknife ... this takes very long and needs to be changed
 
      # print(Sys.time())
-     # wdata <- getWeatherData(lat, lng)
+     #wdata <- getWeatherData(lat, lng)
      #  print(Sys.time())
-    # write.csv(wdata, 'wdata.csv', row.names = FALSE)
+    #write.csv(wdata, 'ExampleData/wdata.csv', row.names = FALSE)
     wdata <- fread('ExampleData/wdata.csv')
-    #wdata$Date <- NULL
-    # get weather coefficients data for weather generator
-    #res2 <- getWeatherCoefficientsFromHistorical(wdata)
 
     ################### ----------------------------------------------------------------
     # Part 2 - Sets soils and veg
@@ -98,14 +95,47 @@ forbs <- bg <- trees <- 0
     sw_out0 <- sw_exec(inputData = sw_in0, weatherList = weath)
     HistDataAll <- getOutputs(sw_out0)
     
+    # format outputs
+    HistDataNormMean <- HistDataAll[HistDataAll$Year %in% 1981:2010, ]
+    HistDataNormMean$Year <- NULL
+    HistDataNormMean <- setnames(setDT(HistDataNormMean)[ ,sapply(.SD, function(x) list(med=median(x),
+                                                                                        x10=quantile(x, .1, na.rm = TRUE),
+                                                                                        x90 = quantile(x, .9, na.rm = TRUE))),
+                                                          .(Day)],
+                                 c('Day', sapply(names(HistDataNormMean)[-c(1)], paste0, c(".med", ".10", ".90"))))# get all means and sds!!!
+    
+    #  -------------------------------------------------------------------------------------------------
     # Run 2 - with future anomaly data
-    AnomalyData1 <- suppressMessages(runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 30, SoilsDF))
-
-
+    AnomalyData1 <- suppressMessages(runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 10, SoilsDF))
+    
+    
     ################### ----------------------------------------------------------------
     # Part 4 - Returned formatted outputs
     ################### ----------------------------------------------------------------
-#    return(list(AnomalyData, HistDataAll)) # AnomalyData, HistData, VWC_AllYears1, VWC_AllYears2
+    AllOut <- AnomalyData1[[1]]
+    MonthlyAnoms <- AnomalyData1[[2]]
+    
+    #FutureData <- AllOut[AllOut$Date > c(Sys.Date()), ]
+    
+    AllOut <- setorder(AllOut, run, Date)
+    AllOut$run <- AllOut$Year <- AllOut$Day <- NULL 
+    
+    AnomRunStats <- setnames(setDT(AllOut)[, sapply(.SD, function(x) list(med=median(x), 
+                                                                          x10=quantile(x, .1, na.rm = TRUE), 
+                                                                          x90 = quantile(x, .9, na.rm = TRUE))),
+                                           .(Date)],
+                             c('Date', sapply(names(AllOut)[-c(11)], paste0, c(".med", ".10", '.90'))))# get all means and sds!!!
+    
+    
+    AnomRunStats <- AnomRunStats[AnomRunStats$Date > Sys.Date() - 183, ] # 6 month lead ins 
+    AnomRunStats$Time <- ifelse(AnomRunStats$Date < Sys.Date(), 'Observed', 'Future')
+    
+    # write out consolidated data ---------------------------------------------------------------
+    fwrite(HistDataNormMean, 'ExampleData/HistDataNormMean.csv') 
+    #fwrite(MonthlyAnoms, 'ExampleData/MonthlyAnoms.csv')
+    fwrite(AnomRunStats, 'ExampleData/AnomRunStats.csv')
+    
+    #    return(list(AnomalyData, HistDataAll)) # AnomalyData, HistData, VWC_AllYears1, VWC_AllYears2
 
 #}
 

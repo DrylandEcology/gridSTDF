@@ -1,5 +1,6 @@
 # Plots comparing the distribution of generated anomaly data at the Monthly level
 # to NWS values for the same monthly periods
+#https://stackoverflow.com/questions/6967664/ggplot2-histogram-with-normal-curve 
 
 print('Density plots of monthly anomalies used in SOILWAT2 vs NWS')
 
@@ -18,7 +19,7 @@ NWSMeans$Date <- as.Date(paste0(NWSMeans$Year, '-', NWSMeans$Month, '-05'))
 
 ggplot(MonthlyAnoms2, aes(tempAnom)) +
   geom_histogram(aes(y=..density..), colour="black", fill="white", binwidth =.1)+
-  geom_density(alpha=.2, fill="#FF6666") +
+  geom_density(alpha=.2, fill="green") +
   facet_wrap(~Month, scales = 'free') +
   labs(title = 'Temperature anomalies by Month') +
   geom_vline(data = NWSMeans, aes(xintercept = meanAnom), color = 'purple') +
@@ -54,12 +55,13 @@ NWSMeans$Date <- as.Date(paste0(NWSMeans$Year, '-', NWSMeans$Month, '-05'))
 # hists
 ggplot(MonthlyAnoms2, aes(pptAnom_cm)) +
   geom_histogram(aes(y=..density..), colour="black", fill="white")+
-  geom_density(alpha=.2, fill="#FF6666") +
+  geom_density(alpha=.2, fill="green") +
   facet_wrap(~Month, scales = 'free') +
   labs(title = 'Precipitation anomalies (cm) by Month') +
   geom_vline(data = NWSMeans, aes(xintercept = meanForecastDiff), color = 'purple') +
   geom_vline(data = generatedMean, aes(xintercept = meanGenAnom), color = 'limegreen', linetype = 'dashed')+
-  theme_bw()
+  theme_bw() +
+  xlim(-2, 2)
 
 # boxplots
 ggplot() +
@@ -88,12 +90,13 @@ generatedMean <- setDT(MonthlyAnoms2)[,.(meanGenAnom = mean(pptAnom_CF)), .(Mont
 # hists
 ggplot(MonthlyAnoms2, aes(pptAnom_CF)) +
   geom_histogram(aes(y=..density..), colour="black", fill="white")+
-  geom_density(alpha=.2, fill="#FF6666") +
+  geom_density(alpha=.2, fill="green") +
   facet_wrap(~Month, scales = 'free') +
-  labs(title = 'Precipitation anomalies (CF) by Month') +
+  labs(title = 'Precipitation anomalies (CF) by Month', x = 'Precipitation CF') +
   geom_vline(data = NWSMeans, aes(xintercept = meanForecastDiff), color = 'purple') +
   geom_vline(data = generatedMean, aes(xintercept = meanGenAnom), color = 'limegreen', linetype = 'dashed')+
-  theme_bw()
+  theme_bw() +
+  xlim(0, 3)
 
 # boxplots
 ggplot() +
@@ -105,6 +108,8 @@ ggplot() +
   stat_summary(data = NWSMeans, aes(Date, meanForecastDiff, ymax = ..y.., ymin = ..y..),
                fun.y = mean, geom = "errorbar", size = 1.2, color = 'purple') +
   geom_point(data = NWSAnomsAll2, aes(Date, Anom_CF), shape = 21, fill = 'black', color = 'magenta') +
+  labs(title = 'Precipitation anomalies (CF) by Month', y = 'Precipitation CF') +
+  
   
   theme_bw()
 
