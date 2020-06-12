@@ -75,6 +75,7 @@ pptNWSDensity$ForecastedVal_in <- (pptNWSDensity$vals) ^ (1/pptNWSDensity$PO)
 pptNWSDensity$ForecastedVal_cm <- pptNWSDensity$ForecastedVal_in * 2.54
 pptNWSDensity$PPT_CF <- pptNWSDensity$ForecastedVal_cm / pptNWSDensity$ClimatatologicalMEAN_PPT_cm
 
+summary(pptNWSDensity)
 # ---------- 2: Generated multivariate anomalies (Green)
 # transformed forecast
 pptGenAnoms <- data.table(generatedAnomData[, , "PT_GenForecasted_PO"])
@@ -193,6 +194,6 @@ ggplot(pptAnalyticalDensity, aes(x = x_CF)) +
   geom_vline(data = pptNWSDensityMean, aes(xintercept = Anom_mean), color = 'purple',  lty = 'dashed')+
   geom_vline(data = PPTAnoms[1:12,], aes(xintercept = Anom_CF), color = 'blue', lty = 'twodash') +
 
-  theme_bw() + 
-  xlim(0, 2.5)
+  theme_bw()  
+ # xlim(0, 2.5)
    
