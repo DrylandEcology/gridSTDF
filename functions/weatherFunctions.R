@@ -216,7 +216,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
     
     # Step 4 ----------------------------------------------------------------------------------------------
     # Create future weather / integrate anomaly data into historical weather ----------------------------------------------------------
-    years <- 1981:2010
+    years <- 1981:2011
     wdata2 <- wdata[wdata$Year %in% years, ]
     weathAnomAll <- suppressWarnings(integrateAnomalyData(wdata2, yearlydat))
     
@@ -231,7 +231,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
     thisYearObservedWData <- wdata[wdata$Year == currYear, c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')]
     days <- dim(thisYearObservedWData)[1]
 
-    for(y in years){
+    for(y in 1981:2010){
    #   print(y)
       ### ---------
       ### year 2 - observed data for this year until today's date and then future, weathAnom data
@@ -251,8 +251,8 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
       ### ---------
       ## year 3 ... forecasts that run into next year (aka 2021) and then scratch data for the rest of 2021
       ### ---------
-      year3 <- year2Fut  
-      if(days == 366) year3 <- year3[1:365,] #if this year is 366 days, next year needs to be 365
+      year3 <-  weathAnomAll[weathAnomAll$Year == y + 1, ]  
+      if(days == 366) year3 <- year3[1:365,] #if this year is 366 days, next year or the year after that needs to be 365
       year3$Year <- as.integer(currYear + 1)
 
       weathAnomOneSim <- rbind(year1, year2, year3)
@@ -280,7 +280,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
 generateAnomalyData <- function(monthlyWdata, TempAnoms, PPTAnoms, 
                                 leads, Nleads, n = 30) {
   
-  #set.seed(1125)
+  set.seed(1125)
   
   # one table
   forecast_NWS <- merge(TempAnoms[,c('LEAD','ClimatologicalMEAN_Temp_C', 'ForecastedSD_Temp_C', 'Anom_C')],
@@ -317,6 +317,7 @@ generateAnomalyData <- function(monthlyWdata, TempAnoms, PPTAnoms,
     kcov["dPPT_PO", "dPPT_PO"] <- t(forecast_NWS[k, "ForecastedSD"] ^ 2)
     
     # Draw multivariate normal anomalies: Sigma may not be positive definite
+    # write message that confirms that mvrnorm worked for each lead
     tmp <- tryCatch(
         MASS::mvrnorm(
           n = n,
@@ -327,20 +328,26 @@ generateAnomalyData <- function(monthlyWdata, TempAnoms, PPTAnoms,
        
        error = function(e) {
          # Try & Make sigma positive definite
+         message(paste('Attempting to make lead', k, 'positive definite'))
+         print(kcov)
+               
          kcov2 <- Matrix::nearPD(
            x = kcov,
            keepDiag = FALSE,
            maxit = 1000
          )
-         
         if (kcov2[["converged"]]) {
+          
+          message(paste('kcov for lead', k, 'successfuly converged'))
+          print(kcov2$mat)
+          
           tmp <- MASS::mvrnorm(
             n = n,
             mu = as.numeric(forecast_NWS[k, c("Anom_C", "Anom_PO")]),  # Means as forecasted NWS anoms
             Sigma = kcov2$mat,
             empirical = TRUE)
         } else {
-          print(paste('drawing independent anomalies for lead', k))
+          message(paste('drawing independent anomalies for lead', k))
           # draw instead independent anomalies
           kcov["dPPT_PO", "dT_C"] <- kcov["dT_C", "dPPT_PO"] <- 0
           tmp <- MASS::mvrnorm(
