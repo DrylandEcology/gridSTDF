@@ -66,23 +66,21 @@ ggplot() +
 
 # PRECIP
 # ----------------------------------------------------------------------------------
-# --------- 1: NWS random univariate sample (Purple)
-pptNWSDensity <- PPTAnoms[,.(vals = rnorm(1000, mean = ForecastedMEAN_PPT_PO, sd = ForecastedSD)), .(LEAD)]
-pptNWSDensityMean <- pptNWSDensity[,.(Anom_mean = mean(vals)), .(LEAD)]
+# --------- 1: NWS random univariate sample (orange)
+s <- 1000
+pptNWSDensity <- PPTAnoms[,.(UVNWS_vals = rnorm(s, mean = ForecastedMEAN_PPT_PO, sd = ForecastedSD)), .(LEAD)]
+pptNWSDensityMean <- pptNWSDensity[,.(UVNWSmean = mean(UVNWS_vals)), .(LEAD)]
+pptNWSDensityMedian <- pptNWSDensity[,.(UVNWSmedian = median(UVNWS_vals)), .(LEAD)]
 
-pptNWSDensity <- merge(pptNWSDensity, PPTAnoms[,c('LEAD', 'PO', 'ForecastedSD', 'ForecastedMEAN_PPT_PO', 'ForecastedMEAN_PPT_cm', 'ClimatatologicalMEAN_PPT_cm')])
-pptNWSDensity$ForecastedVal_in <- (pptNWSDensity$vals) ^ (1/pptNWSDensity$PO)
-pptNWSDensity$ForecastedVal_cm <- pptNWSDensity$ForecastedVal_in * 2.54
-pptNWSDensity$PPT_CF <- pptNWSDensity$ForecastedVal_cm / pptNWSDensity$ClimatatologicalMEAN_PPT_cm
+# conversions!
+pptNWSDensity <- merge(pptNWSDensity, PPTAnoms[,c('LEAD', 'PO', 'ClimatatologicalMEAN_PPT_cm', 'ClimatatologicalMEDIAN_PPT_cm')])
+pptNWSDensity$UVNWS_ForecastedVal_in <- (pptNWSDensity$UVNWS_vals) ^ (1/pptNWSDensity$PO)
+pptNWSDensity$UVNWS_ForecastedVal_cm <- pptNWSDensity$UVNWS_ForecastedVal_in * 2.54
+pptNWSDensity$UVNWS_PPT_CF_MEAN <- pptNWSDensity$UVNWS_ForecastedVal_cm / pptNWSDensity$ClimatatologicalMEAN_PPT_cm
+pptNWSDensity$UVNWS_PPT_CF_MEDIAN <- pptNWSDensity$UVNWS_ForecastedVal_cm / pptNWSDensity$ClimatatologicalMEDIAN_PPT_cm
 
-summary(pptNWSDensity)
-# ---------- 2: Generated multivariate anomalies (Green)
-# transformed forecast
-pptGenAnoms <- data.table(generatedAnomData[, , "PT_GenForecasted_PO"])
-pptGenAnoms$LEAD <- row.names(pptGenAnoms)
-pptGenAnoms$LEAD <- factor(pptGenAnoms$LEAD, levels = c(1:12))
-pptGenAnoms <- melt(pptGenAnoms, id.vars = 'LEAD')
-pptGenAnomsMean <- pptGenAnoms[,.(Forecast_mean = mean(value)),.(LEAD)]
+print('Table of NWS randomly sampled univariate values')
+pptNWSDensity
 
 # ---------- 3: Analytical distribution (BLUE)
 pptAnalyticalDensity <- data.frame()
@@ -90,110 +88,228 @@ pptAnalyticalDensity <- data.frame()
 for(L in 1:12) {
   z <- subset(PPTAnoms, LEAD == L)
   zz <- subset(pptNWSDensity, LEAD == L)
+  
   # sequence of values within 4 sds of the mean
   climmean <- z$ClimatatologicalMEAN_PPT_cm
+  climmedian <- z$ClimatatologicalMEDIAN_PPT_cm
   meanL <- z$ForecastedMEAN_PPT_PO
   sdL <- z$ForecastedSD
   PO <- z$PO
   
   x <-  seq(meanL - (sdL * 4), 
-            meanL + (sdL * 4), length = nobs)
+            meanL + (sdL * 4), length = s)
   
   x_in <-  x ^ (1/PO)
   x_cm <- x_in * 2.54
-  x_CF <- x_cm/climmean
+  x_CF <- x_cm/climmedian
   
   # predictions of curve
   y <-  dnorm(x, mean = meanL, sd = sdL)
   # convert
   y_in <- y ^ (1/PO)
   y_cm <- y_in * 2.54
-  y_CF <- y_cm/climmean
+  y_CF <- y_cm/climmedian
   
   data <- data.frame(x = x, x_in = x_in, x_cm = x_cm, x_CF = x_CF,
-                  y = y,  y_in = y_in, y_cm = y_cm, y_CF = y_CF,
-                  LEAD = L, mean = meanL, sd =sdL, PO = PO )
+                     y = y,  y_in = y_in, y_cm = y_cm, y_CF = y_CF,
+                     LEAD = L, mean = meanL, sd =sdL, PO = PO )
   
   pptAnalyticalDensity <- rbind(pptAnalyticalDensity, data)
-
+  
 }
+print('Analytical Distribution')
+pptAnalyticalDensity
+pptAnalyticalDensityMean <- setDT(pptAnalyticalDensity)[,.(AnalyticalMean_PO = mean(x)),.(LEAD)]
+pptAnalyticalDensityMedian <- setDT(pptAnalyticalDensity)[,.(AnalyticalMedian_PO = median(x)),.(LEAD)]
+
+
+# ---------- 2: Generated multivariate anomalies (Green)
+# transformed forecast
+pptGenAnoms <- data.table(generatedAnomData[, , "PT_GenForecasted_PO"])
+pptGenAnoms$LEAD <- row.names(pptGenAnoms)
+pptGenAnoms$LEAD <- factor(pptGenAnoms$LEAD, levels = c(1:12))
+print('Multivariate sampled precipitation values - total forecast amount in transformed units')
+#pptGenAnoms
+
+pptGenAnoms <- melt(pptGenAnoms, id.vars = 'LEAD')
+pptGenAnomsMean <- pptGenAnoms[,.(MVGenMean = mean(value)),.(LEAD)]
+pptGenAnomsMedian <- pptGenAnoms[,.(MVGenMed = median(value)),.(LEAD)]
+
+
+# Make Table of means 
+AllPPTMeans_PO <- cbind(pptNWSDensityMean, pptGenAnomsMean, pptAnalyticalDensityMean, NWS_Forecast_Mean_PO = PPTAnoms$ForecastedMEAN_PPT_PO, PO = PPTAnoms$PO)
+AllPPTMedians_PO <- cbind(pptNWSDensityMedian, pptGenAnomsMedian, pptAnalyticalDensityMedian, NWS_Forecast_Mean_PO = PPTAnoms$ForecastedMEAN_PPT_PO, PO = PPTAnoms$PO)
 
 # scale!
 bw1 <- .2 # binwidth .. important for scaling y axis to a count
-nobs <- 1000 # sample size
-pptAnalyticalDensity$y_scale <- pptAnalyticalDensity$y * bw1 * nobs
+pptAnalyticalDensity$y_scale <- pptAnalyticalDensity$y * bw1 * s
+pptAnalyticalDensityMean <- setDT(pptAnalyticalDensity)[,.(AnalyticalMean_PO = mean(x)),.(LEAD)]
+pptAnalyticalDensityMedian <- setDT(pptAnalyticalDensity)[,.(AnalyticalMedian_PO = median(x)),.(LEAD)]
 
-ggplot(pptAnalyticalDensity, aes(x = x)) + 
+p1 <- ggplot(pptAnalyticalDensity, aes(x = x)) + 
   geom_histogram(data = pptGenAnoms, aes(x = value),  color = 'black', fill = 'green', alpha = .2,  binwidth = bw1) +
-  geom_histogram(data = pptNWSDensity, aes(x = vals), color = 'black', fill = 'purple', alpha = .2, binwidth = bw1) +
+  geom_histogram(data = pptNWSDensity, aes(x = UVNWS_vals), color = 'black', fill = 'orange', alpha = .2, binwidth = bw1) +
   geom_line(aes(y = y_scale), color = 'blue', size = 1.5) + 
   
-  facet_wrap(~ LEAD, scales = 'free') +
+  facet_wrap(~ LEAD, scales = 'free', nrow =4) +
   
   labs(title = 'Precipitation by LEAD; Total forecasted precip (PO)') +
-  
-  geom_vline(data = pptGenAnomsMean, aes(xintercept = Forecast_mean), color = 'green')+
-  geom_vline(data = pptNWSDensityMean, aes(xintercept = Anom_mean), color = 'purple', lty = 'dashed') +
-  geom_vline(data = pptAnalyticalDensity, aes(xintercept = mean), color = 'blue', lty = 'twodash') +
   theme_bw()
 
+p1Means <- p1 +
+  
+  labs(title = 'Precipitation by LEAD; Total forecasted precip (PO) 
+       with Mean Lines') +
+  
+  geom_vline(data = pptGenAnomsMean, aes(xintercept = MVGenMean), color = 'green')+
+  geom_vline(data = pptNWSDensityMean, aes(xintercept = UVNWSmean), color = 'orange') +
+  geom_vline(data = pptAnalyticalDensityMean, aes(xintercept = AnalyticalMean_PO), color = 'blue') +
+  geom_vline(data = PPTAnoms[1:12,], aes(xintercept = ForecastedMEAN_PPT_PO), color = 'purple') 
+
+p1Medians <- p1 +
+  
+  labs(title = 'Precipitation by LEAD; Total forecasted precip (PO)
+       with Median (dashed) vs. Mean (solid) Lines') +
+  # these are means
+  geom_vline(data = pptGenAnomsMean, aes(xintercept = MVGenMean), color = 'green')+
+  geom_vline(data = pptNWSDensityMean, aes(xintercept = UVNWSmean), color = 'orange') +
+  geom_vline(data = pptAnalyticalDensityMean, aes(xintercept = AnalyticalMean_PO), color = 'blue') +
+  geom_vline(data = PPTAnoms[1:12,], aes(xintercept = ForecastedMEAN_PPT_PO), color = 'purple') 
+
+  # these are medians
+ geom_vline(data = pptGenAnomsMedian, aes(xintercept = MVGenMed), color = 'green', lty = 'dashed')+
+  geom_vline(data = pptNWSDensityMedian, aes(xintercept = UVNWSmedian), color = 'orange', lty = 'dashed') +
+  geom_vline(data = pptAnalyticalDensityMedian, aes(xintercept = AnalyticalMedian_PO), color = 'blue', lty = 'dashed')
+
+print('Table of Means - Total Forecasted PPT (Transformed Units)')
+#PPTAnoms
+AllPPTMeans_PO
+p1Means
+print('Table of Medians - Forecasted PPT (Transformed Units)')
+AllPPTMedians_PO
+p1Medians
+
 # ----------------- in centimeters ------------------------------------
-# 1 (BLUE)
-pptNWSDensityMean <- pptNWSDensity[,.(Anom_mean = mean(ForecastedVal_cm)), .(LEAD)]
+# 1 UV NWS (orange)
+pptNWSDensityMean <- pptNWSDensity[,.(UVNWSmean = mean(UVNWS_ForecastedVal_cm)), .(LEAD)]
+pptNWSDensityMedian <- pptNWSDensity[,.(UVNWSmedian = median(UVNWS_ForecastedVal_cm)), .(LEAD)]
 
-# 2 (RED)
-pptGenAnoms <- data.table(generatedAnomData[, , "PPT_GenForecasted_cm"])
+# 2 MV Gen (Green)
+pptGenAnoms <- data.table(generatedAnomData[, , "PPT_GenForecasted_cm"]) # to see how these numbers  are converted to cm .... need to visit generateAnomaly
 pptGenAnoms$LEAD <- row.names(pptGenAnoms)
-pptGenAnoms <- melt(pptGenAnoms, id.vars = 'LEAD')
-pptGenAnomsMean <- pptGenAnoms[,.(Forecast_mean = mean(value)),.(LEAD)]
+print('Multivariate sampled precipitation values - total forecast amount in cm')
+#pptGenAnoms
 
-# 3 (GREEN)
+pptGenAnoms <- melt(pptGenAnoms, id.vars = 'LEAD')
+pptGenAnomsMean <- pptGenAnoms[,.(MVGenMean = mean(value)),.(LEAD)]
+pptGenAnomsMedian <- pptGenAnoms[,.(MVGenMed = median(value)),.(LEAD)]
+
+# 3 Analytical (BLUE)
+pptAnalyticalDensityMean <- setDT(pptAnalyticalDensity)[,.(AnalyticalMean_cm = mean(x_cm)),.(LEAD)]
+pptAnalyticalDensityMedian <- setDT(pptAnalyticalDensity)[,.(AnalyticalMedian_cm = median(x_cm)),.(LEAD)]
+
+# Make Table of means/median
+AllPPTMeans_CM <- cbind(pptNWSDensityMean, pptGenAnomsMean, pptAnalyticalDensityMean, NWS_Forecast_Mean_cm = PPTAnoms$ForecastedMEAN_PPT_cm)
+AllPPTMedians_CM <- cbind(pptNWSDensityMedian, pptGenAnomsMedian, pptAnalyticalDensityMedian, NWS_Forecast_Mean_cm = PPTAnoms$ForecastedMEAN_PPT_cm)
+
+# plot
+
 # scale!
 bw2 <- 2 # binwidth .. important for scaling y axis to a count
 pptAnalyticalDensity$y_cm_scale <- pptAnalyticalDensity$y_cm * 500
-summary(pptAnalyticalDensity)
 
-ggplot(pptAnalyticalDensity, aes(x = x_cm)) + 
+p2 <- ggplot(pptAnalyticalDensity, aes(x = x_cm)) + 
   geom_histogram(data = pptGenAnoms, aes(x = value),  color = 'black', fill = 'green', alpha = .2,  binwidth = bw2) +
-  geom_histogram(data = pptNWSDensity, aes(x = ForecastedVal_cm), color = 'black', fill = 'purple', alpha = .2, binwidth = bw2) +
- # geom_line(aes(y = y_cm_scale), color = 'blue', size = 1.5) + 
+  geom_histogram(data = pptNWSDensity, aes(x = UVNWS_ForecastedVal_cm), color = 'black', fill = 'orange', alpha = .2, binwidth = bw2) +
+  #geom_line(aes(y = y_cm_scale), color = 'blue', size = 1.5) + 
   
-  facet_wrap(~ LEAD, scales = 'free') +
+  facet_wrap(~ LEAD, scales = 'free', nrow =4) +
   
   labs(title = 'Precipitation by LEAD; Total forecasted precip (cm)') +
+  theme_bw()
+ 
+p2Means <- p2 +  
   
-  geom_vline(data = pptGenAnomsMean, aes(xintercept = Forecast_mean), color = 'green')+
-  geom_vline(data = pptNWSDensityMean, aes(xintercept = Anom_mean), color = 'purple', lty = 'dashed') +
-  geom_vline(data = PPTAnoms[1:12,], aes(xintercept = ForecastedMEAN_PPT_cm), color = 'blue', lty = 'twodash') 
-
+  labs(title = 'Precipitation by LEAD; Total forecasted precip (cm); With mean lines') +
   
-# -----------------------------------------------------------
-# 1 (BLUE)
-pptNWSDensityMean <- pptNWSDensity[,.(Anom_mean = mean(PPT_CF)), .(LEAD)]
+  #means
+  geom_vline(data = pptGenAnomsMean, aes(xintercept = MVGenMean), color = 'green')+
+  geom_vline(data = pptNWSDensityMean, aes(xintercept = UVNWSmean), color = 'orange') +
+  geom_vline(data = pptAnalyticalDensityMean, aes(xintercept = AnalyticalMean_cm), color = 'blue') +
+  geom_vline(data = PPTAnoms[1:12,], aes(xintercept = ForecastedMEAN_PPT_cm), color = 'purple')
 
-# 2 (RED)
+p2Medians <- p2 +  
+  
+  labs(title = 'Precipitation by LEAD; Total forecasted precip (cm); With mean lines') +
+  
+  #means
+  geom_vline(data = pptGenAnomsMean, aes(xintercept = MVGenMean), color = 'green')+
+  geom_vline(data = pptNWSDensityMean, aes(xintercept = UVNWSmean), color = 'orange') +
+  geom_vline(data = pptAnalyticalDensityMean, aes(xintercept = AnalyticalMean_cm), color = 'blue') +
+  geom_vline(data = PPTAnoms[1:12,], aes(xintercept = ForecastedMEAN_PPT_cm), color = 'purple') +
+  # these are medians
+  geom_vline(data = pptGenAnomsMedian, aes(xintercept = MVGenMed), color = 'green', lty = 'dashed')+
+  geom_vline(data = pptNWSDensityMedian, aes(xintercept = UVNWSmedian), color = 'orange', lty = 'dashed') +
+  geom_vline(data = pptAnalyticalDensityMedian, aes(xintercept = AnalyticalMedian_cm), color = 'blue', lty = 'dashed')
+
+
+
+print('Table of Means - Total Forecasted PPT (cm)')
+AllPPTMeans_CM
+p2Means
+print('Table of Medians - Total Forecasted PPT (cm)')
+AllPPTMedians_CM
+p2Medians
+
+# ---------------------- CF -----------------------------
+# CF values calculated as forecasted mean / CLIMATOLOGICAL MEDIAN
+# 1 (Orange)
+pptNWSDensityMean <- pptNWSDensity[,.(UVNWSmean = mean(UVNWS_PPT_CF_MEDIAN)), .(LEAD)]
+pptNWSDensityMedian <- pptNWSDensity[,.(UVNWSmedian = median(UVNWS_PPT_CF_MEDIAN)), .(LEAD)]
+
+# 2 (Green)
 pptGenAnoms <- data.table(generatedAnomData [, , "PPT_CF"])
 pptGenAnoms$LEAD <- row.names(pptGenAnoms)
 pptGenAnoms <- melt(pptGenAnoms, id.vars = 'LEAD')
-pptGenAnomsMean <- pptGenAnoms[,.(PPT_CF = mean(value)),.(LEAD)]
+pptGenAnomsMean <- pptGenAnoms[,.(MVGenMean = mean(value)),.(LEAD)]
+pptGenAnomsMedian <- pptGenAnoms[,.(MVGenMed = median(value)),.(LEAD)]
 
-# 3 (GREEN)
+# 3 Analytical (BLUE)
+pptAnalyticalDensityMean <- setDT(pptAnalyticalDensity)[,.(AnalyticalMean_CF = mean(x_CF)),.(LEAD)]
+pptAnalyticalDensityMedian <- setDT(pptAnalyticalDensity)[,.(AnalyticalMedian_CF = median(x_CF)),.(LEAD)]
+
+# Make Table of means
+AllPPTMeans_CF <- cbind(pptNWSDensityMean, pptGenAnomsMean, pptAnalyticalDensityMean, NWS_PPT_CF_BasedOnMean = PPTAnoms$Anom_CF_MEAN, NWS_PPT_CF_BasedOnMedian = PPTAnoms$Anom_CF_MEDIAN)
+
+# plot
+
 # scale!
-bw3 <- .25 # binwidth .. important for scaling y axis to a count
-pptAnalyticalDensity$y_CF_scale <- pptAnalyticalDensity$y_CF * bw3 * nobs
+#bw3 <- .25 # binwidth .. important for scaling y axis to a count
+#pptAnalyticalDensity$y_CF_scale <- pptAnalyticalDensity$y_CF * bw3 * nobs
 
-ggplot(pptAnalyticalDensity, aes(x = x_CF)) + 
+p3 <- ggplot(pptAnalyticalDensity, aes(x = x_CF)) + 
   geom_histogram(data = pptGenAnoms, aes(x = value),  color = 'black', fill = 'green', alpha = .2,  binwidth = bw3) +
-  geom_histogram(data = pptNWSDensity, aes(x = PPT_CF), color = 'black', fill = 'purple', alpha = .2, binwidth = bw3) +
-  geom_line(aes(y = y_CF_scale), color = 'blue', size = 1.5)  +
+  geom_histogram(data = pptNWSDensity, aes(x = UVNWS_PPT_CF_MEDIAN), color = 'black', fill = 'orange', alpha = .2, binwidth = bw3) +
+  #geom_line(aes(y = y_CF_scale), color = 'blue', size = 1.5)  +
   
-  facet_wrap(~LEAD, scales = 'free') +
+  facet_wrap(~ LEAD, scales = 'free', nrow =4) +
+  theme_bw() 
+
+p3Means <- p3 +
+  
   labs(title = 'Precipitation by LEAD; Correction Factor') +
   
-  geom_vline(data = pptGenAnomsMean, aes(xintercept = PPT_CF), color = 'green') +
-  geom_vline(data = pptNWSDensityMean, aes(xintercept = Anom_mean), color = 'purple',  lty = 'dashed')+
-  geom_vline(data = PPTAnoms[1:12,], aes(xintercept = Anom_CF), color = 'blue', lty = 'twodash') +
+  geom_vline(data = pptGenAnomsMean, aes(xintercept = MVGenMean), color = 'green') +
+  geom_vline(data = pptNWSDensityMean, aes(xintercept = UVNWSmean), color = 'orange')+
+  geom_vline(data = pptAnalyticalDensityMean, aes(xintercept = AnalyticalMean_CF), color = 'blue') +
+  
+  geom_vline(data = PPTAnoms[1:12,], aes(xintercept = Anom_CF_MEAN), color = 'purple') +
+  geom_vline(data = PPTAnoms[1:12,], aes(xintercept = Anom_CF_MEDIAN), color = 'purple', lty = 'dashed') 
 
-  theme_bw()  
- # xlim(0, 2.5)
-   
+
+p3MeansZoom <- p3Means +    xlim(0, 2.5)
+# ---------------------------------
+print('Table of Means - Correction Factor')
+AllPPTMeans_CF
+p3Means
+p3MeansZoom

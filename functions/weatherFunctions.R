@@ -170,9 +170,18 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
   
   # calc - anomaly NEEDS to be in transformed units
   PPTAnoms$Anom_PO <- PPTAnoms$ForecastedMEAN_PPT_PO - PPTAnoms$ClimatatologicalMEAN_PPT_PO
-  PPTAnoms$Anom_cm <- PPTAnoms$ForecastedMEAN_PPT_cm - PPTAnoms$ClimatatologicalMEAN_PPT_cm
-  PPTAnoms$Anom_CF <- PPTAnoms$ForecastedMEAN / PPTAnoms$ClimatologicalMEAN
+  PPTAnoms$Anom_cm_MEAN <- PPTAnoms$ForecastedMEAN_PPT_cm - PPTAnoms$ClimatatologicalMEAN_PPT_cm
+  PPTAnoms$Anom_CF_MEAN <- PPTAnoms$ForecastedMEAN / PPTAnoms$ClimatologicalMEAN
   
+  # generate precipitation climatological median by sampling climatological populations mean and sd in transformed units
+  ClimatologicalPPTByLead <- PPTAnoms[,.(vals = rnorm(1000, mean = ClimatatologicalMEAN_PPT_PO, sd = ClimatologicalSD)), .(LEAD, PO)]
+  ClimatologicalPPTByLead$vals_in <- ClimatologicalPPTByLead$vals ^ (backT)
+  ClimatologicalPPTByLead$vals_cm <- ClimatologicalPPTByLead$vals_in * 2.54
+  ClimatologicalMedianByLead <- ClimatologicalPPTByLead[,.(ClimatatologicalMEDIAN_PPT_cm = median(vals_cm)), .(LEAD)]
+  
+  PPTAnoms$ClimatatologicalMEDIAN_PPT_cm <- ClimatologicalMedianByLead$ClimatatologicalMEDIAN_PPT_cm
+  PPTAnoms$Anom_cm_MEDIAN <- PPTAnoms$ForecastedMEAN_PPT_cm - PPTAnoms$ClimatatologicalMEDIAN_PPT_cm
+  PPTAnoms$Anom_CF_MEDIAN <- PPTAnoms$ForecastedMEAN_PPT_cm / PPTAnoms$ClimatatologicalMEDIAN_PPT_cm
   # fwrite(PPTAnoms, 'ExampleData/PPTAnoms.csv')
   # fwrite(TempAnoms, 'ExampleData/TempAnoms.csv')
    
@@ -188,7 +197,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
     
     # Step 3 Get monthly averages across leads --------------------------------------------------
     OneYearAnom <- generatedAnomData[ , nn, ]
-    OneYearAnom  <- cbind(OneYearAnom, Climatological_Mean_cm = PPTAnoms$ClimatatologicalMEAN_PPT_cm[1:12])
+    OneYearAnom  <- cbind(OneYearAnom, Climatological_MEDIAN_cm = PPTAnoms$ClimatatologicalMEDIAN_PPT_cm[1:12])
     OneYearAnom <- cbind(OneYearAnom, Anom_cm = OneYearAnom[,4] - OneYearAnom[,6])
     
     yearlydat <- data.frame(matrix(nrow = 12, ncol = 3))
@@ -209,6 +218,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
       yearlydat[m, 3] <-  mean(OneYearAnom[mLeads, 'PPT_CF'], na.rm = TRUE)
 
     }
+  
   
     MonthlyAnoms <- rbind(MonthlyAnoms, yearlydat)
   
@@ -373,7 +383,7 @@ generateAnomalyData <- function(monthlyWdata, TempAnoms, PPTAnoms,
   gen_anomalies_leads[, , 'PPT_GenForecasted_cm'] <- ((gen_anomalies_leads[, , 'PT_GenForecasted_PO']) ^ backT) * 2.54
   
   # calculate correction factor
-  gen_anomalies_leads[, , 'PPT_CF'] <- gen_anomalies_leads[, , 'PPT_GenForecasted_cm'] / PPTAnoms$ClimatatologicalMEAN_PPT_cm[1:12]
+  gen_anomalies_leads[, , 'PPT_CF'] <- gen_anomalies_leads[, , 'PPT_GenForecasted_cm'] / PPTAnoms$ClimatatologicalMEDIAN_PPT_cm[1:12]
   
   
   return(gen_anomalies_leads)

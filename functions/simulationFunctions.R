@@ -106,7 +106,7 @@ forbs <- bg <- trees <- 0
     
     #  -------------------------------------------------------------------------------------------------
     # Run 2 - with future anomaly data
-    AnomalyData1 <- suppressMessages(runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 10, SoilsDF))
+    AnomalyData1 <- (runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 10, SoilsDF))
     
     
     ################### ----------------------------------------------------------------
