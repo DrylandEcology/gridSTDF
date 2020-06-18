@@ -73,11 +73,10 @@ pptNWSDensityMean <- pptNWSDensity[,.(UVNWSmean = mean(UVNWS_vals)), .(LEAD)]
 pptNWSDensityMedian <- pptNWSDensity[,.(UVNWSmedian = median(UVNWS_vals)), .(LEAD)]
 
 # conversions!
-pptNWSDensity <- merge(pptNWSDensity, PPTAnoms[,c('LEAD', 'PO', 'ClimatatologicalMEAN_PPT_cm', 'ClimatatologicalMEDIAN_PPT_cm')])
+pptNWSDensity <- merge(pptNWSDensity, PPTAnoms[,c('LEAD', 'PO', 'ClimatatologicalMEAN_PPT_cm')])
 pptNWSDensity$UVNWS_ForecastedVal_in <- (pptNWSDensity$UVNWS_vals) ^ (1/pptNWSDensity$PO)
 pptNWSDensity$UVNWS_ForecastedVal_cm <- pptNWSDensity$UVNWS_ForecastedVal_in * 2.54
 pptNWSDensity$UVNWS_PPT_CF_MEAN <- pptNWSDensity$UVNWS_ForecastedVal_cm / pptNWSDensity$ClimatatologicalMEAN_PPT_cm
-pptNWSDensity$UVNWS_PPT_CF_MEDIAN <- pptNWSDensity$UVNWS_ForecastedVal_cm / pptNWSDensity$ClimatatologicalMEDIAN_PPT_cm
 
 print('Table of NWS randomly sampled univariate values')
 pptNWSDensity
@@ -91,7 +90,6 @@ for(L in 1:12) {
   
   # sequence of values within 4 sds of the mean
   climmean <- z$ClimatatologicalMEAN_PPT_cm
-  climmedian <- z$ClimatatologicalMEDIAN_PPT_cm
   meanL <- z$ForecastedMEAN_PPT_PO
   sdL <- z$ForecastedSD
   PO <- z$PO
@@ -101,14 +99,14 @@ for(L in 1:12) {
   
   x_in <-  x ^ (1/PO)
   x_cm <- x_in * 2.54
-  x_CF <- x_cm/climmedian
+  x_CF <- x_cm/climmean
   
   # predictions of curve
   y <-  dnorm(x, mean = meanL, sd = sdL)
   # convert
   y_in <- y ^ (1/PO)
   y_cm <- y_in * 2.54
-  y_CF <- y_cm/climmedian
+  y_CF <- y_cm/climmean
   
   data <- data.frame(x = x, x_in = x_in, x_cm = x_cm, x_CF = x_CF,
                      y = y,  y_in = y_in, y_cm = y_cm, y_CF = y_CF,
@@ -117,6 +115,7 @@ for(L in 1:12) {
   pptAnalyticalDensity <- rbind(pptAnalyticalDensity, data)
   
 }
+
 print('Analytical Distribution')
 pptAnalyticalDensity
 pptAnalyticalDensityMean <- setDT(pptAnalyticalDensity)[,.(AnalyticalMean_PO = mean(x)),.(LEAD)]
@@ -265,8 +264,8 @@ p2Medians
 # ---------------------- CF -----------------------------
 # CF values calculated as forecasted val / CLIMATOLOGICAL MEDIAN
 # 1 (Orange)
-pptNWSDensityMean <- pptNWSDensity[,.(UVNWSmean = mean(UVNWS_PPT_CF_MEDIAN)), .(LEAD)]
-pptNWSDensityMedian <- pptNWSDensity[,.(UVNWSmedian = median(UVNWS_PPT_CF_MEDIAN)), .(LEAD)]
+pptNWSDensityMean <- pptNWSDensity[,.(UVNWSmean = mean(UVNWS_PPT_CF_MEAN)), .(LEAD)]
+pptNWSDensityMedian <- pptNWSDensity[,.(UVNWSmedian = median(UVNWS_PPT_CF_MEAN)), .(LEAD)]
 
 # 2 (Green)
 pptGenAnoms <- data.table(generatedAnomData [, , "PPT_CF"])
@@ -291,7 +290,7 @@ bw3 <- .25 # binwidth .. important for scaling y axis to a count
 
 p3 <- ggplot(pptAnalyticalDensity, aes(x = x_CF)) + 
   geom_histogram(data = pptGenAnoms, aes(x = value),  color = 'black', fill = 'green', alpha = .2,  binwidth = bw3) +
-  geom_histogram(data = pptNWSDensity, aes(x = UVNWS_PPT_CF_MEDIAN), color = 'black', fill = 'orange', alpha = .2, binwidth = bw3) +
+  geom_histogram(data = pptNWSDensity, aes(x = UVNWS_PPT_CF_MEAN), color = 'black', fill = 'orange', alpha = .2, binwidth = bw3) +
   #geom_line(aes(y = y_CF_scale), color = 'blue', size = 1.5)  +
   
   facet_wrap(~ LEAD, scales = 'free', nrow =4) +

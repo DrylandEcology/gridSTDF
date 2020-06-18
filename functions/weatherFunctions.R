@@ -168,29 +168,11 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
   PPTAnoms$ForecastedSD_PPT_in <- as.numeric(PPTAnoms$ForecastedSD) ^ backT
   PPTAnoms$ForecastedSD_PPT_cm <- PPTAnoms$ForecastedSD_PPT_in * 2.54
   
-  # calc - anomaly NEEDS to be in transformed units
+  # Anomalies NEEDS to be in transformed units for MV sampling
   PPTAnoms$Anom_PO <- PPTAnoms$ForecastedMEAN_PPT_PO - PPTAnoms$ClimatatologicalMEAN_PPT_PO
-
-  # generate precipitation climatological median by sampling climatological populations mean and sd in transformed units
-  ClimatologicalPPTByLead <- PPTAnoms[,.(vals = rnorm(1000000, mean = ClimatatologicalMEAN_PPT_PO, sd = ClimatologicalSD)), 
-                                      .(LEAD, PO)]
-  
-  ClimatologicalPPTByLead$vals_in <- ClimatologicalPPTByLead$vals ^ (1/ClimatologicalPPTByLead$PO)
-  ClimatologicalPPTByLead$vals_cm <- ClimatologicalPPTByLead$vals_in * 2.54
-  ClimatologicalMedianByLead <- ClimatologicalPPTByLead[,.(ClimatologicalMEDIAN_PPT_cm = median(vals_cm, na.rm = TRUE)), .(LEAD)]
-  ClimatologicalMedianByLead_in <- ClimatologicalPPTByLead[,.(ClimatologicalMEDIAN_PPT_in = median(vals_in, na.rm = TRUE)), .(LEAD)]
-  
-  ForecastedPPTByLead <- PPTAnoms[,.(vals = rnorm(1000000, mean = ForecastedMEAN_PPT_PO, sd = ForecastedSD)), .(LEAD, PO)]
-  ForecastedPPTByLead$vals_in <- ForecastedPPTByLead$vals ^ (1/ForecastedPPTByLead$PO)
-  ForecastedPPTByLead$vals_cm <- ForecastedPPTByLead$vals_in * 2.54
-  ForecastedMedianByLead <- ForecastedPPTByLead[,.(ForecastedMEDIAN_PPT_cm = median(vals_cm, na.rm = TRUE)), .(LEAD)]
-  
-  PPTAnoms$ClimatologicalMEDIAN_PPT_in <-  ClimatologicalMedianByLead_in$ClimatologicalMEDIAN_PPT_in
-  PPTAnoms$ClimatatologicalMEDIAN_PPT_cm <- ClimatologicalMedianByLead$ClimatologicalMEDIAN_PPT_cm
-  PPTAnoms$ForecastedMEDIAN_PPT_cm_Internal <- ForecastedMedianByLead$ForecastedMEDIAN_PPT_cm
-  
-  PPTAnoms$Anom_cm <- PPTAnoms$ForecastedMEDIAN_PPT_cm_Internal - PPTAnoms$ClimatatologicalMEDIAN_PPT_cm
-  PPTAnoms$Anom_CF <- PPTAnoms$ForecastedMEDIAN_PPT_cm_Internal / PPTAnoms$ClimatatologicalMEDIAN_PPT_cm
+  # Anomalies for comparison
+  PPTAnoms$Anom_cm <- PPTAnoms$ForecastedMEAN_PPT_cm - PPTAnoms$ClimatatologicalMEAN_PPT_cm
+  PPTAnoms$Anom_CF <- PPTAnoms$ForecastedMEAN / PPTAnoms$ClimatologicalMEAN
   
   # fwrite(PPTAnoms, 'ExampleData/PPTAnoms.csv')
   # fwrite(TempAnoms, 'ExampleData/TempAnoms.csv')
@@ -207,7 +189,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
     
     # Step 3 Get monthly averages across leads --------------------------------------------------
     OneYearAnom <- generatedAnomData[ , nn, ]
-    OneYearAnom  <- cbind(OneYearAnom, Climatological_MEDIAN_cm = PPTAnoms$ClimatatologicalMEDIAN_PPT_cm[1:12])
+    OneYearAnom  <- cbind(OneYearAnom, Climatological_MEAN_cm = PPTAnoms$ClimatatologicalMEAN_PPT_cm[1:12])
     OneYearAnom <- cbind(OneYearAnom, Anom_cm = OneYearAnom[,4] - OneYearAnom[,6])
     
     yearlydat <- data.frame(matrix(nrow = 12, ncol = 3))
@@ -300,7 +282,10 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
 generateAnomalyData <- function(monthlyWdata, TempAnoms, PPTAnoms, 
                                 leads, Nleads, n = 30) {
   
-  set.seed(1125)
+  #set.seed(1125)
+  set.seed(sample(1:100000, 1))
+  
+ # set.seed(1000)
   
   # one table
   forecast_NWS <- merge(TempAnoms[,c('LEAD','ClimatologicalMEAN_Temp_C', 'ForecastedSD_Temp_C', 'Anom_C')],
@@ -393,8 +378,7 @@ generateAnomalyData <- function(monthlyWdata, TempAnoms, PPTAnoms,
   gen_anomalies_leads[, , 'PPT_GenForecasted_cm'] <- ((gen_anomalies_leads[, , 'PT_GenForecasted_PO']) ^ backT) * 2.54
   
   # calculate correction factor
- # gen_anomalies_leads[, , 'PPT_CF'] <-  gen_anomalies_leads[, , 'PT_GenForecasted_PO'] / PPTAnoms$ClimatatologicalMEDIAN_PPT_PO[1:12]
-  gen_anomalies_leads[, , 'PPT_CF'] <-  gen_anomalies_leads[, , 'PPT_GenForecasted_cm'] / PPTAnoms$ClimatatologicalMEDIAN_PPT_cm[1:12]
+  gen_anomalies_leads[, , 'PPT_CF'] <-  gen_anomalies_leads[, , 'PPT_GenForecasted_cm'] / PPTAnoms$ClimatatologicalMEAN_PPT_cm[1:12]
   
   
   return(gen_anomalies_leads)
