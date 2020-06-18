@@ -57,7 +57,7 @@ forbs <- bg <- trees <- 0
     # get historical weather data -> using geoknife ... this takes very long and needs to be changed
 
      # print(Sys.time())
-     #wdata <- getWeatherData(lat, lng)
+     # wdata <- getWeatherData(lat, lng)
      #  print(Sys.time())
     #write.csv(wdata, 'ExampleData/wdata.csv', row.names = FALSE)
     wdata <- fread('ExampleData/wdata.csv')

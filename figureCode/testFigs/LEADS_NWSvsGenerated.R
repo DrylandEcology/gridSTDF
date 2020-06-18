@@ -174,7 +174,7 @@ p1Medians <- p1 +
   geom_vline(data = pptGenAnomsMean, aes(xintercept = MVGenMean), color = 'green')+
   geom_vline(data = pptNWSDensityMean, aes(xintercept = UVNWSmean), color = 'orange') +
   geom_vline(data = pptAnalyticalDensityMean, aes(xintercept = AnalyticalMean_PO), color = 'blue') +
-  geom_vline(data = PPTAnoms[1:12,], aes(xintercept = ForecastedMEAN_PPT_PO), color = 'purple') 
+  geom_vline(data = PPTAnoms[1:12,], aes(xintercept = ForecastedMEAN_PPT_PO), color = 'purple') +
 
   # these are medians
  geom_vline(data = pptGenAnomsMedian, aes(xintercept = MVGenMed), color = 'green', lty = 'dashed')+
@@ -184,10 +184,10 @@ p1Medians <- p1 +
 print('Table of Means - Total Forecasted PPT (Transformed Units)')
 #PPTAnoms
 AllPPTMeans_PO
-p1Means
+print(p1Means)
 print('Table of Medians - Forecasted PPT (Transformed Units)')
 AllPPTMedians_PO
-p1Medians
+print(p1Medians)
 
 # ----------------- in centimeters ------------------------------------
 # 1 UV NWS (orange)
@@ -240,7 +240,8 @@ p2Means <- p2 +
 
 p2Medians <- p2 +  
   
-  labs(title = 'Precipitation by LEAD; Total forecasted precip (cm); With mean lines') +
+  labs(title = 'Precipitation by LEAD; Total forecasted precip (cm); With mean (solid)
+       and medians (dashed) lines') +
   
   #means
   geom_vline(data = pptGenAnomsMean, aes(xintercept = MVGenMean), color = 'green')+
@@ -262,7 +263,7 @@ AllPPTMedians_CM
 p2Medians
 
 # ---------------------- CF -----------------------------
-# CF values calculated as forecasted mean / CLIMATOLOGICAL MEDIAN
+# CF values calculated as forecasted val / CLIMATOLOGICAL MEDIAN
 # 1 (Orange)
 pptNWSDensityMean <- pptNWSDensity[,.(UVNWSmean = mean(UVNWS_PPT_CF_MEDIAN)), .(LEAD)]
 pptNWSDensityMedian <- pptNWSDensity[,.(UVNWSmedian = median(UVNWS_PPT_CF_MEDIAN)), .(LEAD)]
@@ -279,12 +280,13 @@ pptAnalyticalDensityMean <- setDT(pptAnalyticalDensity)[,.(AnalyticalMean_CF = m
 pptAnalyticalDensityMedian <- setDT(pptAnalyticalDensity)[,.(AnalyticalMedian_CF = median(x_CF)),.(LEAD)]
 
 # Make Table of means
-AllPPTMeans_CF <- cbind(pptNWSDensityMean, pptGenAnomsMean, pptAnalyticalDensityMean, NWS_PPT_CF_BasedOnMean = PPTAnoms$Anom_CF_MEAN, NWS_PPT_CF_BasedOnMedian = PPTAnoms$Anom_CF_MEDIAN)
+AllPPTMeans_CF <- cbind(pptNWSDensityMean, pptGenAnomsMean, pptAnalyticalDensityMean, NWS_PPT_CF = PPTAnoms$Anom_CF)
+AllPPTMedians_CF <- cbind(pptNWSDensityMedian, pptGenAnomsMedian, pptAnalyticalDensityMedian, NWS_PPT_CF = PPTAnoms$Anom_CF)
 
 # plot
 
 # scale!
-#bw3 <- .25 # binwidth .. important for scaling y axis to a count
+bw3 <- .25 # binwidth .. important for scaling y axis to a count
 #pptAnalyticalDensity$y_CF_scale <- pptAnalyticalDensity$y_CF * bw3 * nobs
 
 p3 <- ggplot(pptAnalyticalDensity, aes(x = x_CF)) + 
@@ -295,21 +297,20 @@ p3 <- ggplot(pptAnalyticalDensity, aes(x = x_CF)) +
   facet_wrap(~ LEAD, scales = 'free', nrow =4) +
   theme_bw() 
 
-p3Means <- p3 +
+p3Medians <- p3 +
   
   labs(title = 'Precipitation by LEAD; Correction Factor') +
   
-  geom_vline(data = pptGenAnomsMean, aes(xintercept = MVGenMean), color = 'green') +
-  geom_vline(data = pptNWSDensityMean, aes(xintercept = UVNWSmean), color = 'orange')+
-  geom_vline(data = pptAnalyticalDensityMean, aes(xintercept = AnalyticalMean_CF), color = 'blue') +
+  geom_vline(data = pptGenAnomsMedian, aes(xintercept = MVGenMed), color = 'green') +
+  geom_vline(data = pptNWSDensityMedian, aes(xintercept = UVNWSmedian), color = 'orange')+
+  geom_vline(data = pptAnalyticalDensityMedian, aes(xintercept = AnalyticalMedian_CF), color = 'blue') +
   
-  geom_vline(data = PPTAnoms[1:12,], aes(xintercept = Anom_CF_MEAN), color = 'purple') +
-  geom_vline(data = PPTAnoms[1:12,], aes(xintercept = Anom_CF_MEDIAN), color = 'purple', lty = 'dashed') 
+  geom_vline(data = PPTAnoms[1:12,], aes(xintercept = Anom_CF), color = 'purple') 
 
 
-p3MeansZoom <- p3Means +    xlim(0, 2.5)
+p3MediansZoom <- p3Medians +    xlim(0, 2.5)
 # ---------------------------------
-print('Table of Means - Correction Factor')
-AllPPTMeans_CF
-p3Means
-p3MeansZoom
+print('Table of Medians - Correction Factor')
+AllPPTMedians_CF
+p3Medians
+p3MediansZoom

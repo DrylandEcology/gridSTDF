@@ -55,8 +55,7 @@ getCPCData <- function(url, var) {
     }
   if(var == 'ppt'){
     #tmpData4[,c('ForecastedMEAN', 'ClimatologicalMEAN', 'ForecastedSD', 'ClimatologicalSD')] <- tmpData4[,c('ForecastedMEAN', 'ClimatologicalMEAN', 'ForecastedSD', 'ClimatologicalSD')] * 2.54
-    tmpData4 <- tmpData4[,c('YEAR', 'MN', 'LEAD', 'CD','ForecastedMEAN', 'ClimatologicalMEAN', 'ForecastedSD', 'ClimatologicalSD', 'PO')]
-    
+    tmpData4 <- tmpData4[,c('YEAR', 'MN', 'LEAD', 'CD','ForecastedMEAN', 'ClimatologicalMEAN', 'ForecastedSD', 'ClimatologicalSD', 'PO', "2.", "10.", "30.", "50.", "70.", "90.", "98.")]
     }
   
   # get anomalies ------------------------------------------------------------------------------------------

@@ -49,9 +49,10 @@ names(NWSMeans)[1] <- 'Month'
 NWSMeans$Month <- factor(NWSMeans$Month, levels = c(6:12, 1:5))
 NWSMeans$Year <- c(rep(2021,5), rep(2020, 7))
 NWSMeans$Date <- as.Date(paste0(NWSMeans$Year, '-', NWSMeans$Month, '-05'))
-
+NWSMeans
 
 generatedMean <- setDT(MonthlyAnoms2)[,.(meanGenAnom = mean(pptAnom_cm)), .(Month)]
+generatedMean
 
 # hists
 ggplot(MonthlyAnoms2, aes(pptAnom_cm)) +
