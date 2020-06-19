@@ -4,7 +4,7 @@
 
 print('Density plots of monthly anomalies used in SOILWAT2 vs NWS')
 
-source('figureCode/testFigs/FigureDataPrep.R')
+source('figureCode/FigureDataPrep.R')
 MonthlyAnoms2 <- MonthlyAnoms # monthly anamoly data entered into SW
 MonthlyAnoms2$Month <- factor(MonthlyAnoms2$Month, levels = c(6:12, 1:5))
 generatedMean <- setDT(MonthlyAnoms2)[,.(meanGenAnom = mean(tempAnom)), .(Month)]
@@ -81,7 +81,7 @@ ggplot() +
 
 
 # CF
-NWSMeans <- setDT(NWSAnomsAll2)[,.(meanForecastDiff = mean(Anom_CF_MEDIAN)), .(m)]
+NWSMeans <- setDT(NWSAnomsAll2)[,.(meanForecastDiff = mean(Anom_CF)), .(m)]
 names(NWSMeans)[1] <- 'Month'
 NWSMeans$Month <- factor(NWSMeans$Month, levels = c(6:12, 1:5))
 NWSMeans$Year <- c(rep(2021,5), rep(2020, 7))
@@ -109,7 +109,7 @@ ggplot() +
   # NWS dots and lines
   stat_summary(data = NWSMeans, aes(Date, meanForecastDiff, ymax = ..y.., ymin = ..y..),
                fun.y = mean, geom = "errorbar", size = 1.2, color = 'purple') +
-  geom_point(data = NWSAnomsAll2, aes(Date, Anom_CF_MEDIAN), shape = 21, fill = 'black', color = 'magenta') +
+  geom_point(data = NWSAnomsAll2, aes(Date, Anom_CF), shape = 21, fill = 'black', color = 'magenta') +
   labs(title = 'Precipitation anomalies (CF) by Month', y = 'Precipitation CF') +
   
   

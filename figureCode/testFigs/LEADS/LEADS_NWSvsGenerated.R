@@ -10,7 +10,7 @@ generatedAnomData <- readRDS('ExampleData/generatedAnomData')
 
 #------ Check generated anamalies against NWS anomalies
 # --------- 1: NWS random univariate sample (MAGENTA)
-tempNWSDensity <- TempAnoms[,.(vals = rnorm(1000, mean = Anom_C, sd = ForecastedSD_Temp_C)),
+tempNWSDensity <- TempAnoms[,.(vals = rnorm(30, mean = Anom_C, sd = ForecastedSD_Temp_C)),
                             .(LEAD)]
 tempNWSDensityMean <- tempNWSDensity[,.(Anom_mean = mean(vals)), .(LEAD)]
 
@@ -22,7 +22,7 @@ tempGenAnoms <- melt(tempGenAnoms, id.vars = 'LEAD')
 tempGenAnomsMean <- tempGenAnoms[,.(dT_mean = mean(value)),.(LEAD)]
 
 # ----------- 3: Analytical sample (BLUE)
-nobs = 1000
+nobs = 30
 tempAnalyticalDensity <- data.frame()
 
   for(L in 1:12){
@@ -67,7 +67,7 @@ ggplot() +
 # PRECIP
 # ----------------------------------------------------------------------------------
 # --------- 1: NWS random univariate sample (orange)
-s <- 1000
+s <- 30
 pptNWSDensity <- PPTAnoms[,.(UVNWS_vals = rnorm(s, mean = ForecastedMEAN_PPT_PO, sd = ForecastedSD)), .(LEAD)]
 pptNWSDensityMean <- pptNWSDensity[,.(UVNWSmean = mean(UVNWS_vals)), .(LEAD)]
 pptNWSDensityMedian <- pptNWSDensity[,.(UVNWSmedian = median(UVNWS_vals)), .(LEAD)]
@@ -150,7 +150,7 @@ p1 <- ggplot(pptAnalyticalDensity, aes(x = x)) +
   geom_histogram(data = pptNWSDensity, aes(x = UVNWS_vals), color = 'black', fill = 'orange', alpha = .2, binwidth = bw1) +
   geom_line(aes(y = y_scale), color = 'blue', size = 1.5) + 
   
-  facet_wrap(~ LEAD, scales = 'free', nrow =4) +
+  facet_wrap(~ LEAD, scales = 'free', nrow = 6) +
   
   labs(title = 'Precipitation by LEAD; Total forecasted precip (PO)') +
   theme_bw()
@@ -176,11 +176,12 @@ p1Medians <- p1 +
   geom_vline(data = PPTAnoms[1:12,], aes(xintercept = ForecastedMEAN_PPT_PO), color = 'purple') +
 
   # these are medians
- geom_vline(data = pptGenAnomsMedian, aes(xintercept = MVGenMed), color = 'green', lty = 'dashed')+
-  geom_vline(data = pptNWSDensityMedian, aes(xintercept = UVNWSmedian), color = 'orange', lty = 'dashed') +
-  geom_vline(data = pptAnalyticalDensityMedian, aes(xintercept = AnalyticalMedian_PO), color = 'blue', lty = 'dashed')
+ geom_vline(data = pptGenAnomsMedian, aes(xintercept = MVGenMed), color = 'green', lty = 'dashed', size = 1.5)+
+  geom_vline(data = pptNWSDensityMedian, aes(xintercept = UVNWSmedian), color = 'orange', lty = 'dashed', size = 1.5) +
+  geom_vline(data = pptAnalyticalDensityMedian, aes(xintercept = AnalyticalMedian_PO), color = 'blue', lty = 'dashed', size = 1.5)
 
 print('Table of Means - Total Forecasted PPT (Transformed Units)')
+
 #PPTAnoms
 AllPPTMeans_PO
 print(p1Means)
@@ -313,3 +314,7 @@ print('Table of Medians - Correction Factor')
 AllPPTMedians_CF
 p3Medians
 p3MediansZoom
+
+
+
+ggsave('figureCode/')
