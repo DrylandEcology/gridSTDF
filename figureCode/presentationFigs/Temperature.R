@@ -24,6 +24,11 @@ FutTemp$Date <- as.Date(FutTemp$Date)
 TempDF <- merge(FutTemp, HistTemp) 
 TempDF$Time <- ifelse(TempDF$Date < Sys.Date(), 'Observed', 'Future')
 
+# ------------------------------------------------------------------------------------
+# eliminate data two weeks after current not in the position to make statements there
+currDate <- as.Date(Sys.time())
+TempDF[TempDF$Date %in% c(currDate:(currDate + 14)),
+       c('Fut.avgC_rollmean.med', 'Fut.avgC_rollmean.10', 'Fut.avgC_rollmean.90')] <-NA
 
 # differences ------------------------------------------------------------------------
 
@@ -39,13 +44,12 @@ TempDF$Hist.avg_C.rollmean.10.diff <- TempDF$Hist.avgC_rollmean.10 - TempDF$Hist
 # break things up by postive and negative
 TempDF$Type <- ifelse(TempDF$Diffs.Med > 0, 'pos', 'neg')
 
-
 ######################################################################################
                     ################# Plotting Begins #################
 ######################################################################################
 
 # Panel 1 ----------------------------------------------------------------------------
-#TempDF$Fut.avg_C.med <- ifelse(TempDF$Time == 'Future', NA, TempDF$Fut.avg_C.med)
+TempDF$Fut.avg_C.med <- ifelse(TempDF$Time == 'Future', NA, TempDF$Fut.avg_C.med)
 TempDF$Diffs.10 <- ifelse(TempDF$Time == 'Observed', NA, TempDF$Diffs.10)
 TempDF$Diffs.90 <- ifelse(TempDF$Time == 'Observed', NA, TempDF$Diffs.90)
 
@@ -61,9 +65,6 @@ Panel1 <- ggplot(TempDF) +
   
   # observed past dailys
   geom_line(aes(Date, Fut.avg_C.med, color = Time), size = .3) +
-  
-  # observed futures - for testing
-  #geom_line(data = testData, aes(Date, avgC_rollmean, color = runy)) +
   
   # observed and future median
   geom_line(aes(Date, Fut.avgC_rollmean.med, color = Time), size = 1.1) +

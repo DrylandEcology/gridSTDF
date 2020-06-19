@@ -6,7 +6,7 @@ library(lubridate)
 # 2 is  anomalies
 # Smoothed lines for everything!
 ## rolling means for temp and VWC
-## rolling sums for ppy
+## rolling sums for ppt
 # Only show daily data for observed past!
 
 ######################################################################################
@@ -24,6 +24,10 @@ FutPPT$Date <- as.Date(FutPPT$Date)
 PPTDF <- merge(FutPPT, HistPPT) 
 
 PPTDF$Time <- ifelse(PPTDF$Date < Sys.Date(), 'Observed', 'Future')
+
+# eliminate data two weeks after current not in the position to make statements there
+PPTDF[PPTDF$Date %in% c(currDate:(currDate + 14)),
+       c('Fut.ppt_rollsum.med', 'Fut.ppt_rollsum.10', 'Fut.ppt_rollsum.90')] <-NA
 
 # differences ------------------------------------------------------------------------
 

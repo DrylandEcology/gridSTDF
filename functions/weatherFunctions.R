@@ -22,6 +22,7 @@ getWeatherData <- function(lat, lng) {
   # 2019 and 2020 for temp are incorrect ...
   summary(wdata)
   wdata2 <- wdata[wdata$Year %in% 1979:2018, ]
+  wdata2$Date <- as.Date(wdata2$Date)
   
   # Make data.frame of just years and days -------------------------------------------
   currYear <- year(Sys.time())

@@ -132,7 +132,7 @@ forbs <- bg <- trees <- 0
     
     # write out consolidated data ---------------------------------------------------------------
     fwrite(HistDataNormMean, 'ExampleData/HistDataNormMean.csv') 
-    #fwrite(MonthlyAnoms, 'ExampleData/MonthlyAnoms.csv')
+    fwrite(MonthlyAnoms, 'ExampleData/MonthlyAnoms.csv')
     fwrite(AnomRunStats, 'ExampleData/AnomRunStats.csv')
     
     #    return(list(AnomalyData, HistDataAll)) # AnomalyData, HistData, VWC_AllYears1, VWC_AllYears2
