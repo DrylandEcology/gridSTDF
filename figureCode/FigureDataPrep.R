@@ -8,7 +8,7 @@ library(ggplot2)
 currMonth <- month(Sys.Date())
 
 # Historical Data -------------------------------------------------------------------
-
+HistDataNormMean <- fread('ExampleData/HistDataNormMean.csv')
 # fix dates so that (1) Time repearts itself 1.5 times and (2) it sees these averages as historical date . 
 HistDataNormMean$Year <- ifelse(HistDataNormMean$Day < yday(Sys.Date()), 2021, 2020)
 HistDataNormMean$Date <- as.Date(strptime(paste(HistDataNormMean$Year, HistDataNormMean$Day), format="%Y %j"), format="%m-%d-%Y")
@@ -29,7 +29,7 @@ HistDataNormMean_18MNs <- HistDataNormMean_18MNs[HistDataNormMean_18MNs$Date < a
 
 # Anomalies -------------------------------------------------------------------------------------------------
 # these are the 12 monthly anomalies generated
-MonthlyAnoms$Year <- ifelse(MonthlyAnoms$Month < currMonth, 2021, 2020)
+MonthlyAnoms$Year <- ifelse(MonthlyAnoms$Month < currMonth + 1, 2021, 2020)
 MonthlyAnoms$Date <- as.Date(paste0(MonthlyAnoms$Year, '-' , MonthlyAnoms$Month, '-15'), format = '%Y-%m-%d')
 
 # How months and leads relate ----------------------
@@ -46,13 +46,14 @@ for(m in 1:12){
   
   # PPT
   NWSAnoms <- PPTAnoms[PPTAnoms$LEAD %in% mLeads,c('Anom_cm', 'Anom_CF','ForecastedSD_PPT_cm')]
+  NWSAnoms$Anom_cm <- NWSAnoms$Anom_cm/3
   NWSAnomsAll2 <- rbind(NWSAnomsAll2, data.frame( m, NWSAnoms))
 }
 
 NWSAnomsAll1 <- unique(NWSAnomsAll1)
-NWSAnomsAll1$Year <- ifelse(NWSAnomsAll1$m < 6, 2021, 2020)
+NWSAnomsAll1$Year <- ifelse(NWSAnomsAll1$m < 7, 2021, 2020)
 NWSAnomsAll1$Date <- as.Date(paste0(NWSAnomsAll1$Year, '-' , NWSAnomsAll1$m, '-05'), format = '%Y-%m-%d')
 
 NWSAnomsAll2 <- unique(NWSAnomsAll2)
-NWSAnomsAll2$Year <- ifelse(NWSAnomsAll2$m < 6, 2021, 2020)
+NWSAnomsAll2$Year <- ifelse(NWSAnomsAll2$m < 7, 2021, 2020)
 NWSAnomsAll2$Date <- as.Date(paste0(NWSAnomsAll2$Year, '-' , NWSAnomsAll2$m, '-05'), format = '%Y-%m-%d')

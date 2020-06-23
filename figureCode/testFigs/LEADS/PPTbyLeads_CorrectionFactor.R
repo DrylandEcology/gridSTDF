@@ -1,3 +1,5 @@
+source('figureCode/testFigs/LEADS/PPTByLeadPrep.R')
+
 # ---------------------- CF -----------------------------
 # CF values calculated as forecasted val / CLIMATOLOGICAL MEDIAN
 # 1 (Orange)
@@ -17,9 +19,9 @@ pptAnalyticalDensityMedian <- setDT(pptAnalyticalDensity)[,.(AnalyticalMedian_CF
 
 # Make Table of means
 AllPPTMeans_CF <- cbind(pptNWSDensityMean, MVGenMean = pptGenAnomsMean$MVGenMean, 
-                       AnalyticalMean =  pptAnalyticalDensityMean$AnalyticalMean_CF, NWS_PPT_CF = PPTAnoms$Anom_CF)
+                        NWS_PPT_CF = PPTAnoms$Anom_CF)
 AllPPTMedians_CF <- cbind(pptNWSDensityMedian, MVGenMed = pptGenAnomsMedian$MVGenMed, 
-                          AnalyticalMedian = pptAnalyticalDensityMedian$AnalyticalMedian_CF, NWS_PPT_CF = PPTAnoms$Anom_CF)
+                         NWS_PPT_CF = PPTAnoms$Anom_CF)
 
 # plot
 
@@ -58,15 +60,15 @@ p3Medians <- p3 +
 
 p3MediansZoom <- p3Medians +    xlim(0, 2.5)
 # ---------------------------------
-print('Table of Means - Correction Factor')
-AllPPTMeans_CF
+print('Table of Means - Precipitation Correction Factor')
+print(AllPPTMeans_CF)
 #p3Means
-p3Means +    xlim(0, 2.5)
-ggsave(paste0('figureCode/testFigs/LEADS/figsaves/pptCFMeans', Nrep,'.png'), height = 12, width = 12)
+print(p3Means +    xlim(0, 2.5))
+#ggsave(paste0('figureCode/testFigs/LEADS/figsaves/pptCFMeans', Nrep,'.png'), height = 12, width = 12)
 
-print('Table of Medians - Correction Factor')
-AllPPTMedians_CF
+#print('Table of Medians - Correction Factor')
+#AllPPTMedians_CF
 #p3Medians
-p3MediansZoom
+#p3MediansZoom
 
-ggsave(paste0('figureCode/testFigs/LEADS/figsaves/pptCFMedians', Nrep,'.png'), height = 12, width = 12)
+#ggsave(paste0('figureCode/testFigs/LEADS/figsaves/pptCFMedians', Nrep,'.png'), height = 12, width = 12)

@@ -1,25 +1,10 @@
-print('Density plots of predicted LEAD Anomalies')
+#print('Density plots of predicted LEAD Anomalies')
 
-PPTAnoms <- fread('ExampleData/PPTAnoms.csv')
-generatedAnomData <- readRDS('ExampleData/generatedAnomData_PPTBiasCorrected')
+#PPTAnoms <- fread('ExampleData/PPTAnoms.csv')
+#generatedAnomData <- readRDS('ExampleData/generatedAnomData_PPTBiasCorrected')
 
 # PRECIP
-# ----------------------------------------------------------------------------------
-# --------- 1: NWS random univariate sample (orange)
-s <- 30
-
-pptNWSDensity <- PPTAnoms[,.(UVNWS_vals = rnorm(s, mean = ForecastedMEAN_PPT_PO, sd = ForecastedSD)), .(LEAD)]
-pptNWSDensityMean <- pptNWSDensity[,.(UVNWSmean = mean(UVNWS_vals)), .(LEAD)]
-pptNWSDensityMedian <- pptNWSDensity[,.(UVNWSmedian = median(UVNWS_vals)), .(LEAD)]
-
-# conversions!
-pptNWSDensity <- merge(pptNWSDensity, PPTAnoms[,c('LEAD', 'PO', 'ClimatatologicalMEAN_PPT_cm')])
-pptNWSDensity$UVNWS_ForecastedVal_in <- (pptNWSDensity$UVNWS_vals) ^ (1/pptNWSDensity$PO)
-pptNWSDensity$UVNWS_ForecastedVal_cm <- pptNWSDensity$UVNWS_ForecastedVal_in * 2.54
-pptNWSDensity$UVNWS_PPT_CF <- pptNWSDensity$UVNWS_ForecastedVal_cm / pptNWSDensity$ClimatatologicalMEAN_PPT_cm
-
-print('Table of NWS randomly sampled univariate values')
-pptNWSDensity
+source('figureCode/testFigs/LEADS/PPTByLeadPrep.R')
 
 # ---------- 3: Analytical distribution (BLUE)
 pptAnalyticalDensity <- data.frame()
@@ -55,10 +40,10 @@ for(L in 1:12) {
   
 }
 
-print('Analytical Distribution')
-pptAnalyticalDensity
+#print('Analytical Distribution')
+#pptAnalyticalDensity
 
-#break
+break
 ############# Transformed Units -------------------------------
 
 pptAnalyticalDensityMean <- setDT(pptAnalyticalDensity)[,.(AnalyticalMean_PO = mean(x)),.(LEAD)]

@@ -14,10 +14,10 @@ generatedMean <- setDT(MonthlyAnoms2)[,.(meanGenAnom = mean(tempAnom)), .(Month)
 NWSMeans <- setDT(NWSAnomsAll1)[,.(meanAnom = mean(Anom_C)), .(m)]
 names(NWSMeans)[1] <- 'Month'
 NWSMeans$Month <- factor(NWSMeans$Month, levels = c(6:12, 1:5))
-NWSMeans$Year <- c(rep(2021,5), rep(2020, 7))
+NWSMeans$Year <- c(rep(2021,6), rep(2020, 6))
 NWSMeans$Date <- as.Date(paste0(NWSMeans$Year, '-', NWSMeans$Month, '-05'))
 
-ggplot(MonthlyAnoms2, aes(tempAnom)) +
+tempHist <- ggplot(MonthlyAnoms2, aes(tempAnom)) +
   geom_histogram(aes(y=..density..), colour="black", fill="white", binwidth =.1)+
   geom_density(alpha=.2, fill="green") +
   facet_wrap(~Month, scales = 'free') +
@@ -26,7 +26,7 @@ ggplot(MonthlyAnoms2, aes(tempAnom)) +
   geom_vline(data = generatedMean, aes(xintercept = meanGenAnom), color = 'limegreen', linetype = 'dashed')+
   theme_bw()
 
-ggplot() + 
+tempBP <- ggplot() + 
   geom_boxplot(data = MonthlyAnoms2, aes(Date, tempAnom, group = Month), fatten = NULL, width = 7, alpha = 0.8) +
   stat_summary(data = MonthlyAnoms2, aes(Date, tempAnom, group = Month, ymax = ..y.., ymin = ..y..),
                fun.y = mean, geom = "errorbar", size = 1.2, color = 'limegreen') +
@@ -39,7 +39,8 @@ ggplot() +
                                            ymax = Anom_C + ForecastedSD_Temp_C), shape = 21, fill = 'black', color = 'magenta') +
    theme_bw()
   
-
+print(tempHist)
+print(tempBP)
   
 # precip
 
@@ -47,7 +48,7 @@ ggplot() +
 NWSMeans <- setDT(NWSAnomsAll2)[,.(meanForecastDiff = mean(Anom_cm)), .(m)]
 names(NWSMeans)[1] <- 'Month'
 NWSMeans$Month <- factor(NWSMeans$Month, levels = c(6:12, 1:5))
-NWSMeans$Year <- c(rep(2021,5), rep(2020, 7))
+NWSMeans$Year <- c(rep(2021,6), rep(2020, 6))
 NWSMeans$Date <- as.Date(paste0(NWSMeans$Year, '-', NWSMeans$Month, '-05'))
 NWSMeans
 
@@ -55,7 +56,7 @@ generatedMean <- setDT(MonthlyAnoms2)[,.(meanGenAnom = mean(pptAnom_cm)), .(Mont
 generatedMean
 
 # hists
-ggplot(MonthlyAnoms2, aes(pptAnom_cm)) +
+PPTcmHist <- ggplot(MonthlyAnoms2, aes(pptAnom_cm)) +
   geom_histogram(aes(y=..density..), colour="black", fill="white")+
   geom_density(alpha=.2, fill="green") +
   facet_wrap(~Month, scales = 'free') +
@@ -66,7 +67,7 @@ ggplot(MonthlyAnoms2, aes(pptAnom_cm)) +
   xlim(-2, 2)
 
 # boxplots
-ggplot() +
+PPTcmBP <-ggplot() +
   geom_boxplot(data = MonthlyAnoms2, aes(Date, pptAnom_cm, group = Month), fatten = NULL, width = 7, alpha = 0.8) +
   stat_summary(data = MonthlyAnoms2, aes(Date, pptAnom_cm, group = Month, ymax = ..y.., ymin = ..y..),
                fun.y = mean, geom = "errorbar", size = 1.2, color = 'limegreen') +
@@ -90,7 +91,7 @@ NWSMeans$Date <- as.Date(paste0(NWSMeans$Year, '-', NWSMeans$Month, '-05'))
 generatedMean <- setDT(MonthlyAnoms2)[,.(meanGenAnom = mean(pptAnom_CF)), .(Month)]
 
 # hists
-ggplot(MonthlyAnoms2, aes(pptAnom_CF)) +
+PPTCFHist <-ggplot(MonthlyAnoms2, aes(pptAnom_CF)) +
   geom_histogram(aes(y=..density..), colour="black", fill="white")+
   geom_density(alpha=.2, fill="green") +
   facet_wrap(~Month, scales = 'free') +
@@ -101,7 +102,7 @@ ggplot(MonthlyAnoms2, aes(pptAnom_CF)) +
   xlim(0, 3)
 
 # boxplots
-ggplot() +
+PPTCFBP <-ggplot() +
   geom_boxplot(data = MonthlyAnoms2, aes(Date, pptAnom_CF, group = Month), fatten = NULL, width = 7, alpha = 0.8) +
   stat_summary(data = MonthlyAnoms2, aes(Date, pptAnom_CF, group = Month, ymax = ..y.., ymin = ..y..),
                fun.y = mean, geom = "errorbar", size = 1.2, color = 'limegreen') +
@@ -115,3 +116,7 @@ ggplot() +
   
   theme_bw()
 
+print(PPTCFHist)
+print(PPTCFBP)
+print(PPTcmHist)
+print(PPTcmBP)

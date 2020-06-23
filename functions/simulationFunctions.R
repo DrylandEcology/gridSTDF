@@ -115,7 +115,7 @@ forbs <- bg <- trees <- 0
     AllOut <- AnomalyData1[[1]]
     MonthlyAnoms <- AnomalyData1[[2]]
     
-    #FutureData <- AllOut[AllOut$Date > c(Sys.Date()), ]
+    # FutureData <- AllOut[AllOut$Date > c(Sys.Date()), ]
     
     AllOut <- setorder(AllOut, run, Date)
     AllOut$run <- AllOut$Year <- AllOut$Day <- NULL 

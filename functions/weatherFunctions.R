@@ -102,7 +102,9 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
 
   PPTAnoms <- PPTAnoms[1:Nleads,]
   TempAnoms <- TempAnoms[1:Nleads]
+  
   # Establish date and time info -------------------------------------------------------------
+  
   
   # Establish current month and how the 'LEAD's relate to months
   # A LEAD of 1 relates to the forecast beginning where the currmonth + 1
@@ -184,27 +186,36 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
                                            n = n)
   saveRDS(generatedAnomData,  'ExampleData/generatedAnomData')  
   
-  # Step 2.1 - Correction factor to the correction factor based on mean
-  mean(generatedAnomData [, , "PPT_CF"])
+  # Step 2.1 - Correction factor to the correction factor based on mean -------------------------------
   
+  ### Temperature
+  tempGenAnoms <- data.table(generatedAnomData [, , "dT_C"])
+  tempGenAnoms$LEAD <- row.names(tempGenAnoms)
+  tempGenAnoms <- melt(tempGenAnoms, id.vars = 'LEAD')
+  tempGenAnoms <- tempGenAnoms[,.(MVGenMean = mean(value)),.(LEAD)]
+  
+  TempBiasCF <- TempAnoms$Anom_C - tempGenAnoms$MVGenMean 
+  #print(cbind(NWSAnom  = TempAnoms$Anom_C , MVAnom = tempGenAnoms$MVGenMean,  TempBiasCF))
+  
+  generatedAnomData [, , "dT_C"] <- generatedAnomData [, , "dT_C"] + TempBiasCF
+  
+  ### Precipitation
   pptGenAnoms <- data.table(generatedAnomData [, , "PPT_CF"])
   pptGenAnoms$LEAD <- row.names(pptGenAnoms)
   pptGenAnoms <- melt(pptGenAnoms, id.vars = 'LEAD')
   pptGenAnomsMean <- pptGenAnoms[,.(MVGenMean = mean(value)),.(LEAD)]
   
   PPTBiasCF <- PPTAnoms$Anom_CF / pptGenAnomsMean$MVGenMean 
-  print(cbind(NWSAnom  = PPTAnoms$Anom_CF, MVAnom = pptGenAnomsMean$MVGenMean,  PPTBiasCF))
-  mean( PPTAnoms$Anom_CF)
-  
+  #print(cbind(NWSAnom  = PPTAnoms$Anom_CF, MVAnom = pptGenAnomsMean$MVGenMean,  PPTBiasCF))
+
   generatedAnomData [, , "PPT_CF"] <- generatedAnomData [, , "PPT_CF"] * PPTBiasCF
-  mean(generatedAnomData [, , "PPT_CF"] )
-  
+
   ##### ------ Recalculate PPT_GenForecasted_cm
   ## ----- need for figures but not used anywhere in analysis
   generatedAnomData[, , 'PPT_GenForecasted_cm'] <-
     generatedAnomData [, , "PPT_CF"] * PPTAnoms$ClimatatologicalMEAN_PPT_cm
   
-  saveRDS(generatedAnomData,  'ExampleData/generatedAnomData_PPTBiasCorrected')  
+  saveRDS(generatedAnomData,  'ExampleData/generatedAnomData_BiasCorrected')  
   
   for(nn in 1:n){
     print(nn)
@@ -236,7 +247,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
   
     MonthlyAnoms <- rbind(MonthlyAnoms, yearlydat)
   #}
-   # fwrite(MonthlyAnoms, 'ExampleData/MonthlyAnoms.csv')
+  #  fwrite(MonthlyAnoms, 'ExampleData/MonthlyAnoms.csv')
     
     
     # Step 4 ----------------------------------------------------------------------------------------------
