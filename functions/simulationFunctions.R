@@ -1,4 +1,3 @@
-set.seed(5)
 # # for testing
 library(rSFSW2)
 library(rSOILWAT2)

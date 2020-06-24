@@ -87,7 +87,7 @@ Panel2 <- ggplot(TempDF) +
   geom_line(aes(Date, Hist.avg_C.rollmean.10.diff), size = .1, color = 'black') +
   geom_line(aes(Date,  Hist.avg_C.rollmean.90.diff), size = .1, color = 'black') +
   
-  # Observed Differences from past as bars
+  # Observed Differences from past as bars -----
   geom_bar(aes(Date, Diffs.Med, fill = Type), stat = "identity", size = .1) +
   
   # thick line of differences

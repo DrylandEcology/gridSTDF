@@ -60,7 +60,7 @@ p3Medians <- p3 +
 
 p3MediansZoom <- p3Medians +    xlim(0, 2.5)
 # ---------------------------------
-print('Table of Means - Precipitation Correction Factor')
+#print('Table of Means - Precipitation Correction Factor')
 print(AllPPTMeans_CF)
 #p3Means
 print(p3Means +    xlim(0, 2.5))
