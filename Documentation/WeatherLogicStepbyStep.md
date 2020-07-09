@@ -35,7 +35,7 @@ from the climatic normal period to simulate 900 potential weather and soil moist
 ### [Step 0 - Load packages and example data](ShortTermDroughtForecaster_Logic.ipynb#Step-0)
 Load R packages and code necessary to walk through this step by step. The step by step is cumulative. You can walk through this guide by downloading the entire Repo locally and opening jupyter notebook.
 
-### [Step 1 - Gather point specific (lat, long) historic weather data from gridMet](ShortTermDroughtForecaster_Logic.ipynb#step1)
+### [Step 1 - Gather point specific (lat, long) historic weather data from gridMet](ShortTermDroughtForecaster_Logic.ipynb#Step-1)
 Historical weather data for 1979 through current is downloaded from gridMet.
 
 ### [Step 2 - Gather and format short-term predictions from National Weather Service (NWS)](ShortTermDroughtForecaster_Logic.ipynb#step2)
