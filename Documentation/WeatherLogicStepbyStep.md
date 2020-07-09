@@ -32,7 +32,7 @@ alongside NWS forecasts (Step 2), to predict a range of future anomalies with mu
 These predictd anomalies are bias corrected (Step 4) and integrated with historical data (Step 5) 
 from the climatic normal period to simulate 900 potential weather and soil moisture futures (Step 6). 
 
-### [Step 0 - Load packages and example data](ShortTermDroughtForecaster_Logic.ipynb#step0)
+### [Step 0 - Load packages and example data](ShortTermDroughtForecaster_Logic.ipynb#Step-0)
 Load R packages and code necessary to walk through this step by step. The step by step is cumulative. You can walk through this guide by downloading the entire Repo locally and opening jupyter notebook.
 
 ### [Step 1 - Gather point specific (lat, long) historic weather data from gridMet](ShortTermDroughtForecaster_Logic.ipynb#step1)
