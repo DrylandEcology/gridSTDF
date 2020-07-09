@@ -46,7 +46,7 @@ Based on site-specific coordinates, the correct regional NWS dataset is found fo
 
 Historical data is converted to the same time step (leads) and units as the future forecasts. Covariances between historical precipiation and temperature are calculated. Means and variances from the NWS forecasts, alongside these historical covariances, are used to generate future anomalies (n = 30) using multivariate sampling.
  
-### [Step 4 - Bias correction of anomaly forecasts](ShortTermDroughtForecaster_Logic.ipynb#step4)
+### [Step 4 - Bias correction of anomaly forecasts](ShortTermDroughtForecaster_Logic.ipynb#Step-4---Bias-correction-of-anomaly-forecasts)
 
 To account for the variation of random draws of anomalies using mulitvaraite sampling and non-normal precipitation distribution (when converted to the necessary units) we correct the anomaly forecasts to the NWS mean.\n",
 
