@@ -7,12 +7,11 @@ library(data.table)
 library(lubridate)
 library(raster)
 library(zoo)
-library(caTools)
 # weather
 library(geoknife)
 
 functionFiles <- list.files('functions', full.names = TRUE)
-sapply(functionFiles[c(2,4,5)], source)
+sapply(functionFiles[c(2)], source)
 #debug(integrateAnomalyData)
 lat <- 35.1266
 lng <- -111.5854
@@ -79,6 +78,7 @@ forbs <- bg <- trees <- 0
     # Soils info formatting ------------------------------------------------------
     SoilsDF <- data.frame(depth_cm = c(1:250),
                           Depth = c(rep('Shallow', 15), rep('Intermediate', 45), rep('Deep',190)))
+    
     Soils <- data.frame(sw_in0@soils@Layers)
     Soils <- Soils[,c('depth_cm', 'sand_frac', 'clay_frac')]
     Soils$width <- diff(c(0, Soils$depth_cm))
@@ -95,17 +95,24 @@ forbs <- bg <- trees <- 0
     HistDataAll <- getOutputs(sw_out0)
     
     # format outputs
+    HistDataAll <- setorder(HistDataAll, Year, Day)
+    HistDataAll <- getRolling(HistDataAll)
+    
     HistDataNormMean <- HistDataAll[HistDataAll$Year %in% 1981:2010, ]
-    HistDataNormMean$Year <- NULL
+    # Get date without the year
+    HistDataNormMean <- makeDateMonthDat(HistDataNormMean, 'Day')
+    HistDataNormMean$Year <- HistDataNormMean$Day <- NULL
+    
     HistDataNormMean <- setnames(setDT(HistDataNormMean)[ ,sapply(.SD, function(x) list(med=median(x),
                                                                                         x10=quantile(x, .1, na.rm = TRUE),
                                                                                         x90 = quantile(x, .9, na.rm = TRUE))),
-                                                          .(Day)],
-                                 c('Day', sapply(names(HistDataNormMean)[-c(1)], paste0, c(".med", ".10", ".90"))))# get all means and sds!!!
+                                                          .(Date)],
+                                 c('Date', sapply(names(HistDataNormMean)[-c(11)], paste0, c(".med", ".10", ".90"))))# get all means and sds!!!
+    HistDataNormMean <- setorder(HistDataNormMean, Date)
     
     #  -------------------------------------------------------------------------------------------------
     # Run 2 - with future anomaly data
-    AnomalyData1 <- (runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 30, SoilsDF))
+    AnomalyData1 <- (runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 5, SoilsDF))
     
     
     ################### ----------------------------------------------------------------
@@ -114,20 +121,7 @@ forbs <- bg <- trees <- 0
     AllOut <- AnomalyData1[[1]]
     MonthlyAnoms <- AnomalyData1[[2]]
     
-    # FutureData <- AllOut[AllOut$Date > c(Sys.Date()), ]
-    
-    AllOut <- setorder(AllOut, run, Date)
-    AllOut$run <- AllOut$Year <- AllOut$Day <- NULL 
-    
-    AnomRunStats <- setnames(setDT(AllOut)[, sapply(.SD, function(x) list(med=median(x), 
-                                                                          x10=quantile(x, .1, na.rm = TRUE), 
-                                                                          x90 = quantile(x, .9, na.rm = TRUE))),
-                                           .(Date)],
-                             c('Date', sapply(names(AllOut)[-c(11)], paste0, c(".med", ".10", '.90'))))# get all means and sds!!!
-    
-    
-    AnomRunStats <- AnomRunStats[AnomRunStats$Date > Sys.Date() - 183, ] # 6 month lead ins 
-    AnomRunStats$Time <- ifelse(AnomRunStats$Date < Sys.Date(), 'Observed', 'Future')
+    AnomRunStats <- formatOutputsFuture(AllOut)
     
     # write out consolidated data ---------------------------------------------------------------
     fwrite(HistDataNormMean, 'ExampleData/HistDataNormMean.csv') 

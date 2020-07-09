@@ -17,20 +17,18 @@ library(lubridate)
 HistTemp <- HistDataNormMean_18MNs[,c('Date', 'avgC_rollmean.med', 'avgC_rollmean.10', 'avgC_rollmean.90')]
 names(HistTemp)[2:4] <- paste0('Hist.', names(HistTemp)[2:4])
 
-FutTemp <- AnomRunStats[,c('Date', 'avg_C.med', 'avgC_rollmean.med', 'avgC_rollmean.10', 'avgC_rollmean.90')]
+FutTemp <- AnomRunStats[,c('Date', 'avg_C.mean.med', 'avgC_rollmean.med', 'avgC_rollmean.10', 'avgC_rollmean.90')]
 names(FutTemp)[2:5] <- paste0('Fut.', names(FutTemp)[2:5])
 FutTemp$Date <- as.Date(FutTemp$Date)
 
-TempDF <- merge(FutTemp, HistTemp) 
+TempDF <- merge(HistTemp, FutTemp) 
 TempDF$Time <- ifelse(TempDF$Date < Sys.Date(), 'Observed', 'Future')
 
 # ------------------------------------------------------------------------------------
 # eliminate data two weeks after current not in the position to make statements there
 currDate <- as.Date(Sys.time())
-TempDF[TempDF$Date %in% c(currDate:(currDate + 14)),
+TempDF[TempDF$Date %in% c((currDate-15):(currDate + 15)),
        c('Fut.avgC_rollmean.med', 'Fut.avgC_rollmean.10', 'Fut.avgC_rollmean.90')] <-NA
-
-# differences ------------------------------------------------------------------------
 
 # Differences between future and historical
 TempDF$Diffs.Med <- TempDF$Fut.avgC_rollmean.med - TempDF$Hist.avgC_rollmean.med 
@@ -49,7 +47,7 @@ TempDF$Type <- ifelse(TempDF$Diffs.Med > 0, 'pos', 'neg')
 ######################################################################################
 
 # Panel 1 ----------------------------------------------------------------------------
-TempDF$Fut.avg_C.med <- ifelse(TempDF$Time == 'Future', NA, TempDF$Fut.avg_C.med)
+TempDF$Fut.avg_C.mean.med <- ifelse(TempDF$Time == 'Future', NA, TempDF$Fut.avg_C.mean.med)
 TempDF$Diffs.10 <- ifelse(TempDF$Time == 'Observed', NA, TempDF$Diffs.10)
 TempDF$Diffs.90 <- ifelse(TempDF$Time == 'Observed', NA, TempDF$Diffs.90)
 
@@ -64,7 +62,7 @@ Panel1 <- ggplot(TempDF) +
   geom_line(aes(Date, Fut.avgC_rollmean.90), color = 'darkcyan')  +
   
   # observed past dailys
-  geom_line(aes(Date, Fut.avg_C.med, color = Time), size = .3) +
+  geom_line(aes(Date, Fut.avg_C.mean.med, color = Time), size = .3) +
   
   # observed and future median
   geom_line(aes(Date, Fut.avgC_rollmean.med, color = Time), size = 1.1) +
@@ -76,7 +74,7 @@ Panel1 <- ggplot(TempDF) +
   scale_x_date(date_breaks = "2 months", date_labels = "%m-%Y", expand = c(0,0)) +
   labs(y = 'temperature (°C)')
 
-plot(Panel1)
+suppressWarnings(plot(Panel1))
 #ggsave('~/Desktop/CDI_2019/Figures/ObservedAndFuture_TEMP_Median_Quantiles.png', height = 4, width = 8)
 
 # Panel 2 ----------------------------------------------------------------------------
@@ -108,20 +106,21 @@ Panel2 <- ggplot(TempDF) +
   
   labs(y = 'temperature diffs (°C)')
 
-plot(Panel2)
+suppressWarnings(plot(Panel2))
 #ggsave('~/Desktop/CDI_2019/Figures/ObservedAndFuture_TEMP_Median_DIFFERENCES.png', height = 4, width = 8)
 
 Panel2Anoms <- Panel2 + 
   # Generated Anoms
-  geom_boxplot(data = MonthlyAnoms, aes(Date, tempAnom, group = Month), fatten = NULL, width = 7, alpha = 0.8) +
+  geom_boxplot(data = MonthlyAnoms, aes(Date, tempAnom, group = Month), fatten = NULL, width = 7,
+               alpha = 0.8, outlier.size = -1) +
   stat_summary(data = MonthlyAnoms, aes(Date, tempAnom, group = Month, ymax = ..y.., ymin = ..y..),
                fun.y = mean, geom = "errorbar", size = 1.2, color = 'limegreen') +
-  geom_point(data = MonthlyAnoms, aes(Date, tempAnom, group = Month), shape = 21, size =.5, fill = NA) +
+  #geom_point(data = MonthlyAnoms, aes(Date, tempAnom, group = Month), shape = 21, size =.5, fill = NA) +
   # NWS dots and lines
   stat_summary(data = NWSAnomsAll1, aes(Date, Anom_C, ymax = ..y.., ymin = ..y..),
                fun.y = mean, geom = "errorbar", size = 1.2, color = 'purple') +
   geom_pointrange(data = NWSAnomsAll1, aes(Date, Anom_C,
                                                ymin = Anom_C - ForecastedSD_Temp_C,
                                                ymax = Anom_C + ForecastedSD_Temp_C), shape = 21, fill = 'black', color = 'magenta') 
-plot(Panel2Anoms)
+suppressWarnings(plot(Panel2Anoms))
   

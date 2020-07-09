@@ -4,7 +4,7 @@
 
 print('Density plots of monthly anomalies used in SOILWAT2 vs NWS')
 
-source('figureCode/FigureDataPrep.R')
+source('../figureCode/FigureDataPrep.R')
 MonthlyAnoms2 <- MonthlyAnoms # monthly anamoly data entered into SW
 MonthlyAnoms2$Month <- factor(MonthlyAnoms2$Month, levels = c(6:12, 1:5))
 generatedMean <- setDT(MonthlyAnoms2)[,.(meanGenAnom = mean(tempAnom)), .(Month)]
@@ -22,15 +22,16 @@ tempHist <- ggplot(MonthlyAnoms2, aes(tempAnom)) +
   geom_density(alpha=.2, fill="green") +
   facet_wrap(~Month, scales = 'free') +
   labs(title = 'Temperature anomalies by Month') +
-  geom_vline(data = NWSMeans, aes(xintercept = meanAnom), color = 'purple') +
-  geom_vline(data = generatedMean, aes(xintercept = meanGenAnom), color = 'limegreen', linetype = 'dashed')+
+  geom_vline(data = NWSMeans, aes(xintercept = meanAnom), color = 'purple', size = 1.5) +
+  geom_vline(data = generatedMean, aes(xintercept = meanGenAnom), color = 'limegreen', linetype = 'dashed', size = 1.5)+
   theme_bw()
 
 tempBP <- ggplot() + 
-  geom_boxplot(data = MonthlyAnoms2, aes(Date, tempAnom, group = Month), fatten = NULL, width = 7, alpha = 0.8) +
+  geom_boxplot(data = MonthlyAnoms2, aes(Date, tempAnom, group = Month), fatten = NULL, 
+               width = 7, alpha = 0.8, outlier.shape = NA, outlier.size = -1) +
   stat_summary(data = MonthlyAnoms2, aes(Date, tempAnom, group = Month, ymax = ..y.., ymin = ..y..),
                fun.y = mean, geom = "errorbar", size = 1.2, color = 'limegreen') +
-  geom_point(data = MonthlyAnoms2, aes(Date, tempAnom, group = Month), shape = 21, size =.5, fill = NA) +
+  #geom_point(data = MonthlyAnoms2, aes(Date, tempAnom, group = Month), shape = 21, size =.5, fill = NA) +
   # NWS dots and lines
   stat_summary(data = NWSMeans, aes(Date, meanAnom, ymax = ..y.., ymin = ..y..),
                fun.y = mean, geom = "errorbar", size = 1.2, color = 'purple') +
@@ -39,15 +40,15 @@ tempBP <- ggplot() +
                                            ymax = Anom_C + ForecastedSD_Temp_C), shape = 21, fill = 'black', color = 'magenta') +
    theme_bw()
   
-print(tempHist)
-print(tempBP)
+suppressWarnings(print(tempHist))
+suppressWarnings(print(tempBP))
   
 # precip
 
 # cm
 NWSMeans <- setDT(NWSAnomsAll2)[,.(meanForecastDiff = mean(Anom_cm)), .(m)]
 names(NWSMeans)[1] <- 'Month'
-NWSMeans$Month <- factor(NWSMeans$Month, levels = c(6:12, 1:5))
+NWSMeans$Month <- factor(NWSMeans$Month, levels = c(7:12, 1:6))
 NWSMeans$Year <- c(rep(2021,6), rep(2020, 6))
 NWSMeans$Date <- as.Date(paste0(NWSMeans$Year, '-', NWSMeans$Month, '-05'))
 NWSMeans
@@ -61,17 +62,18 @@ PPTcmHist <- ggplot(MonthlyAnoms2, aes(pptAnom_cm)) +
   geom_density(alpha=.2, fill="green") +
   facet_wrap(~Month, scales = 'free') +
   labs(title = 'Precipitation anomalies (cm) by Month') +
-  geom_vline(data = NWSMeans, aes(xintercept = meanForecastDiff), color = 'purple') +
-  geom_vline(data = generatedMean, aes(xintercept = meanGenAnom), color = 'limegreen', linetype = 'dashed')+
+  geom_vline(data = NWSMeans, aes(xintercept = meanForecastDiff), color = 'purple', size = 1.5) +
+  geom_vline(data = generatedMean, aes(xintercept = meanGenAnom), color = 'limegreen', linetype = 'dashed', size = 1.5)+
   theme_bw() +
   xlim(-2, 2)
 
 # boxplots
 PPTcmBP <-ggplot() +
-  geom_boxplot(data = MonthlyAnoms2, aes(Date, pptAnom_cm, group = Month), fatten = NULL, width = 7, alpha = 0.8) +
+  geom_boxplot(data = MonthlyAnoms2, aes(Date, pptAnom_cm, group = Month), fatten = NULL, 
+               width = 7, alpha = 0.8,outlier.shape = NA, outlier.size = -1) +
   stat_summary(data = MonthlyAnoms2, aes(Date, pptAnom_cm, group = Month, ymax = ..y.., ymin = ..y..),
                fun.y = mean, geom = "errorbar", size = 1.2, color = 'limegreen') +
-  geom_point(data = MonthlyAnoms2, aes(Date, pptAnom_cm, group = Month), shape = 21, size =.5, fill = NA) +
+  #geom_point(data = MonthlyAnoms2, aes(Date, pptAnom_cm, group = Month), shape = 21, size =.5, fill = NA) +
   # NWS dots and lines
   stat_summary(data = NWSMeans, aes(Date, meanForecastDiff, ymax = ..y.., ymin = ..y..),
                fun.y = mean, geom = "errorbar", size = 1.2, color = 'purple') +
@@ -84,8 +86,8 @@ PPTcmBP <-ggplot() +
 # CF
 NWSMeans <- setDT(NWSAnomsAll2)[,.(meanForecastDiff = mean(Anom_CF)), .(m)]
 names(NWSMeans)[1] <- 'Month'
-NWSMeans$Month <- factor(NWSMeans$Month, levels = c(6:12, 1:5))
-NWSMeans$Year <- c(rep(2021,5), rep(2020, 7))
+NWSMeans$Month <- factor(NWSMeans$Month, levels = c(7:12, 1:6))
+NWSMeans$Year <- c(rep(2021,6), rep(2020, 6))
 NWSMeans$Date <- as.Date(paste0(NWSMeans$Year, '-', NWSMeans$Month, '-05'))
 
 generatedMean <- setDT(MonthlyAnoms2)[,.(meanGenAnom = mean(pptAnom_CF)), .(Month)]
@@ -96,17 +98,18 @@ PPTCFHist <-ggplot(MonthlyAnoms2, aes(pptAnom_CF)) +
   geom_density(alpha=.2, fill="green") +
   facet_wrap(~Month, scales = 'free') +
   labs(title = 'Precipitation anomalies (CF) by Month', x = 'Precipitation CF') +
-  geom_vline(data = NWSMeans, aes(xintercept = meanForecastDiff), color = 'purple') +
-  geom_vline(data = generatedMean, aes(xintercept = meanGenAnom), color = 'limegreen', linetype = 'dashed')+
+  geom_vline(data = NWSMeans, aes(xintercept = meanForecastDiff), color = 'purple', size = 1.5) +
+  geom_vline(data = generatedMean, aes(xintercept = meanGenAnom), color = 'limegreen', linetype = 'dashed', size = 1.5)+
   theme_bw() +
   xlim(0, 3)
 
 # boxplots
 PPTCFBP <-ggplot() +
-  geom_boxplot(data = MonthlyAnoms2, aes(Date, pptAnom_CF, group = Month), fatten = NULL, width = 7, alpha = 0.8) +
+  geom_boxplot(data = MonthlyAnoms2, aes(Date, pptAnom_CF, group = Month), fatten = NULL, 
+               width = 7, alpha = 0.8, outlier.shape = NA, outlier.size = -1 )+
   stat_summary(data = MonthlyAnoms2, aes(Date, pptAnom_CF, group = Month, ymax = ..y.., ymin = ..y..),
                fun.y = mean, geom = "errorbar", size = 1.2, color = 'limegreen') +
-  geom_point(data = MonthlyAnoms2, aes(Date, pptAnom_CF, group = Month), shape = 21, size =.5, fill = NA) +
+ # geom_point(data = MonthlyAnoms2, aes(Date, pptAnom_CF, group = Month), shape = 21, size =.5, fill = NA) +
   # NWS dots and lines
   stat_summary(data = NWSMeans, aes(Date, meanForecastDiff, ymax = ..y.., ymin = ..y..),
                fun.y = mean, geom = "errorbar", size = 1.2, color = 'purple') +
@@ -116,7 +119,7 @@ PPTCFBP <-ggplot() +
   
   theme_bw()
 
-print(PPTCFHist)
-print(PPTCFBP)
-print(PPTcmHist)
-print(PPTcmBP)
+suppressWarnings(print(PPTCFHist))
+                 suppressWarnings(print(PPTCFBP))
+                                  suppressWarnings(print(PPTcmHist))
+                                                   suppressWarnings(print(PPTcmBP))

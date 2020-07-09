@@ -1,4 +1,4 @@
-source('figureCode/testFigs/LEADS/PPTByLeadPrep.R')
+source('../figureCode/testFigs/LEADS/PPTByLeadPrep.R')
 
 # ---------------------- CF -----------------------------
 # CF values calculated as forecasted val / CLIMATOLOGICAL MEDIAN
@@ -38,7 +38,8 @@ p3 <- ggplot(pptAnalyticalDensity, aes(x = x_CF)) +
 
 p3Means <- p3 +  
   
-  labs(title = 'Precipitation by LEAD; Correction Factor); With mean lines') +
+  labs(title = 'Precipitation by LEAD; Correction Factor); With mean lines',
+       x = 'Correction Factors') +
   
   #means
   geom_vline(data = pptGenAnomsMean, aes(xintercept = MVGenMean), color = 'green', size = 1.3)+

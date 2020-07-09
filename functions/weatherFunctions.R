@@ -104,11 +104,8 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
   TempAnoms <- TempAnoms[1:Nleads]
   
   # Establish date and time info -------------------------------------------------------------
-  
-  
   # Establish current month and how the 'LEAD's relate to months
   # A LEAD of 1 relates to the forecast beginning where the currmonth + 1
-  
   currMonth <- month(Sys.Date())
   currDOY <- yday(Sys.Date()) - 1
   currYear <- year(Sys.Date())
@@ -183,7 +180,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
   # Step 2 - n samples, multivariate sampling for each lead -------------------------------------------------
   generatedAnomData <- generateAnomalyData(monthlyWdata, TempAnoms, PPTAnoms, 
                                            leads = seq_len(Nleads), Nleads = Nleads, 
-                                           n = n)
+                                           n = 30)
   saveRDS(generatedAnomData,  'ExampleData/generatedAnomData')  
   
   # Step 2.1 - Correction factor to the correction factor based on mean -------------------------------
@@ -255,46 +252,27 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
     years <- 1981:2011
     wdata2 <- wdata[wdata$Year %in% years, ]
     weathAnomAll <- suppressWarnings(integrateAnomalyData(wdata2, yearlydat))
+
     
     # Make weather data for one simulation
-    ## Three years worth of data: 1) One year ago 2) Observed until today's date 3) Future data integrated with historical data (weath Anom)
-    ## Run 30 times, where each time corresponds to a different year in the historical record
-  
+    ## Three years worth of data: 
+    # 1) One year ago 
+    # 2) Observed until today's date 
+    # 3) Future data integrated with historical data (weath Anom)
+
     ### year 1 - The year prior to current year's observed data
     year1 <- wdata[wdata$Year == (currYear - 1), c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')]
     
     # observed weather -----------------------------------------------
     thisYearObservedWData <- wdata[wdata$Year == currYear, c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')]
-    days <- dim(thisYearObservedWData)[1]
-
+    thisYearObservedWData <- makeDateMonthDat(thisYearObservedWData, 'DOY')
+    
     for(y in 1981:2010){
-   #   print(y)
-      ### ---------
-      ### year 2 - observed data for this year until today's date and then future, weathAnom data
-      ### ---------
-      year2 <- year2Fut <- weathAnomAll[weathAnomAll$Year == y, ]
-      year2$Year <- as.integer(currYear) # change year
-      
-      # add observed data where appropriate
-      year2[1:currDOY,] <- thisYearObservedWData[1:currDOY,] # this works even when currDOY is 366 and year2 DF only has 365 rows
-      
-      # if "year2" is 365 days but current year is 366 days 
-      ## what to do?
-      if(days == 366 & nrow(year2) != 366) {
-        year2 <- rbind(year2, year2[365,])
-        year2$DOY[366] <- 366
-      }
-      ### ---------
-      ## year 3 ... forecasts that run into next year (aka 2021) and then scratch data for the rest of 2021
-      ### ---------
-      year3 <-  weathAnomAll[weathAnomAll$Year == y + 1, ]  
-      if(days == 366) year3 <- year3[1:365,] #if this year is 366 days, next year or the year after that needs to be 365
-      year3$Year <- as.integer(currYear + 1)
-
-      weathAnomOneSim <- rbind(year1, year2, year3)
+      #print(y)
+      weathAnomOneSim <- makeWeathOneSim(y, year1, thisYearObservedWData, weathAnomAll)
+      # run SOILWAT2 for future years ----------------------------------------------------------
       weathAnomOneSim <- dbW_dataframe_to_weatherData(weathAnomOneSim, round = 4)
       
-      # run SOILWAT2 for future years ----------------------------------------------------------
       swYears_EndYear(sw_in0) <- currYear + 1
       swYears_StartYear(sw_in0) <- currYear - 1
       
@@ -424,7 +402,7 @@ integrateAnomalyData <- function(wdata, yearlydat) {
   ## PPT -> multiplicative scaled
   
   ### Step 1 - find month in wdata and merge anomalies
-  wdata$Month <-  month(as.Date(strptime(paste(wdata$Year, wdata$DOY), format="%Y %j"), format="%m-%d-%Y"))
+ # wdata$Month <-  month(as.Date(strptime(paste(wdata$Year, wdata$DOY), format="%Y %j"), format="%m-%d-%Y"))
   #test <- wdata[wdata$DOY == 366,]
   wdata <- merge(wdata, yearlydat)
   
@@ -442,27 +420,62 @@ integrateAnomalyData <- function(wdata, yearlydat) {
    
 }
 
-makeMonthLeadRelationshipTable <- function(TempAnoms) {
+# year 1 is last years data
+# thisYearObservedWData is this year's observed weather data
+makeWeathOneSim <- function(y, year1, thisYearObservedWData, weathAnomAll) {
   
-  currMonth <- month(Sys.Date())
+  currDOY <- yday(Sys.Date())
+  currYear <- year(Sys.Date())
   
-  monthLeads <- data.frame(TempAnoms[,'LEAD'])
+  days <- dim(thisYearObservedWData)[1] 
+  daysNextYear <- yearDays(as.Date(paste0(currYear + 1,'-01-01')))
+  LeapYear <- days == 366
   
-  if(day(Sys.Date()) < 15){ # specific forecasts dates depend on schedule
-    monthLeads$Month <- monthLeads$LEAD + currMonth - 1
-  } else {
-    monthLeads$Month <- monthLeads$LEAD + currMonth
+  
+  ### ---------
+  ### year 2 - observed data for this year until today's date and then future, weathAnom data
+  ### ---------
+  
+  year2  <- data.frame(Year = currYear, DOY = 1:days)
+  year2 <- makeDateMonthDat(year2, 'DOY')
+  
+  # join future data to the structure of this year's data
+  year2Fut <- weathAnomAll[weathAnomAll$Year == y , ]  
+  year2Fut <- makeDateMonthDat(year2Fut, 'DOY')
+  year2 <- plyr::join(year2, year2Fut[,c('Date', 'Tmax_C', 'Tmin_C', 'PPT_cm')],
+                      by = 'Date') 
+  
+  # fill in with this years' oberserved data
+  # should have the corrrect number of days always since they are good representation of the same year
+  year2[1:currDOY, c('Tmax_C', 'Tmin_C', 'PPT_cm')] <- thisYearObservedWData[1:currDOY, c('Tmax_C', 'Tmin_C', 'PPT_cm')]
+  
+  if(any(is.na(year2))) {
+    print('NAs present in year2 data')
+    year2$Tmax_C <- zoo::na.fill( year2$Tmax_C, "extend")
+    year2$Tmin_C <- zoo::na.fill( year2$Tmin_C, "extend")
+    year2$PPT_cm <- zoo::na.fill( year2$PPT_cm, "extend")
   }
+  # ggplot() +
+  #   geom_line(data = year2, aes(Date, Tmax_C, group = 1)) +
+  #   geom_line(data = thisYearObservedWData, aes(Date, Tmax_C, group = 1), color = 'purple') +
+  #   geom_line(data = year2Fut, aes(Date, Tmax_C, group = 1), color = 'green') 
+  # 
   
-  # leads
-  monthLeads$lead1 <- monthLeads$LEAD
-  monthLeads$lead2 <-  monthLeads$LEAD - 1
-  monthLeads$lead3 <-  monthLeads$LEAD - 2
+  ### ---------
+  ## year 3 ... forecasts that run into next year (aka 2021) and then scratch data for the rest of 2021
+  ### ---------
+  year3  <- data.frame(Year = currYear + 1, DOY = 1:daysNextYear)
+  year3 <- makeDateMonthDat(year3, 'DOY')
   
-  monthLeads[monthLeads <= 0] <- NA 
-  monthLeads[monthLeads == 13] <- 1
+  # join future data to the structure of this year's data
+  year3Fut <-  weathAnomAll[weathAnomAll$Year == y + 1, ]  
+  year3Fut <- makeDateMonthDat(year3Fut, 'DOY')
+  year3 <- plyr::join(year3, year3Fut[,c('Date', 'Tmax_C', 'Tmin_C', 'PPT_cm')],
+                      by = 'Date') 
   
-  monthLeads$Month <- ifelse(monthLeads$Month > 12, monthLeads$Month - 12, monthLeads$Month)
+  # Make one simulation's worth of data
+  year2$Date <- year3$Date <- NULL
+  weathAnomOneSim <- rbind(year1, year2, year3)
   
-  return(monthLeads)
+  return(weathAnomOneSim)
 }

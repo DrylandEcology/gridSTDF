@@ -23,22 +23,52 @@ getOutputs <- function(sw_out, future = FALSE) {
   Data <- merge(Temp1, PPT1)
   Data <- merge(Data, VWC1)
   
-  # testing .....
-  Data2 <- Data[Data$Day != 366,]
-
-  # get rolling sums and means for ppt and temps
-  Data2 <- setorder(Data2, Year, Day)
+   return(Data)
   
+}
+
+formatOutputsFuture <- function(AllOut) {
+  
+  # Get means for each day in each year
+  AllOut$run_Year <- sapply(strsplit(AllOut$run, '_'), '[', 2)
+  AllOut <- makeDateMonthDat(AllOut, 'Day')
+  AllOut$Day <- AllOut$run <- NULL
+  
+  AllOut2 <- setDT(AllOut)[, sapply(.SD, function(x) list(mean=mean(x))), .(run_Year, Year, Date)]
+
+  # Get rolling means and sums per simulation
+  AllOut2 <- setorder(AllOut2, run_Year, Year, Date)
+  AllOut2 <- getRolling(AllOut2)
+  
+  # Make real dates
+  AllOut2$Date <- as.Date(paste(AllOut2$Year, AllOut2$Date, sep = '-'))
+  
+  # Get quantiles of rolling
+  AllOut2$run_Year <- AllOut2$Year <- NULL 
+
+  AnomRunStats <- setnames(setDT(AllOut2)[, sapply(.SD, function(x) list(med=median(x), 
+                                                                        x10=quantile(x, .1, na.rm = TRUE), 
+                                                                        x90 = quantile(x, .9, na.rm = TRUE))),
+                                         .(Date)],
+                           c('Date', sapply(names(AllOut2)[-c(1)], paste0, c(".med", ".10", '.90'))))# get all means and sds!!!
+  
+  
+
+  AnomRunStats <- AnomRunStats[AnomRunStats$Date > Sys.Date() - 183, ] # 6 month lead ins 
+  AnomRunStats$Time <- ifelse(AnomRunStats$Date < Sys.Date(), 'Observed', 'Future')
+  
+  return(AnomRunStats)
+  
+}
+  
+getRolling <- function(Data2){
+  # get rolling sums and means for ppt and temps
+
   Data2$ppt_rollsum <- rollapply(Data2$ppt,  width = 30, FUN = sum, fill = 'extend', align = 'center')# for historical data can just calc continuously 30 day sum
   Data2$avgC_rollmean <- runmean(Data2$avg_C,  k = 30, endrule = 'mean', align = 'center')#
   Data2$VWCShallow_rollmean <- runmean(Data2$Shallow,  k = 30, endrule = 'mean', align = 'center')
   Data2$VWCInter_rollmean <- runmean(Data2$Intermediate,  k = 30, endrule = 'mean', align = 'center')
   Data2$VWCDeep_rollmean <- runmean(Data2$Deep,  k = 30, endrule = 'mean', align = 'center')
   
-  if(future == TRUE) {
-  Data2$Date <- as.Date(strptime(paste(Data2$Year, Data2$Day), format="%Y %j"), format="%m-%d-%Y")
-  Data2 <- Data2[Data2$Date < as.Date(paste0('2021-', '06','-01' )),] # as.Date(paste('2021-', month(Sys.Date()),'-01' ))
-  }
-   return(Data2)
-  
+  return(Data2)
 }

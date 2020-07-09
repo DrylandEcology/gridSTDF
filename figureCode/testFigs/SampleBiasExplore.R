@@ -1,6 +1,6 @@
 AllMeansMV <- data.table()
 AllMeansUV <- data.table()
-s <- 1000
+s <- 30
 for(i in 1:100){
   
   ### MV
@@ -53,20 +53,20 @@ UVMean <- AllMeansUV[,.(UVGenMean = mean(UVNWSMean_PPT, na.rm = TRUE)),.(LEAD)]
   
 SamplePlotPPT <- ggplot() + 
   # Multivariate in green
-  geom_histogram(data = AllMeansMV, aes(x = MVGenMeanPPT),  color = 'black', fill = 'green', alpha = .5, binwidth = .005) +
+  geom_density(data = AllMeansMV, aes(x = MVGenMeanPPT),  color = 'black', fill = 'green', alpha = .5) +
  # univariate in orange
   #geom_histogram(data = AllMeansUV, aes(x = UVNWSMean_PPT),  color = 'black', fill = 'orange', alpha = .5, binwidth = .005) +
 
-  geom_vline(data = MVMean, aes(xintercept = MVGenMean), color = 'green',size = 1.5) +
+  geom_vline(data = MVMean, aes(xintercept = MVGenMean), color = 'darkgreen') +
 #  geom_vline(data = UVMean, aes(xintercept = UVGenMean), color = 'orange', size = 2) +
   # purple nws cf
-  geom_vline(data = NWS_PPT_CF, aes(xintercept = Anom_CF), color = 'magenta', size = 1.5, lty = 'dashed')  +
+  geom_vline(data = NWS_PPT_CF, aes(xintercept = Anom_CF), color = 'magenta', size = 1.5)  +
   facet_wrap(~ LEAD, scales = 'free', nrow = 6) +
   labs(x = 'Correction Factor', title = 'Distribution of PPT correction factor means across a 100 datasets') +
   
   theme_bw() 
 SamplePlotPPT
-ggsave('figureCode/testFigs/SamplingExplorePPT.png', height = 12, width = 8)
+ggsave('figureCode/testFigs/SamplingExplorePPT.png', height = 6, width = 6)
 
 ## Same fig for temperature
 
@@ -78,12 +78,12 @@ UVMean <- AllMeansUV[,.(UVGenMean = mean(UVNWSMean_Temp, na.rm = TRUE)),.(LEAD)]
 
 SamplePlotTemp <- ggplot() + 
   # Multivariate in green
-  geom_histogram(data = AllMeansMV, aes(x = MVGenMeanTemp),  color = 'black', fill = 'green', alpha = .5, binwidth = .001) +
+  geom_density(data = AllMeansMV, aes(x = MVGenMeanTemp),  color = 'black', fill = 'green', alpha = .5) +
   # univariate in orange
   
   #geom_histogram(data = AllMeansUV, aes(x = UVNWSMean_Temp),  color = 'black', fill = 'orange', alpha = .5, binwidth = .03) +
   
-  geom_vline(data = MVMean, aes(xintercept = MVGenMean), color = 'green',size = 1.5) +
+  geom_vline(data = MVMean, aes(xintercept = MVGenMean), color = 'darkgreen',size = 1.5) +
   #geom_vline(data = UVMean, aes(xintercept = UVGenMean), color = 'orange', size = 2) +
   # purple nws anom
   geom_vline(data = NWS_Temp_CF, aes(xintercept = Anom_C), color = 'magenta', size = 1.5, lty = 'dashed')  +
@@ -92,7 +92,7 @@ SamplePlotTemp <- ggplot() +
   labs(x = 'Anomaly in Celsius', title = 'Distribution of Anomaly means across a 100 datasets') +
   theme_bw() 
 SamplePlotTemp
-ggsave('figureCode/testFigs/SamplingExploreTemp.png', height = 12, width = 8)
+ggsave('figureCode/testFigs/SamplingExploreTemp.png', height = 6, width = 6)
 
 
 
