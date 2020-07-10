@@ -1,6 +1,6 @@
 # year 1 is last years data
 # thisYearObservedWData is this year's observed weather data
-makeWeathOneSim <- function(year1, thisYearObservedWData, weathAnomAll) {
+makeWeathOneSim <- function(y, year1, thisYearObservedWData, weathAnomAll) {
   
   days <- dim(thisYearObservedWData)[1] 
   daysNextYear <- yearDays(as.Date(paste0(currYear + 1,'-01-01')))

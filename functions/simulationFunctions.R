@@ -7,11 +7,12 @@ library(data.table)
 library(lubridate)
 library(raster)
 library(zoo)
+library(caTools)
 # weather
 library(geoknife)
 
 functionFiles <- list.files('functions', full.names = TRUE)
-sapply(functionFiles[c(2)], source)
+sapply(functionFiles[c(2,3,5,6)], source)
 #debug(integrateAnomalyData)
 lat <- 35.1266
 lng <- -111.5854
@@ -57,7 +58,7 @@ forbs <- bg <- trees <- 0
      # print(Sys.time())
      # wdata <- getWeatherData(lat, lng)
      #  print(Sys.time())
-    #write.csv(wdata, 'ExampleData/wdata.csv', row.names = FALSE)
+    #write.csv(wdata2, 'ExampleData/wdata.csv', row.names = FALSE)
     wdata <- fread('ExampleData/wdata.csv')
 
     ################### ----------------------------------------------------------------
@@ -112,7 +113,7 @@ forbs <- bg <- trees <- 0
     
     #  -------------------------------------------------------------------------------------------------
     # Run 2 - with future anomaly data
-    AnomalyData1 <- (runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 5, SoilsDF))
+    AnomalyData1 <- (runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 30, SoilsDF))
     
     
     ################### ----------------------------------------------------------------

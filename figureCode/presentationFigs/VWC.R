@@ -17,7 +17,7 @@ library(lubridate)
 HistVWC <- HistDataNormMean_18MNs[,c('Date', 'VWCInter_rollmean.med', 'VWCInter_rollmean.10', 'VWCInter_rollmean.90')]
 names(HistVWC)[2:4] <- paste0('Hist.', names(HistVWC)[2:4])
 
-FutVWC <- AnomRunStats[,c('Date', 'Intermediate.med', 'VWCInter_rollmean.med', 'VWCInter_rollmean.10', 'VWCInter_rollmean.90')]
+FutVWC <- AnomRunStats[,c('Date', 'Intermediate.mean.med', 'VWCInter_rollmean.med', 'VWCInter_rollmean.10', 'VWCInter_rollmean.90')]
 names(FutVWC)[2:5] <- paste0('Fut.', names(FutVWC)[2:5])
 FutVWC$Date <- as.Date(FutVWC$Date)
 
@@ -26,7 +26,8 @@ VWCDF$Time <- ifelse(VWCDF$Date < Sys.Date(), 'Observed', 'Future')
 
 # ------------------------------------------------------------------------------------
 # eliminate data two weeks after current not in the position to make statements there
-VWCDF[VWCDF$Date %in% c(currDate:(currDate + 14)),
+currDate <- as.Date(Sys.time())
+VWCDF[VWCDF$Date %in%c((currDate-15):(currDate + 15)),
        c('Fut.VWCInter_rollmean.med', 'Fut.VWCInter_rollmean.10', 'Fut.VWCInter_rollmean.90')] <-NA
 
 # differences ------------------------------------------------------------------------
@@ -48,7 +49,7 @@ VWCDF$Type <- ifelse(VWCDF$Diffs.Med > 0, 'pos', 'neg')
 ######################################################################################
 
 # Panel 1 ----------------------------------------------------------------------------
-VWCDF$Fut.avg_C.med <- ifelse(VWCDF$Time == 'Future', NA, VWCDF$Fut.Intermediate.med)
+VWCDF$Fut.avg_C.med <- ifelse(VWCDF$Time == 'Future', NA, VWCDF$Fut.Intermediate.mean.med)
 VWCDF$Diffs.10 <- ifelse(VWCDF$Time == 'Observed', NA, VWCDF$Diffs.10)
 VWCDF$Diffs.90 <- ifelse(VWCDF$Time == 'Observed', NA, VWCDF$Diffs.90)
 
@@ -101,10 +102,11 @@ Panel2 <- ggplot(VWCDF) +
   geom_hline(yintercept = 0) +
   
   theme_bw() + theme(legend.position = "none")  +
-  scale_fill_manual(values = c('blue', 'red')) +
+  scale_fill_manual(values = c('brown4', 'forestgreen')) +
   scale_x_date(date_breaks = "2 months", date_labels = "%m-%Y", expand = c(0,0)) +
   scale_color_manual(values = c('darkcyan', 'darkgoldenrod3')) +
   
   labs(y = 'VWC diffs (cm/cm)')
 
 plot(Panel2)
+

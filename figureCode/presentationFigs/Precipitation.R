@@ -17,7 +17,7 @@ library(lubridate)
 HistPPT <- HistDataNormMean_18MNs[,c('Date','ppt_rollsum.med', 'ppt_rollsum.10', 'ppt_rollsum.90')]
 names(HistPPT)[2:4] <- paste0('Hist.', names(HistPPT)[2:4])
 
-FutPPT <- AnomRunStats[,c('Date', 'ppt.med', 'ppt_rollsum.med', 'ppt_rollsum.10', 'ppt_rollsum.90')]
+FutPPT <- AnomRunStats[,c('Date', 'ppt.mean.med', 'ppt_rollsum.med', 'ppt_rollsum.10', 'ppt_rollsum.90')]
 names(FutPPT)[2:5] <- paste0('Fut.', names(FutPPT)[2:5])
 FutPPT$Date <- as.Date(FutPPT$Date)
 
@@ -26,8 +26,8 @@ PPTDF <- merge(FutPPT, HistPPT)
 PPTDF$Time <- ifelse(PPTDF$Date < Sys.Date(), 'Observed', 'Future')
 
 # eliminate data two weeks after current not in the position to make statements there
-PPTDF[PPTDF$Date %in% c(currDate:(currDate + 14)),
-       c('Fut.ppt_rollsum.med', 'Fut.ppt_rollsum.10', 'Fut.ppt_rollsum.90')] <-NA
+PPTDF[PPTDF$Date %in% c((currDate-15):(currDate + 15)),
+       c('Fut.ppt_rollsum.med', 'Fut.ppt_rollsum.10', 'Fut.ppt_rollsum.90')] <- NA
 
 # differences ------------------------------------------------------------------------
 
@@ -51,7 +51,7 @@ PPTDF$Diffs.90 <- ifelse(PPTDF$Time == 'Observed', NA, PPTDF$Diffs.90)
 ######################################################################################
 
 # Panel 1 ----------------------------------------------------------------------------
-PPTDF$Fut.ppt.med <- ifelse(PPTDF$Time == 'Future', NA, PPTDF$Fut.ppt.med)
+PPTDF$Fut.ppt.mean.med <- ifelse(PPTDF$Time == 'Future', NA, PPTDF$Fut.ppt.mean.med)
 PPTDF$Fut.ppt_rollsum.10 <- ifelse(PPTDF$Time == 'Observed', NA, PPTDF$Fut.ppt_rollsum.10)
 PPTDF$Fut.ppt_rollsum.90 <- ifelse(PPTDF$Time == 'Observed', NA, PPTDF$Fut.ppt_rollsum.90)
 
@@ -59,21 +59,23 @@ Panel1 <- ggplot(PPTDF) +
   # repeating long-term historical daily median
   geom_ribbon( aes(x = Date, y = Hist.ppt_rollsum.med, 
                    ymin = Hist.ppt_rollsum.10, ymax = Hist.ppt_rollsum.90,  alpha=0.1), fill = 'lightgrey') +
-  geom_line(aes(Date, Hist.ppt_rollsum.med)) +
+  geom_line(aes(Date, Hist.ppt_rollsum.med, color = 'Historical')) +
   
   # future quantiles
   geom_line(aes(Date, Fut.ppt_rollsum.10), color = 'darkcyan')  + 
   geom_line(aes(Date, Fut.ppt_rollsum.90), color = 'darkcyan')  +
   
   # observed past dailys
-  geom_bar(aes(Date, Fut.ppt.med, color = Time), stat = 'identity',size = .3) +
+  geom_bar(aes(Date, Fut.ppt.mean.med, color = Time), stat = 'identity',size = .3) +
   
   # observed and future median
   geom_line(aes(Date, Fut.ppt_rollsum.med, color = Time), size = 1.5) +
   
   # theme
-  theme_bw() + theme(legend.position = "none") + 
-  scale_color_manual(values = c('darkcyan', 'darkgoldenrod3')) +
+  theme_bw() +   
+  theme(legend.position = 'bottom') +
+  guides(alpha = FALSE) +
+  scale_color_manual(name = '', values = c('darkcyan', 'black', 'darkgoldenrod3')) +
   geom_vline(xintercept = as.Date(Sys.time()), color = 'darkorchid3') +
   scale_x_date(date_breaks = "2 months", date_labels = "%m-%Y", expand = c(0,0)) +
   labs(y = 'precipitation (cm)')
@@ -114,14 +116,15 @@ plot(Panel2)
 #ggsave('~/Desktop/CDI_2019/Figures/ObservedAndFuture_PPT_Median_DIFFERENCES.png', height = 4, width = 8)
 
 Panel2Anoms <- Panel2 + 
-  geom_boxplot(data = MonthlyAnoms2, aes(Date, pptAnom_cm, group = Month), fatten = NULL, width = 7, alpha = 0.8) +
+  geom_boxplot(data = MonthlyAnoms2, aes(Date, pptAnom_cm, group = Month), 
+               fatten = NULL, width = 7, alpha = 0.8, outlier.size = -1) +
   stat_summary(data = MonthlyAnoms2, aes(Date, pptAnom_cm, group = Month, ymax = ..y.., ymin = ..y..),
                fun.y = mean, geom = "errorbar", size = 1.2, color = 'limegreen') +
-  geom_point(data = MonthlyAnoms2, aes(Date, pptAnom_cm, group = Month), shape = 21, size =.5, fill = NA) +
   # NWS dots and lines
-  stat_summary(data = NWSMeans, aes(Date, meanForecastDiff, ymax = ..y.., ymin = ..y..),
+  stat_summary(data = NWSMeans1, aes(Date, meanForecastDiff, ymax = ..y.., ymin = ..y..),
                fun.y = mean, geom = "errorbar", size = 1.2, color = 'purple') +
   geom_pointrange(data = NWSAnomsAll2, aes(Date, Anom_cm,
                                            ymin = Anom_cm - ForecastedSD_PPT_cm,
                                            ymax = Anom_cm + ForecastedSD_PPT_cm), shape = 21, fill = 'black', color = 'magenta')
 plot(Panel2Anoms)
+

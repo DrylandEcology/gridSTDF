@@ -4,11 +4,20 @@ library(ggplot2)
 ######################################################################################
 ################# Data organization #################
 ######################################################################################
+readIn <- 0
 
 currMonth <- month(Sys.Date())
 
 # Historical Data -------------------------------------------------------------------
-#HistDataNormMean <- fread('ExampleData/HistDataNormMean.csv')
+if(readIn){
+  HistDataNormMean <- fread('ExampleData/HistDataNormMean.csv')
+  MonthlyAnoms <- fread('ExampleData/MonthlyAnoms.csv')
+  TempAnoms <- fread('ExampleData/TempAnoms.csv')
+  PPTAnoms <- fread('ExampleData/PPTAnoms.csv')
+  AnomRunStats <- fread('ExampleData/AnomRunStats.csv')
+  
+}
+
 # fix dates so that (1) Time repeats itself 1.5 times and (2) it sees these averages as historical date . 
 # Restructure Dates
 todayMonthDay <- format(Sys.Date() , format="%m-%d")
@@ -45,14 +54,14 @@ ggplot() +
  # geom_line(data = AllOut2, aes(Date, avgC_rollmean, color = run_Year)) +
   geom_line(data = HistDataNormMean_18MNs, aes(Date, avgC_rollmean.med), color = 'purple') +
   
-  geom_line(data = AnomRunStats, aes(Date, avgC_rollmean.med),
-            color = 'limegreen')   +
+ # geom_line(data = AnomRunStats, aes(Date, avgC_rollmean.med),
+#            color = 'limegreen')   +
   geom_vline(aes(xintercept = as.Date('2020-02-29')))
 
 
 # Anomalies -------------------------------------------------------------------------------------------------
 # these are the 12 monthly anomalies generated
-MonthlyAnoms$Year <- ifelse(MonthlyAnoms$Month < currMonth + 1, 2021, 2020)
+MonthlyAnoms$Year <- ifelse(MonthlyAnoms$Month < currMonth , 2021, 2020)
 MonthlyAnoms$Date <- as.Date(paste0(MonthlyAnoms$Year, '-' , MonthlyAnoms$Month, '-15'), format = '%Y-%m-%d')
 
 # How months and leads relate ----------------------
@@ -80,3 +89,4 @@ NWSAnomsAll1$Date <- as.Date(paste0(NWSAnomsAll1$Year, '-' , NWSAnomsAll1$m, '-0
 NWSAnomsAll2 <- unique(NWSAnomsAll2)
 NWSAnomsAll2$Year <- ifelse(NWSAnomsAll2$m < 7, 2021, 2020)
 NWSAnomsAll2$Date <- as.Date(paste0(NWSAnomsAll2$Year, '-' , NWSAnomsAll2$m, '-05'), format = '%Y-%m-%d')
+

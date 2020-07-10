@@ -14,6 +14,7 @@ getCPCData <- function(url, var) {
   
   # format -------------------------------------------------------------------------------------------
   tmpData2 <- unlist(strsplit(tmpData, split = "\n"))
+  
   # ---- get names ...
   Names <- tmpData2[2]
   Names <- unlist(strsplit(Names, split = " |  |   |    |     |      "))
@@ -29,7 +30,13 @@ getCPCData <- function(url, var) {
     for(i in 1:length(tmpData3)) {
     
         if(nchar(tmpData3[i]) > 7) {
-          x <- substring(tmpData3[i], c(1, 6, 13), c(5, 12, 19))
+          if(nchar(tmpData3[i]) <= 13) {
+
+            x <- substring(tmpData3[i], c(1, 7), c(6, 13))
+          } else {
+            
+            x <- substring(tmpData3[i], c(1, 7, 14), c(6, 13, 19))
+          }
           print(i)
           print(x)
         } else {
@@ -41,7 +48,6 @@ getCPCData <- function(url, var) {
   } else {
     tmpData4 <- tmpData3
   }
-  
   
   tmpData4 <- matrix(tmpData4, ncol = 1326)
   tmpData4 <- t(tmpData4)

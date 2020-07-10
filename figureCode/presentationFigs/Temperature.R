@@ -51,11 +51,13 @@ TempDF$Fut.avg_C.mean.med <- ifelse(TempDF$Time == 'Future', NA, TempDF$Fut.avg_
 TempDF$Diffs.10 <- ifelse(TempDF$Time == 'Observed', NA, TempDF$Diffs.10)
 TempDF$Diffs.90 <- ifelse(TempDF$Time == 'Observed', NA, TempDF$Diffs.90)
 
+cols <- c('Clim. Normals' = 'black', 'Future' = 'darkcyan', 'Recent Past' = 'goldenrod')
+
 Panel1 <- ggplot(TempDF) +
   # repeating long-term historical daily median
   geom_ribbon( aes(x = Date, y = Hist.avgC_rollmean.med, 
                    ymin = Hist.avgC_rollmean.10, ymax = Hist.avgC_rollmean.90,  alpha=0.1), fill = 'lightgrey') +
-  geom_line(aes(Date, Hist.avgC_rollmean.med)) +
+  geom_line(aes(Date, Hist.avgC_rollmean.med,  color = 'Historical')) +
   
   # future quantiles
   geom_line(aes(Date, Fut.avgC_rollmean.10), color = 'darkcyan')  + 
@@ -68,18 +70,23 @@ Panel1 <- ggplot(TempDF) +
   geom_line(aes(Date, Fut.avgC_rollmean.med, color = Time), size = 1.1) +
   
   # theme
-  theme_bw() + theme(legend.position = "none") + 
-  scale_color_manual(values = c('darkcyan', 'darkgoldenrod3')) +
+  theme_bw() +
+  theme(legend.position = c(0.7, 0.05),
+        legend.direction = "horizontal") +
+  guides(alpha = FALSE) +
+  scale_color_manual(name = '', values = c('darkcyan', 'black', 'darkgoldenrod3')) +
   geom_vline(xintercept = as.Date(Sys.time()), color = 'darkorchid3') +
   scale_x_date(date_breaks = "2 months", date_labels = "%m-%Y", expand = c(0,0)) +
   labs(y = 'temperature (°C)')
 
 suppressWarnings(plot(Panel1))
+
 #ggsave('~/Desktop/CDI_2019/Figures/ObservedAndFuture_TEMP_Median_Quantiles.png', height = 4, width = 8)
 
 # Panel 2 ----------------------------------------------------------------------------
 Panel2 <- ggplot(TempDF) + 
-  # 0 line and 10- 90% for the historical
+  
+  # 0 line and 10 - 90% for the historical -----
   geom_ribbon(aes(Date, ymin = Hist.avg_C.rollmean.10.diff, 
                   ymax = Hist.avg_C.rollmean.90.diff, alpha=0.01), fill = 'lightgrey') +
   geom_line(aes(Date, Hist.avg_C.rollmean.10.diff), size = .1, color = 'black') +

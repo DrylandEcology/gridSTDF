@@ -170,6 +170,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
   
   # Anomalies NEEDS to be in transformed units for MV sampling
   PPTAnoms$Anom_PO <- PPTAnoms$ForecastedMEAN_PPT_PO - PPTAnoms$ClimatatologicalMEAN_PPT_PO
+  
   # Anomalies for comparison
   PPTAnoms$Anom_cm <- PPTAnoms$ForecastedMEAN_PPT_cm - PPTAnoms$ClimatatologicalMEAN_PPT_cm
   PPTAnoms$Anom_CF <- PPTAnoms$ForecastedMEAN / PPTAnoms$ClimatologicalMEAN
@@ -203,7 +204,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
   pptGenAnomsMean <- pptGenAnoms[,.(MVGenMean = mean(value)),.(LEAD)]
   
   PPTBiasCF <- PPTAnoms$Anom_CF / pptGenAnomsMean$MVGenMean 
-  #print(cbind(NWSAnom  = PPTAnoms$Anom_CF, MVAnom = pptGenAnomsMean$MVGenMean,  PPTBiasCF))
+  print(cbind(NWSAnom  = PPTAnoms$Anom_CF, MVAnom = pptGenAnomsMean$MVGenMean,  PPTBiasCF))
 
   generatedAnomData [, , "PPT_CF"] <- generatedAnomData [, , "PPT_CF"] * PPTBiasCF
 
@@ -244,7 +245,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
   
     MonthlyAnoms <- rbind(MonthlyAnoms, yearlydat)
   #}
-  #  fwrite(MonthlyAnoms, 'ExampleData/MonthlyAnoms.csv')
+    #fwrite(MonthlyAnoms, 'ExampleData/MonthlyAnoms.csv')
     
     
     # Step 4 ----------------------------------------------------------------------------------------------
@@ -267,7 +268,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
     thisYearObservedWData <- wdata[wdata$Year == currYear, c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')]
     thisYearObservedWData <- makeDateMonthDat(thisYearObservedWData, 'DOY')
     
-    for(y in 1981:2010){
+    for(y in 1981:2010) {
       #print(y)
       weathAnomOneSim <- makeWeathOneSim(y, year1, thisYearObservedWData, weathAnomAll)
       # run SOILWAT2 for future years ----------------------------------------------------------
