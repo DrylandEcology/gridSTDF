@@ -12,7 +12,7 @@ library(caTools)
 library(geoknife)
 
 functionFiles <- list.files('functions', full.names = TRUE)
-sapply(functionFiles[c(2,3,5,6)], source)
+sapply(functionFiles[c(2,3, 4,6, 7)], source)
 #debug(integrateAnomalyData)
 lat <- 35.1266
 lng <- -111.5854
@@ -93,6 +93,7 @@ forbs <- bg <- trees <- 0
 
     weath <- dbW_dataframe_to_weatherData(wdata[wdata$Year %in% c(1979:2019), c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')], round = 4)
     sw_out0 <- sw_exec(inputData = sw_in0, weatherList = weath)
+    
     HistDataAll <- getOutputs(sw_out0)
     
     # format outputs

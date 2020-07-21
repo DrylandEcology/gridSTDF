@@ -37,7 +37,7 @@ getWeatherData <- function(lat, lng) {
   # Get info from netcdfs ....
   #https://www.northwestknowledge.net/metdata/data/
   # Tmax_C
-  files <- list.files('~/Desktop/CDI_2019/wdatanc/tmax/', full.names = TRUE)
+  files <- list.files('C:/Users/candrews/Desktop/Projects/STDF/wdatanc/tmax/', full.names = TRUE)
   for(f in 1:length(files)){
     year <- as.numeric(substr(files[f],  nchar(files[f]) - 6, nchar(files[f]) -3))
     
@@ -47,7 +47,7 @@ getWeatherData <- function(lat, lng) {
     wdata2[wdata2$Year == year, 'Tmax_C'][1:length(vals)] <- vals
     }
   # Tmin_C
-  files <- list.files('~/Desktop/CDI_2019/wdatanc/tmin/', full.names = TRUE)
+  files <- list.files('C:/Users/candrews/Desktop/Projects/STDF/wdatanc/tmin/', full.names = TRUE)
   for(f in 1:length(files)){
     year <- as.numeric(substr(files[f],  nchar(files[f]) - 6, nchar(files[f]) -3))
     
@@ -58,7 +58,7 @@ getWeatherData <- function(lat, lng) {
     }
   
   #PPT_cm
-  files <- list.files('~/Desktop/CDI_2019/wdatanc/pr/', full.names = TRUE)
+  files <- list.files('C:/Users/candrews/Desktop/Projects/STDF/wdatanc/pr/', full.names = TRUE)
   for(f in 1:length(files)){
     year <- as.numeric(substr(files[f],  nchar(files[f]) - 6, nchar(files[f]) -3))
     
@@ -282,6 +282,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
       # Grab Data I want for this run ----------------------------------------------------------
       Out1 <- getOutputs(sw_out, future = TRUE)
       Out1$run <- paste(nn, y, sep = '_')
+      
 
       AllOut <- rbind(AllOut, Out1)
       
