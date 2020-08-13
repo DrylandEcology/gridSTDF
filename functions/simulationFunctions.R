@@ -13,11 +13,11 @@ library(caTools)
 library(plumber)
 library(rvest)
 
-source('functions/weatherFunctions.R')
-source('functions/soilsAndComp.R')
-source('functions/Outputs.R')
-source('functions/HelperFunctions.R')
-source('functions/ecoIndicators.R')
+source('shorttermdroughtforecaster/functions/weatherFunctions.R')
+source('shorttermdroughtforecaster/functions/soilsAndComp.R')
+source('shorttermdroughtforecaster/functions/Outputs.R')
+source('shorttermdroughtforecaster/functions/HelperFunctions.R')
+source('shorttermdroughtforecaster/functions/ecoIndicators.R')
 
 lat <- 43.3737
 lng <- -116.6323
