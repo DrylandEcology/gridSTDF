@@ -6,6 +6,13 @@ set_soils <- function(sw_in, soils, sand, clay){
     sw_in@soils@Layers[,10] <- clay/100
   }
   
+  # always have 10 layers - 5, 10, 15, 20, 30, 40, 60, 80, 100, 150
+  
+  Soils <- sw_in@soils@Layers
+  Soils <- rbind(Soils[1:2,], Soils[3,], Soils[3:8,], Soils[8,] )
+  Soils[c(3,10),'depth_cm'] <- c(15, 150)
+  sw_in@soils@Layers <- Soils
+  
   return(sw_in)
   
 }

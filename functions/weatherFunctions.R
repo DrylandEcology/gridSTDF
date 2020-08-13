@@ -20,9 +20,9 @@ getWeatherData <- function(lat, lng) {
   names(wdata) <- c('Year', 'DOY','Tmax_C', 'Tmin_C', 'PPT_cm')
   
   # 2019 and 2020 for temp are incorrect ...
-  summary(wdata)
+  #summary(wdata2)
   wdata2 <- wdata[wdata$Year %in% 1979:2018, ]
-  wdata2$Date <- as.Date(wdata2$Date)
+  #wdata2$Date <- as.Date(wdata2$Date)
   
   # Make data.frame of just years and days -------------------------------------------
   currYear <- year(Sys.time())
@@ -35,39 +35,41 @@ getWeatherData <- function(lat, lng) {
   wdata2 <- plyr::join(wdataFrame, wdata2)
   
   # Get info from netcdfs ....
-  #https://www.northwestknowledge.net/metdata/data/
+  # https://www.northwestknowledge.net/metdata/data/
   # Tmax_C
-  files <- list.files('C:/Users/candrews/Desktop/Projects/STDF/wdatanc/tmax/', full.names = TRUE)
+  files <- list.files('~/Desktop/Projects/STDF/wdatanc/tmax/', full.names = TRUE)
   for(f in 1:length(files)){
     year <- as.numeric(substr(files[f],  nchar(files[f]) - 6, nchar(files[f]) -3))
     
     nc <- suppressWarnings(brick(files[f], varname = 'air_temperature'))
     vals <- extract(nc, matrix(c(lng, lat), ncol = 2))[1,]
-    vals <- vals - 273.15
     wdata2[wdata2$Year == year, 'Tmax_C'][1:length(vals)] <- vals
     }
   # Tmin_C
-  files <- list.files('C:/Users/candrews/Desktop/Projects/STDF/wdatanc/tmin/', full.names = TRUE)
+  files <- list.files('~/Desktop/Projects/STDF/wdatanc/tmin/', full.names = TRUE)
   for(f in 1:length(files)){
     year <- as.numeric(substr(files[f],  nchar(files[f]) - 6, nchar(files[f]) -3))
     
     nc <- suppressWarnings(brick(files[f], varname = 'air_temperature'))
     vals <- extract(nc, matrix(c(lng, lat), ncol = 2))[1,]
-    vals <- vals - 273.15
     wdata2[wdata2$Year == year, 'Tmin_C'][1:length(vals)] <- vals
     }
   
   #PPT_cm
-  files <- list.files('C:/Users/candrews/Desktop/Projects/STDF/wdatanc/pr/', full.names = TRUE)
+  files <- list.files('~/Desktop/Projects/STDF/wdatanc/pr/', full.names = TRUE)
   for(f in 1:length(files)){
     year <- as.numeric(substr(files[f],  nchar(files[f]) - 6, nchar(files[f]) -3))
     
     nc <- suppressWarnings(brick(files[f], varname = 'precipitation_amount'))
     vals <- extract(nc, matrix(c(lng, lat), ncol = 2))[1,]
-    vals <- vals/10
     wdata2[wdata2$Year == year, 'PPT_cm'][1:length(vals)] <- vals
       }
 
+  # fix values
+  wdata2$Tmax_C <- wdata2$Tmax_C - 273.15
+  wdata2$Tmin_C <- wdata2$Tmin_C - 273.15
+  wdata2$PPT_cm <- wdata2$PPT_cm/10
+  
   # if there isn't 365 days in each year ... na.locf for temp and put 0 for ppt?
   # fill in missing with weather generator when running SOILWAT
   wdata2$Tmax_C <- zoo::na.locf(wdata2$Tmax_C)
@@ -82,14 +84,14 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
   Nleads <- 12
   
   MonthlyAnoms <- data.frame() # for testing
-  AllOut <- data.frame()
+  AllOut1 <- Shriver_Out <- GISSM_Out <- data.frame()
 
   # Determine Region from coordinates and shapefile ------------------------------------------
   CD102 <- shapefile(x = 'CD102/CD102.shp')
   points <- data.frame(x = lng, y = lat)
   
   coordinates(points) <- ~ x + y 
-  proj4string(points) <- CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+  proj4string(points) <- CRS("+proj=longlat +datum=WGS84 +no_defs")
   
   CDRegion <- as.numeric(over(points, CD102)$ID4)
   
@@ -181,7 +183,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
   # Step 2 - n samples, multivariate sampling for each lead -------------------------------------------------
   generatedAnomData <- generateAnomalyData(monthlyWdata, TempAnoms, PPTAnoms, 
                                            leads = seq_len(Nleads), Nleads = Nleads, 
-                                           n = 30)
+                                           n = n)
   saveRDS(generatedAnomData,  'ExampleData/generatedAnomData')  
   
   # Step 2.1 - Correction factor to the correction factor based on mean -------------------------------
@@ -204,7 +206,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
   pptGenAnomsMean <- pptGenAnoms[,.(MVGenMean = mean(value)),.(LEAD)]
   
   PPTBiasCF <- PPTAnoms$Anom_CF / pptGenAnomsMean$MVGenMean 
-  print(cbind(NWSAnom  = PPTAnoms$Anom_CF, MVAnom = pptGenAnomsMean$MVGenMean,  PPTBiasCF))
+  #print(cbind(NWSAnom  = PPTAnoms$Anom_CF, MVAnom = pptGenAnomsMean$MVGenMean,  PPTBiasCF))
 
   generatedAnomData [, , "PPT_CF"] <- generatedAnomData [, , "PPT_CF"] * PPTBiasCF
 
@@ -277,19 +279,19 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF){
       swYears_EndYear(sw_in0) <- currYear + 1
       swYears_StartYear(sw_in0) <- currYear - 1
       
-      sw_out <- sw_exec(inputData = sw_in0, weatherList = weathAnomOneSim)
+      sw_out <- sw_exec(inputData = sw_in0, weatherList = weathAnomOneSim, quiet = TRUE)
       
       # Grab Data I want for this run ----------------------------------------------------------
-      Out1 <- getOutputs(sw_out, future = TRUE)
-      Out1$run <- paste(nn, y, sep = '_')
-      
+      Out1 <- getOutputs(sw_out, sw_in0)
 
-      AllOut <- rbind(AllOut, Out1)
+      AllOut1 <- rbind(AllOut1, cbind(Out1[[1]], run = paste(nn, y, sep = '_')))
+      Shriver_Out <- rbind(Shriver_Out, cbind(Out1[[2]], run = paste(nn, y, sep = '_')))
+      #GISSM_Out <- rbind(GISSM_Out, cbind(Out1[[3]], run = paste(nn, y, sep = '_')))
       
   }
   }
     
-  return(list(AllOut, MonthlyAnoms))
+  return(list(AllOut1, Shriver_Out, GISSM_Out, MonthlyAnoms))
 
 }
 
@@ -447,7 +449,7 @@ makeWeathOneSim <- function(y, year1, thisYearObservedWData, weathAnomAll) {
   year2 <- plyr::join(year2, year2Fut[,c('Date', 'Tmax_C', 'Tmin_C', 'PPT_cm')],
                       by = 'Date') 
   
-  # fill in with this years' oberserved data
+  # fill in with this years' observed data
   # should have the corrrect number of days always since they are good representation of the same year
   year2[1:currDOY, c('Tmax_C', 'Tmin_C', 'PPT_cm')] <- thisYearObservedWData[1:currDOY, c('Tmax_C', 'Tmin_C', 'PPT_cm')]
   

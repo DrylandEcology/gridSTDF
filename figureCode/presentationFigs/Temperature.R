@@ -26,7 +26,6 @@ TempDF$Time <- ifelse(TempDF$Date < Sys.Date(), 'Observed', 'Future')
 
 # ------------------------------------------------------------------------------------
 # eliminate data two weeks after current not in the position to make statements there
-currDate <- as.Date(Sys.time())
 TempDF[TempDF$Date %in% c((currDate-15):(currDate + 15)),
        c('Fut.avgC_rollmean.med', 'Fut.avgC_rollmean.10', 'Fut.avgC_rollmean.90')] <-NA
 
@@ -71,7 +70,7 @@ Panel1 <- ggplot(TempDF) +
   
   # theme
   theme_bw() +
-  theme(legend.position = c(0.7, 0.05),
+  theme(legend.position = 'bottom',
         legend.direction = "horizontal") +
   guides(alpha = FALSE) +
   scale_color_manual(name = '', values = c('darkcyan', 'black', 'darkgoldenrod3')) +
@@ -81,7 +80,7 @@ Panel1 <- ggplot(TempDF) +
 
 suppressWarnings(plot(Panel1))
 
-#ggsave('~/Desktop/CDI_2019/Figures/ObservedAndFuture_TEMP_Median_Quantiles.png', height = 4, width = 8)
+ggsave('figureCode/presentationFigs/savedFigs/TEMP_ObservedAndFuture_Median_Quantiles.png', height = 4, width = 8)
 
 # Panel 2 ----------------------------------------------------------------------------
 Panel2 <- ggplot(TempDF) + 
@@ -114,7 +113,7 @@ Panel2 <- ggplot(TempDF) +
   labs(y = 'temperature diffs (°C)')
 
 suppressWarnings(plot(Panel2))
-#ggsave('~/Desktop/CDI_2019/Figures/ObservedAndFuture_TEMP_Median_DIFFERENCES.png', height = 4, width = 8)
+ggsave('figureCode/presentationFigs/savedFigs/TEMP_ObservedAndFuture_Median_DIFFERENCES.png', height = 4, width = 8)
 
 Panel2Anoms <- Panel2 + 
   # Generated Anoms

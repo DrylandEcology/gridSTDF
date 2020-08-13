@@ -13,8 +13,8 @@
 #'   temperatures, dry soil, and interannual variability limit restoration
 #'   success of a dominant woody shrub in temperate drylands.
 #'   Global Change Biology 244972–4982.
-p_Shriver2018 - function(VWC_spring, Temp_mean) {
-  logit_p - 3.306 + 2.499 * VWC_spring - 0.289 * Temp_mean
+p_Shriver2018 <- function(Temp_mean, VWC_spring) {
+  logit_p <- 3.306 + 2.499 * VWC_spring - 0.289 * Temp_mean
   stats::plogis(logit_p) # inverse logit
 }
 

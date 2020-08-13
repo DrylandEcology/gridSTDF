@@ -216,10 +216,8 @@ Resources:
           # https://askubuntu.com/questions/319714/proper-way-to-add-a-user-account-via-bash-script
           # https://community.rstudio.com/t/rserver-1692-error-system-error-13-permission-denied/46972/2
 
-
           # set up sudo permissions
           echo "pr-candrews ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-          echo "pr-jhensleigh ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
           echo "devel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
           # necessary setting changes
@@ -234,95 +232,63 @@ Resources:
           #install development packages so that some R packages will install
 
           # # rgdal
-          apt-get -y install libgdal-dev libproj-dev gdal-bin
+          #apt-get -y install libgdal-dev libproj-dev gdal-bin
 
           # # rgeos
-          apt-get install libgeos-dev
+          #apt-get install libgeos-dev
 
           # # ncdf4
           #apt-get -y install netcdf-devel
 
-          # # RCurl
-          apt-get -y install libcurl-dev
-
           # # Devtools / httr req
           apt-get -y install libssl-dev
 
-          # # AWS
-          #apt-get -y install libxml2-devel
+          # # curl
+          apt-get install libcurl4-openssl-dev
+
+          # # xml
+          apt-get -y install libxml2-dev
 
           # install RStudio-Server
           sudo apt-get install gdebi-core
           wget https://download2.rstudio.org/server/bionic/amd64/rstudio-server-1.2.5019-amd64.deb
           echo y | gdebi rstudio-server-1.2.5019-amd64.deb
 
-          # install shiny and shiny-server
-          wget https://download3.rstudio.org/ubuntu-14.04/x86_64/shiny-server-1.5.12.933-amd64.deb
-          echo y | gdebi shiny-server-1.5.12.933-amd64.deb
-
           # install R packages/dependecies
           echo package download begin
-          R -e "install.packages('ggplot2', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('shiny', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('fastmatch', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('iotools', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('Hmisc', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('zoo', repos='http://cran.rstudio.com/')"
           R -e "install.packages('data.table', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('gridExtra', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('RColorBrewer', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('forcats', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('Rcpp', repos='http://cran.rstudio.com/')"
-          yes yes | R -e "install.packages('raster', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('leaflet', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('circular', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('RSQLite', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('rgdal', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('rgeos', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('RCurl', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('dplyr', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('maps', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('maptools', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('shinydashboard', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('httr', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('hexbin', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('tidyr', repos='http://cran.rstudio.com/')"
-          R -e "install.packages('rmarkdown', repos='http://cran.rstudio.com/')"
           R -e "install.packages('lubridate', repos='http://cran.rstudio.com/')"
+          yes yes | R -e "install.packages('raster', repos='http://cran.rstudio.com/')"
+          R -e "install.packages('zoo', repos='http://cran.rstudio.com/')"
+          R -e "install.packages('caTools', repos='http://cran.rstudio.com/')"
           R -e "install.packages('plumber', repos='http://cran.rstudio.com/')"
+          R -e "install.packages('rvest', repos='http://cran.rstudio.com/')"
+          R -e "install.packages('blob', repos='http://cran.rstudio.com/')"
+          R -e "install.packages('RSQLite', repos='http://cran.rstudio.com/')"
+          R -e "install.packages('circular', repos='http://cran.rstudio.com/')"
 
-          # Get dev version of plotly
-          git clone 'https://github.com/ropensci/plotly'
-          cd plotly/
-          R CMD INSTALL --library= /usr/lib64/R/library .
-          cd ../
-          rm -r plotly/
+          mkdir Git
+
+          # clone and install ‘rSW2utils’
+          git clone -b master --single-branch --recursive https://github.com/DrylandEcology/rSW2utils.git Git/rSW2utils
+          R CMD INSTALL rSW2utils
 
           # clone and install rSOILWAT2
-          git clone -b master --single-branch --recursive https://github.com/DrylandEcology/rSOILWAT2.git rSOILWAT2
+          git clone -b master --single-branch --recursive https://github.com/DrylandEcology/rSOILWAT2.git Git/rSOILWAT2
           R CMD INSTALL rSOILWAT2
 
-          # clone and install rSFSW2
-          git clone -b feature_CDIfixes --single-branch https://github.com/DrylandEcology/rSFSW2
-          R CMD INSTALL rSFSW2
+          # clone and install rSW2funs
+          git clone -b master --single-branch --recursive https://github.com/DrylandEcology/rSW2funs.git Git/rSW2funs
+          R CMD INSTALL rSW2funs
 
-          # clone and install Shiny App Code
-          git clone -b master --single-branch https://code.chs.usgs.gov/candrews/shorttermdroughtforecaster /srv/shiny-server/shorttermdroughtforecaster
-
-          # copy rshiny conf file
-          cp /srv/shiny-server/shorttermdroughtforecaster/shiny-server.conf /etc/shiny-server/shiny-server.conf
+          # clone and install  App Code
+          git clone -b master --single-branch https://code.chs.usgs.gov/candrews/shorttermdroughtforecaster Git/shorttermdroughtforecaster
 
           # copy awslog conf file, get latest awslog agents, enable cloud watch agents, setup to start on boot
           #cp /srv/shiny-server/shorttermdroughtforecaster/awslogs.conf /etc/awslogs/awslogs.conf
           #apt-get install -y awslogs
           #systemctl start awslogsd
           #systemctl enable awslogsd.service
-
-          # ensure that shiny server service file installed in the correct place
-          systemctl restart shiny-server
-          cp /opt/shiny-server/config/systemd/shiny-server.service /etc/systemd/system
-          systemctl daemon-reload
-          systemctl restart shiny-server
 
           # give read and write permission to the app and to devel
           groupadd appallow

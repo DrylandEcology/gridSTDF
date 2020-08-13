@@ -1,40 +1,62 @@
-getOutputs <- function(sw_out, future = FALSE) {
+getOutputs <- function(sw_out, sw_in, calc_Shriver = TRUE, calc_GISSM = FALSE) {
   
   # Temp and Precip
-  Temp1 <- data.frame(sw_out@TEMP@Day)
+  Temp1 <- data.table(sw_out@TEMP@Day)
   Temp1 <- Temp1[, c('Year', 'Day', 'avg_C')]
  
-  PPT1 <-  data.frame(sw_out@PRECIP@Day)
+  PPT1 <-  data.table(sw_out@PRECIP@Day)
   PPT1 <- PPT1[, c('Year', 'Day', 'ppt')]
 
-  # SWP ---------------------------------------------------
+  # VWC ---------------------------------------------------
   # Step 1 - Get weighted mean across depths for VWC
-  VWC1 <-  data.frame(sw_out@VWCMATRIC@Day)
-  #if(!future) VWC1 <- VWC1[VWC1$Year != min(VWC1$Year), ]
+  VWC1 <-  data.table(sw_out@VWCMATRIC@Day)
+  VWC1 <- melt.data.table(VWC1, id.vars = c('Year', 'Day'))
+
+  # Get EcoVars ----------------------------------------------------------------
+ 
+  # Shriver 2018  Vars
+  if(calc_Shriver) {
+    Shriver2018Vars <- getShriver2018Vars(Temp1, VWC1)
+  }
   
-  #VWC1$Month <- month(strptime(paste(VWC1$Year, VWC1$Day, sep = '-'), format = "%Y-%j"))
-  VWC1 <- melt(VWC1, id.vars = c('Year', 'Day'))
-  VWC1 <-  merge(VWC1, SoilsDF) 
+  # GISSM Vars
+  if(calc_GISSM) {
+    GISSM_1 <- calc_GISSM(
+      x = sw_out,
+      soillayer_depths_cm = rSOILWAT2::swSoils_Layers(sw_in)[, 1],
+      site_latitude = rSOILWAT2::swSite_IntrinsicSiteParams(sw_in)[["Latitude"]],
+      has_soil_temperature =
+        rSOILWAT2::swSite_SoilTemperatureFlag(sw_in) &&
+        !rSOILWAT2::has_soilTemp_failed()
+    )
+  }
+  # Format VWC  -------------------------------------------
+  VWC1 <- VWC1[variable != 'Lyr_1', ]
+  
+  VWC1 <-  merge(VWC1, SoilsDF)#, by = 'variable') 
   VWC1 <- setDT(VWC1)[,.(VWC = weighted.mean(value, width)),
                       .(Year, Day, Depth)]
+  VWC1$Depth <- paste0('VWC.', VWC1$Depth)
   VWC1 <- dcast(VWC1, Year +  Day ~ Depth, value.var = 'VWC')
-
-  # Join up
-  Data <- merge(Temp1, PPT1)
-  Data <- merge(Data, VWC1)
   
-   return(Data)
+  # Join up
+  Data <- merge(Temp1, PPT1, by = c('Year', 'Day'))
+  Data <- merge(Data, VWC1,  by = c('Year', 'Day'))
+
+  if(!calc_GISSM && !calc_Shriver) return(list(Data))
+  if(!calc_GISSM && calc_Shriver) return(list(Data, Shriver2018Vars))
+  if(calc_GISSM  && calc_Shriver) return(list(Data, Shriver2018Vars, data.table(GISSM_1[[1]])))
   
 }
 
-formatOutputsFuture <- function(AllOut) {
+formatOutputsFuture <- function(AllOut, SoilsDF) {
   
   # Get means for each day in each year
   AllOut$run_Year <- sapply(strsplit(AllOut$run, '_'), '[', 2)
   AllOut <- makeDateMonthDat(AllOut, 'Day')
   AllOut$Day <- AllOut$run <- NULL
   
-  AllOut2 <- setDT(AllOut)[, sapply(.SD, function(x) list(mean=mean(x))), .(run_Year, Year, Date)]
+  AllOut2 <- setDT(AllOut)[, sapply(.SD, function(x) list(mean=mean(x))), .(run_Year, Year, Date)] # mean for every sim. year
 
   # Get rolling means and sums per simulation
   AllOut2 <- setorder(AllOut2, run_Year, Year, Date)
@@ -53,8 +75,12 @@ formatOutputsFuture <- function(AllOut) {
                            c('Date', sapply(names(AllOut2)[-c(1)], paste0, c(".med", ".10", '.90'))))# get all means and sds!!!
   
   
-
+  # Convert VWC to SWP -----------------------------------------------------------
+  AnomRunStats <- getSWP(AnomRunStats, SoilsDF)
+  
   AnomRunStats <- AnomRunStats[AnomRunStats$Date > Sys.Date() - 183, ] # 6 month lead ins 
+  AnomRunStats <- AnomRunStats[AnomRunStats$Date <  Sys.Date() + 396, ] # 6 month lead ins 
+  
   AnomRunStats$Time <- ifelse(AnomRunStats$Date < Sys.Date(), 'Observed', 'Future')
   
   return(AnomRunStats)
@@ -66,9 +92,53 @@ getRolling <- function(Data2){
 
   Data2$ppt_rollsum <- rollapply(Data2$ppt,  width = 30, FUN = sum, fill = 'extend', align = 'center')# for historical data can just calc continuously 30 day sum
   Data2$avgC_rollmean <- runmean(Data2$avg_C,  k = 30, endrule = 'mean', align = 'center')#
-  Data2$VWCShallow_rollmean <- runmean(Data2$Shallow,  k = 30, endrule = 'mean', align = 'center')
-  Data2$VWCInter_rollmean <- runmean(Data2$Intermediate,  k = 30, endrule = 'mean', align = 'center')
-  Data2$VWCDeep_rollmean <- runmean(Data2$Deep,  k = 30, endrule = 'mean', align = 'center')
+  Data2$VWC.Shallow_rollmean <- runmean(Data2$VWC.Shallow,  k = 30, endrule = 'mean', align = 'center')
+  Data2$VWC.Intermediate_rollmean <- runmean(Data2$VWC.Intermediate,  k = 30, endrule = 'mean', align = 'center')
+  Data2$VWC.Deep_rollmean <- runmean(Data2$VWC.Deep,  k = 30, endrule = 'mean', align = 'center')
   
   return(Data2)
 }
+
+getSWP <- function(DF, Soils) {
+
+  SoilsDF_Avg <- setDT(Soils)[, .(clay = weighted.mean(clay_frac, width),
+                                    sand = weighted.mean(sand_frac, width)), .(Depth)]
+  
+  Depths <- unique(SoilsDF_Avg$Depth)
+
+  for(i in 1:length(Depths)) {
+  
+    SWPDF <-  DF[, .SD, .SDcols = names(DF) %like% Depths[i]]
+    
+    SWPDF <- SWPDF[, lapply(.SD, VWCtoSWP, 
+                            sand = SoilsDF_Avg[Depth == Depths[i], sand], 
+                            clay = SoilsDF_Avg[Depth == Depths[i], clay])]
+    
+    names(SWPDF) <- gsub('VWC', 'SWP', names(SWPDF))
+    
+    DF <- cbind(DF, SWPDF)
+    
+  }
+  
+  return(DF)
+
+}
+
+getShriver2018Vars <- function(TempDF, VWCDF) {
+
+  # these condition are for the year AFTER seeding
+  # planted in fall 2018  - then need 2019 VWC and Temp data
+  # fall 2019 -2020 data
+  # fall 2020 - 2021 data
+
+
+  Temp_1_250 <- TempDF[Day %in% 1:250, .(Temp_mean = mean(avg_C)), .(Year)]
+  VWC_top_70_100 <- VWCDF[Day %in% 70:100 & variable == 'Lyr_1',
+                          .(VWC_mean = mean(value)), .(Year)]
+
+  vars <- merge(Temp_1_250, VWC_top_70_100,  by = c('Year'))
+  vars$PlantedinYear <- vars$Year - 1
+    
+  return(vars)
+  
+} 

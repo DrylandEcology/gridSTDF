@@ -4,17 +4,18 @@ library(ggplot2)
 ######################################################################################
 ################# Data organization #################
 ######################################################################################
-readIn <- 0
+readIn <- 1
 
 currMonth <- month(Sys.Date())
-
+currDate <- Sys.Date()
+  
 # Historical Data -------------------------------------------------------------------
 if(readIn){
-  HistDataNormMean <- fread('ExampleData/HistDataNormMean.csv')
+  HistDataNormMean <- fread('ExampleData/HistData_Norm_Stats.csv')
   MonthlyAnoms <- fread('ExampleData/MonthlyAnoms.csv')
   TempAnoms <- fread('ExampleData/TempAnoms.csv')
   PPTAnoms <- fread('ExampleData/PPTAnoms.csv')
-  AnomRunStats <- fread('ExampleData/AnomRunStats.csv')
+  AnomRunStats <- fread('ExampleData/AnomRun_Stats.csv')
   
 }
 
