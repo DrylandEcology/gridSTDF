@@ -13,21 +13,21 @@ library(caTools)
 library(plumber)
 library(rvest)
 
-source('shorttermdroughtforecaster/functions/weatherFunctions.R')
-source('shorttermdroughtforecaster/functions/soilsAndComp.R')
-source('shorttermdroughtforecaster/functions/Outputs.R')
-source('shorttermdroughtforecaster/functions/HelperFunctions.R')
-source('shorttermdroughtforecaster/functions/ecoIndicators.R')
-
-lat <- 43.3737
-lng <- -116.6323
-soils <- 2
-sand <- 50
-clay <- 15
-comp <- 1
-shrubs <- .5
-grasses <- .5
-forbs <- bg <- trees <- 0
+source('Git/shorttermdroughtforecaster/functions/weatherFunctions.R')
+source('Git/shorttermdroughtforecaster/functions/soilsAndComp.R')
+source('Git/shorttermdroughtforecaster/functions/Outputs.R')
+source('Git/shorttermdroughtforecaster/functions/HelperFunctions.R')
+source('Git/shorttermdroughtforecaster/functions/ecoIndicators.R')
+# 
+# lat <- 43.3737
+# lng <- -116.6323
+# soils <- 2
+# sand <- 50
+# clay <- 15
+# comp <- 1
+# shrubs <- .5
+# grasses <- .5
+# forbs <- bg <- trees <- 0
 
 #* gather user data, execute soilwat simulations, and return outputs
 #* @param lat latitude of site
