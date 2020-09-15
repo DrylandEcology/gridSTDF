@@ -1,4 +1,4 @@
-getOutputs <- function(sw_out, sw_in, calc_Shriver = TRUE, calc_GISSM = FALSE) {
+getOutputs <- function(sw_out, sw_in, calc_Shriver = TRUE, calc_GISSM = TRUE) {
   
   # Temp and Precip
   Temp1 <- data.table(sw_out@TEMP@Day)
@@ -31,7 +31,7 @@ getOutputs <- function(sw_out, sw_in, calc_Shriver = TRUE, calc_GISSM = FALSE) {
     )
   }
   # Format VWC  -------------------------------------------
-  VWC1 <- VWC1[variable != 'Lyr_1', ]
+  #VWC1 <- VWC1[variable != 'Lyr_1', ]
   
   VWC1 <-  merge(VWC1, SoilsDF)#, by = 'variable') 
   VWC1 <- setDT(VWC1)[,.(VWC = weighted.mean(value, width)),
@@ -42,6 +42,11 @@ getOutputs <- function(sw_out, sw_in, calc_Shriver = TRUE, calc_GISSM = FALSE) {
   # Join up
   Data <- merge(Temp1, PPT1, by = c('Year', 'Day'))
   Data <- merge(Data, VWC1,  by = c('Year', 'Day'))
+  
+  # test - eliminate leap year dat ----------------------
+  # step one - make data
+  #Data$Date <- makeDateMonthDat(Data, 'Day')
+  #Data <- Data[Data$Date != 02-29, ]
 
   if(!calc_GISSM && !calc_Shriver) return(list(Data))
   if(!calc_GISSM && calc_Shriver) return(list(Data, Shriver2018Vars))
@@ -131,7 +136,6 @@ getShriver2018Vars <- function(TempDF, VWCDF) {
   # fall 2019 -2020 data
   # fall 2020 - 2021 data
 
-
   Temp_1_250 <- TempDF[Day %in% 1:250, .(Temp_mean = mean(avg_C)), .(Year)]
   VWC_top_70_100 <- VWCDF[Day %in% 70:100 & variable == 'Lyr_1',
                           .(VWC_mean = mean(value)), .(Year)]
@@ -142,3 +146,29 @@ getShriver2018Vars <- function(TempDF, VWCDF) {
   return(vars)
   
 } 
+
+formatShriver2018 <- function(Hist_Shriver2018, Future_Shriver2018, currYear) {
+  
+  Hist_Shriver2018$TP <- 'Historical'
+  
+  Future_Shriver2018$run_year <- sapply(strsplit(Future_Shriver2018$run, '_'), '[', 2)
+  Future_Shriver2018$run_sim <- sapply(strsplit(Future_Shriver2018$run, '_'), '[', 1)
+  Future_Shriver2018 <- Future_Shriver2018[Year %in% (currYear-1):currYear] 
+  Future_ShriverMeds <- Future_Shriver2018[, .(Prob = median(Prob)), .(run_sim, Year)]
+  Future_ShriverMeds$TP <- as.character(Future_ShriverMeds$Year)
+  
+  return(bind(Hist_Shriver2018,Future_ShriverMeds))
+}
+  
+formatGISSM <- function(Hist_GISSM, Future_GISSM) {
+  
+  Hist_GISSM$TP <- 'Historical'
+  
+  Future_GISSM$run_year <- sapply(strsplit(Future_GISSM$run, '_'), '[', 2)
+  Future_GISSM$run_sim <- sapply(strsplit(Future_GISSM$run, '_'), '[', 1)
+  Future_GISSM <- Future_GISSM[, .(Prob = mean(SeedlingSurvival_1stSeason)), .(run_sim, ryear)]
+  Future_GISSM$TP <- as.character(Future_GISSM$ryear)
+  
+  return(bind(Hist_GISSM,Future_GISSM))
+}
+

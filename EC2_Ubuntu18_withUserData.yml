@@ -204,7 +204,6 @@ Resources:
           if grep -q " 6" /etc/centos-release; then yum update curl -y; fi;
           cd /root/
 
-
           exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
 
           echo BEGIN
@@ -212,7 +211,7 @@ Resources:
 
           # setup development account
           sudo adduser devel --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password
-          echo "devel:stdf" | sudo chpasswd
+          echo devel:stdf | sudo chpasswd
           # https://askubuntu.com/questions/319714/proper-way-to-add-a-user-account-via-bash-script
           # https://community.rstudio.com/t/rserver-1692-error-system-error-13-permission-denied/46972/2
 
@@ -249,10 +248,19 @@ Resources:
           # # xml
           apt-get -y install libxml2-dev
 
+          # #
+          apt-get -y install libsodium-dev
+          apt-get -y install libcurl4-openssl-dev
+
+          # # need for rstudio server
+          apt-get -y install lib32stdc++6 libclang-6.0-dev
+          apt-get -y install libclang-dev
+
           # install RStudio-Server
-          sudo apt-get install gdebi-core
-          wget https://download2.rstudio.org/server/bionic/amd64/rstudio-server-1.2.5019-amd64.deb
-          echo y | gdebi rstudio-server-1.2.5019-amd64.deb
+          # https://rstudio.com/products/rstudio/download-server/debian-ubuntu
+          apt-get install gdebi-core
+          wget https://download2.rstudio.org/server/bionic/amd64/rstudio-server-1.3.1073-amd64.deb
+          gdebi -n rstudio-server-1.3.1073-amd64.deb
 
           # install R packages/dependecies
           echo package download begin
@@ -297,6 +305,12 @@ Resources:
           chown -R :appallow /srv/shiny-server/shorttermdroughtforecaster
           chmod -R g+rwx /srv/shiny-server/shorttermdroughtforecaster
 
+          #download Data
+          mkdir WeatherData
+          cd WeatherData
+          wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P /tmp -A "tmmn_*.nc"
+          wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P /tmp -A "tmmx_*.nc"
+          wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P /tmp -A "pr_*.nc"
 
           #aws cli
           #apt-get install -y awscli

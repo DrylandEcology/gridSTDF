@@ -1,13 +1,12 @@
 # year 1 is last years data
 # thisYearObservedWData is this year's observed weather data
-makeWeathOneSim <- function(y, year1, thisYearObservedWData, weathAnomAll) {
+makeWeathOneSim <- function(y, year1, thisYearObservedWData, weathAnomAll,
+                             currDOY, currYear) {
 
-  currYear <- year(Sys.Date())
   days <- dim(thisYearObservedWData)[1]
   daysNextYear <- yearDays(as.Date(paste0(currYear + 1,'-01-01')))
   LeapYear <- days == 366
 
-  currDOY <- yday(Sys.Date())
   ### ---------
   ### year 2 - observed data for this year until today's date and then future, weathAnom data
   ### ---------
@@ -21,8 +20,8 @@ makeWeathOneSim <- function(y, year1, thisYearObservedWData, weathAnomAll) {
   year2 <- plyr::join(year2, year2Fut[,c('Date', 'Tmax_C', 'Tmin_C', 'PPT_cm')],
                       by = 'Date')
 
-  # fill in with this years' oberserved data
-  # should have the corrrect number of days always since they are good representation of the same year
+  # fill in with this years' observed data
+  # should have the correct number of days always since they are good representation of the same year
   year2[1:currDOY, c('Tmax_C', 'Tmin_C', 'PPT_cm')] <- thisYearObservedWData[1:currDOY, c('Tmax_C', 'Tmin_C', 'PPT_cm')]
 
   if(any(is.na(year2))) {
@@ -31,11 +30,11 @@ makeWeathOneSim <- function(y, year1, thisYearObservedWData, weathAnomAll) {
     year2$Tmin_C <- zoo::na.fill( year2$Tmin_C, "extend")
     year2$PPT_cm <- zoo::na.fill( year2$PPT_cm, "extend")
   }
-  # ggplot() +
-  #   geom_line(data = year2, aes(Date, Tmax_C, group = 1)) +
-  #   geom_line(data = thisYearObservedWData, aes(Date, Tmax_C, group = 1), color = 'purple') +
-  #   geom_line(data = year2Fut, aes(Date, Tmax_C, group = 1), color = 'green')
-  #
+   # ggplot() +
+   #   geom_line(data = year2, aes(Date, Tmax_C, group = 1)) +
+   #   geom_line(data = thisYearObservedWData, aes(Date, Tmax_C, group = 1), color = 'purple') +
+   #   geom_line(data = year2Fut, aes(Date, Tmax_C, group = 1), color = 'green')
+   #
 
   ### ---------
   ## year 3 ... forecasts that run into next year (aka 2021) and then scratch data for the rest of 2021
@@ -48,6 +47,16 @@ makeWeathOneSim <- function(y, year1, thisYearObservedWData, weathAnomAll) {
   year3Fut <- makeDateMonthDat(year3Fut, 'DOY')
   year3 <- plyr::join(year3, year3Fut[,c('Date', 'Tmax_C', 'Tmin_C', 'PPT_cm')],
                       by = 'Date')
+
+  # year3OG <- wdata[wdata$Year == y + 1, ]
+  # year3OG <- makeDateMonthDat(year3OG, 'DOY')
+  # 
+  # ggplot() +
+  #   geom_line(data = year3OG, aes(Date, Tmax_C, group = 1), color = 'green') +
+  #   geom_line(data = year3, aes(Date, Tmax_C, group = 1), lty = 'dashed')
+  # 
+  # year3$Tmax_C - year3OG$Tmax_C
+  # 
 
   # Make one simulation's worth of data
   year2$Date <- year3$Date <- NULL
@@ -72,9 +81,7 @@ yearDays <- function(time) {
   }
 }
 
-makeMonthLeadRelationshipTable <- function(TempAnoms) {
-
-  currMonth <- month(Sys.Date())
+makeMonthLeadRelationshipTable <- function(TempAnoms, currMonth) {
 
   monthLeads <- data.frame(TempAnoms[,'LEAD'])
 

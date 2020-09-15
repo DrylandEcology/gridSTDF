@@ -4,14 +4,13 @@ library(ggplot2)
 ######################################################################################
 ################# Data organization #################
 ######################################################################################
-readIn <- 1
+readIn <- 0
 
-currMonth <- month(Sys.Date())
 currDate <- Sys.Date()
   
 # Historical Data -------------------------------------------------------------------
 if(readIn){
-  HistDataNormMean <- fread('ExampleData/HistData_Norm_Stats.csv')
+  HistData_Norm_Stats <- fread('ExampleData/HistData_Norm_Stats.csv')
   MonthlyAnoms <- fread('ExampleData/MonthlyAnoms.csv')
   TempAnoms <- fread('ExampleData/TempAnoms.csv')
   PPTAnoms <- fread('ExampleData/PPTAnoms.csv')
@@ -25,31 +24,32 @@ todayMonthDay <- format(Sys.Date() , format="%m-%d")
 
 #  Get data for prior 6 months
 sixMonthsAgo <- format(Sys.Date() - 183,  format="%m-%d")
-r1 <- which(grepl(todayMonthDay, HistDataNormMean$Date))
-r2 <- which(grepl(sixMonthsAgo, HistDataNormMean$Date))
+r1 <- which(grepl(todayMonthDay, HistData_Norm_Stats$Date))
+r2 <- which(grepl(sixMonthsAgo, HistData_Norm_Stats$Date))
 dateIndex <- if( r2 > r1) { 
     c(r2:366, 1:(r1- 1))
   } else{
     c(r2:(r1 - 1))  
   }
-HistDataNormMean_18MNs <- HistDataNormMean[dateIndex,]
+HistDataNormMean_18MNs <- HistData_Norm_Stats[dateIndex,]
 
-HistDataNormMean_18MNs$Year <- ifelse(HistDataNormMean_18MNs$Date > todayMonthDay, 2019, 2020)
+HistDataNormMean_18MNs$Year <- ifelse(HistDataNormMean_18MNs$Date > todayMonthDay, currYear - 1 , currYear)
 HistDataNormMean_18MNs$Date <- as.Date(paste(HistDataNormMean_18MNs$Year, HistDataNormMean_18MNs$Date, sep = '-'))
 HistDataNormMean_18MNs <- setorder(HistDataNormMean_18MNs, Date) 
 
 #  Format historical record 1 year forward fromt today's date ----------------------------------------------
-HistDataNormMean$Year <- ifelse(HistDataNormMean$Date > todayMonthDay, 2020, 2021)
+HistData_Norm_Stats$Year <- ifelse(HistData_Norm_Stats$Date > todayMonthDay, currYear, currYear + 1)
 # when you convert to Date, elimantes Feb. 29 if that year does not have a 2-29
-HistDataNormMean$Date <- as.Date(paste(HistDataNormMean$Year, HistDataNormMean$Date, sep = '-'))
-HistDataNormMean <- setorder(HistDataNormMean, Date) 
+HistData_Norm_Stats$Date <- as.Date(paste(HistData_Norm_Stats$Year, HistData_Norm_Stats$Date, sep = '-'))
+HistData_Norm_Stats <- setorder(HistData_Norm_Stats, Date) 
 
 # Append
-HistDataNormMean_18MNs <- rbind(HistDataNormMean_18MNs, HistDataNormMean)
+HistDataNormMean_18MNs <- rbind(HistDataNormMean_18MNs, HistData_Norm_Stats)
 HistDataNormMean_18MNs <- HistDataNormMean_18MNs[complete.cases(HistDataNormMean_18MNs), ]
 
 # Go to the first day of the same month of the next year
-HistDataNormMean_18MNs <- HistDataNormMean_18MNs[HistDataNormMean_18MNs$Date < as.Date(paste0('2021-',currMonth + 1,'-01')),] # 06 should be currMonth
+HistDataNormMean_18MNs <- HistDataNormMean_18MNs[
+  HistDataNormMean_18MNs$Date < as.Date(paste0(currYear + 1, '-' ,currMonth + 1,'-01')),] # 06 should be currMonth
 
 ggplot() +
  # geom_line(data = AllOut2, aes(Date, avgC_rollmean, color = run_Year)) +

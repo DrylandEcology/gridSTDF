@@ -14,10 +14,10 @@ library(lubridate)
 ######################################################################################
 
 # Master Dataset --------------------------------------------------------------------
-HistVWC <- HistDataNormMean_18MNs[,c('Date', 'VWCShallow_rollmean.med', 'VWCShallow_rollmean.10', 'VWCShallow_rollmean.90')]
+HistVWC <- HistDataNormMean_18MNs[,c('Date', 'VWC.Shallow_rollmean.med', 'VWC.Shallow_rollmean.10', 'VWC.Shallow_rollmean.90')]
 names(HistVWC)[2:4] <- paste0('Hist.', names(HistVWC)[2:4])
 
-FutVWC <- AnomRunStats[,c('Date', 'Shallow.mean.med', 'VWCShallow_rollmean.med', 'VWCShallow_rollmean.10', 'VWCShallow_rollmean.90')]
+FutVWC <- AnomRunStats[,c('Date', 'Shallow.mean.med', 'VWC.Shallow_rollmean.med', 'VWC.Shallow_rollmean.10', 'VWC.Shallow_rollmean.90')]
 names(FutVWC)[2:5] <- paste0('Fut.', names(FutVWC)[2:5])
 FutVWC$Date <- as.Date(FutVWC$Date)
 

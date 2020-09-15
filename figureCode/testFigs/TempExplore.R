@@ -36,13 +36,13 @@ ggplot() +
   theme_bw() + geom_hline(yintercept = 0)  +
   geom_vline(xintercept = c(as.Date('1982-01-01'),as.Date('1983-01-01'),
                             as.Date('1984-01-01'), as.Date('1985-01-01'))) +
-  scale_x_date(date_breaks = "2 months", date_labels = "%m", expand = c(0,0)) 
-  
+  scale_x_date(date_breaks = "2 months", date_labels = "%m", expand = c(0,0))
 
 
-HistDataNormMean$Year <- ifelse(HistDataNormMean$Day < yday(Sys.Date()), 2021, 2020)
+
+HistDataNormMean$Year <- ifelse(HistDataNormMean$Day < currDOY, 2021, 2020)
 HistDataNormMean$Date <- as.Date(strptime(paste(HistDataNormMean$Year, HistDataNormMean$Day), format="%Y %j"), format="%m-%d-%Y")
-HistDataNormMean <- setorder(HistDataNormMean, Date) 
+HistDataNormMean <- setorder(HistDataNormMean, Date)
 
 
 y <- 1985
@@ -65,7 +65,7 @@ year2$Year <- as.integer(currYear) # change year
 # add observed data where appropriate
 year2[1:currDOY,] <- thisYearObservedWData[1:currDOY,] # this works even when currDOY is 366 and year2 DF only has 365 rows
 
-# if "year2" is 365 days but current year is 366 days 
+# if "year2" is 365 days but current year is 366 days
 ## what to do?
 if(days == 366 & nrow(year2) != 366) {
   year2 <- rbind(year2, year2[365,])
@@ -74,7 +74,7 @@ if(days == 366 & nrow(year2) != 366) {
 ### ---------
 ## year 3 ... forecasts that run into next year (aka 2021) and then scratch data for the rest of 2021
 ### ---------
-year3 <- year2Fut 
+year3 <- year2Fut
 if(days == 366) year3 <- year3[1:365,] #if this year is 366 days, next year needs to be 365
 year3$Year <- as.integer(currYear + 1)
 
@@ -83,7 +83,7 @@ p1 <- ggplot() +
   theme_bw()
 p1
 
-p2 <- p1 + geom_line(data = hist,  aes(DOY, Tmax_C), color = 'red') # data for 
+p2 <- p1 + geom_line(data = hist,  aes(DOY, Tmax_C), color = 'red') # data for
 p2
 
 p2 <- p2 + geom_line(data = year2Fut, aes(DOY, Tmax_C), color = 'darkgreen') # future
@@ -96,7 +96,7 @@ ggplot() +
   geom_line(data = year2Fut, aes(DOY, Tmax_C), color = 'pink') +
   geom_line(data = year3, aes(DOY, Tmax_C), color = 'purple', lty = 'dashed') +
   theme_bw()
-  
+
 # SW
 
 weathAnomOneSim <- rbind(year1, year2, year3)
@@ -106,7 +106,7 @@ weathAnomOneSim$Date <- as.Date(strptime(paste(weathAnomOneSim$Year, weathAnomOn
 
 ggplot() +
   geom_hline(yintercept = c(seq(-15, 25, by = 0.5)), color = 'gray', alpha = .1) +
-  
+
   geom_line(data = weathAnomOneSim, aes(Date, avg_C), color = 'purple') +
 
   geom_line(data = HistDataNormMean, aes(Date, avgC_rollmean.med), color = 'red') +
@@ -118,9 +118,9 @@ weathAnomOneSim2 <- weathAnomOneSim[weathAnomOneSim$Year >= 2020, ]
 weathAnomOneSim2[360:390,]
 ggplot() +
   geom_line(data = weathAnomOneSim2, aes(Date, avg_C), color = 'purple') +
-  
+
   geom_line(data = HistDataNormMean, aes(Date, avgC_rollmean.med), color = 'red') +
-  
+
   geom_line(data = weathAnomOneSim2, aes(Date, rollmean_avgC)) +
   theme_bw()
 
@@ -151,9 +151,9 @@ ggplot() +
   geom_line(data = HistDataNormMean, aes(Date, avgC_rollmean.med)) +
 
   geom_line(data = AllOut2, aes(Date, avgC_rollmean , color = runy)) +
-  
+
   geom_line(data = AnomRunStats, aes(Date, avgC_rollmean.med), color = 'black', size = 1.1) +
-  
+
   theme_bw() +
   theme(legend.position = 'none')
 
@@ -182,7 +182,7 @@ year2[1:currDOY,] <- thisYearObservedWData[1:currDOY,] # this works even when cu
 ### ---------
 ## year 3 ... forecasts that run into next year (aka 2021) and then scratch data for the rest of 2021
 ### ---------
-year3 <- year2Fut  
+year3 <- year2Fut
 
 if(days == 366) year3 <- year3[1:365,] #if this year is 366 days, next year needs to be 365
 year3$Year <- as.integer(currYear + 1)
@@ -191,8 +191,8 @@ p1 <- ggplot() +
   geom_line(data = thisYearObservedWData, aes(DOY, Tmax_C), color = 'blue') +
   theme_bw()
 p1
-  
-p2 <- p1 + geom_line(data = histdata,  aes(DOY, Tmax_C), color = 'red') # data for 
+
+p2 <- p1 + geom_line(data = histdata,  aes(DOY, Tmax_C), color = 'red') # data for
 p2
 
 p2 <- p2 + geom_line(data = year2Fut, aes(DOY, Tmax_C), color = 'darkgreen') # future
@@ -222,12 +222,7 @@ wdata4 <- wdata3[wdata3$Year %in% 1990:1994, ]
 p1 <- ggplot(wdata4, aes(Date)) +
   geom_line(aes(y=avg_C)) +
   geom_line(aes(y = avgC_RollMean), color = 'red') +
-  theme_bw() 
-  
+  theme_bw()
+
 p1
 ggplotly(p1)
-
-
-
-
-

@@ -69,13 +69,13 @@ getCPCData <- function(url, var) {
 }
 
 tempurl <- 'https://www.cpc.ncep.noaa.gov/pacdir/NFORdir/HUGEdir2/cpcllftd.dat'
-#tempData <- getCPCData(tempurl, 'temp')  
+tempData <- getCPCData(tempurl, 'temp')  
 summary(tempData)
 
 ppturl <- 'https://www.cpc.ncep.noaa.gov/pacdir/NFORdir/HUGEdir2/cpcllfpd.dat'
-#pptData <- getCPCData(ppturl, 'ppt')
+pptData <- getCPCData(ppturl, 'ppt')
 summary(pptData)
 
 
-#write.csv(tempData, 'CurrentAnomalyTempData.csv', row.names = FALSE) # farenheit
-#write.csv(pptData, 'CurrentAnomalyPPTData.csv', row.names = FALSE) # inches
+write.csv(tempData, 'CurrentAnomalyTempData.csv', row.names = FALSE) # farenheit
+write.csv(pptData, 'CurrentAnomalyPPTData.csv', row.names = FALSE) # inches

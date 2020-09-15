@@ -80,7 +80,7 @@ Panel1 <- ggplot(TempDF) +
 
 suppressWarnings(plot(Panel1))
 
-ggsave('figureCode/presentationFigs/savedFigs/TEMP_ObservedAndFuture_Median_Quantiles.png', height = 4, width = 8)
+#ggsave('figureCode/presentationFigs/savedFigs/TEMP_ObservedAndFuture_Median_Quantiles.png', height = 4, width = 8)
 
 # Panel 2 ----------------------------------------------------------------------------
 Panel2 <- ggplot(TempDF) + 
@@ -113,20 +113,21 @@ Panel2 <- ggplot(TempDF) +
   labs(y = 'temperature diffs (°C)')
 
 suppressWarnings(plot(Panel2))
-ggsave('figureCode/presentationFigs/savedFigs/TEMP_ObservedAndFuture_Median_DIFFERENCES.png', height = 4, width = 8)
+#ggsave('figureCode/presentationFigs/savedFigs/TEMP_ObservedAndFuture_Median_DIFFERENCES.png', height = 4, width = 8)
 
-Panel2Anoms <- Panel2 + 
-  # Generated Anoms
-  geom_boxplot(data = MonthlyAnoms, aes(Date, tempAnom, group = Month), fatten = NULL, width = 7,
-               alpha = 0.8, outlier.size = -1) +
-  stat_summary(data = MonthlyAnoms, aes(Date, tempAnom, group = Month, ymax = ..y.., ymin = ..y..),
-               fun.y = mean, geom = "errorbar", size = 1.2, color = 'limegreen') +
-  #geom_point(data = MonthlyAnoms, aes(Date, tempAnom, group = Month), shape = 21, size =.5, fill = NA) +
-  # NWS dots and lines
-  stat_summary(data = NWSAnomsAll1, aes(Date, Anom_C, ymax = ..y.., ymin = ..y..),
-               fun.y = mean, geom = "errorbar", size = 1.2, color = 'purple') +
-  geom_pointrange(data = NWSAnomsAll1, aes(Date, Anom_C,
-                                               ymin = Anom_C - ForecastedSD_Temp_C,
-                                               ymax = Anom_C + ForecastedSD_Temp_C), shape = 21, fill = 'black', color = 'magenta') 
-suppressWarnings(plot(Panel2Anoms))
-  
+# 
+# Panel2Anoms <- Panel2 + 
+#   # Generated Anoms
+#   geom_boxplot(data = MonthlyAnoms, aes(Date, tempAnom, group = Month), fatten = NULL, width = 7,
+#                alpha = 0.8, outlier.size = -1) +
+#   stat_summary(data = MonthlyAnoms, aes(Date, tempAnom, group = Month, ymax = ..y.., ymin = ..y..),
+#                fun.y = mean, geom = "errorbar", size = 1.2, color = 'limegreen') +
+#   #geom_point(data = MonthlyAnoms, aes(Date, tempAnom, group = Month), shape = 21, size =.5, fill = NA) +
+#   # NWS dots and lines
+#   stat_summary(data = NWSAnomsAll1, aes(Date, Anom_C, ymax = ..y.., ymin = ..y..),
+#                fun.y = mean, geom = "errorbar", size = 1.2, color = 'purple') +
+#   geom_pointrange(data = NWSAnomsAll1, aes(Date, Anom_C,
+#                                                ymin = Anom_C - ForecastedSD_Temp_C,
+#                                                ymax = Anom_C + ForecastedSD_Temp_C), shape = 21, fill = 'black', color = 'magenta') 
+# suppressWarnings(plot(Panel2Anoms))
+#   
