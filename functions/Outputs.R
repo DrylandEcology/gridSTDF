@@ -21,14 +21,15 @@ getOutputs <- function(sw_out, sw_in, calc_Shriver = TRUE, calc_GISSM = TRUE) {
   
   # GISSM Vars
   if(calc_GISSM) {
-    GISSM_1 <- calc_GISSM(
+    GISSM_1 <- suppressWarnings(calc_GISSM(
       x = sw_out,
       soillayer_depths_cm = rSOILWAT2::swSoils_Layers(sw_in)[, 1],
       site_latitude = rSOILWAT2::swSite_IntrinsicSiteParams(sw_in)[["Latitude"]],
       has_soil_temperature =
         rSOILWAT2::swSite_SoilTemperatureFlag(sw_in) &&
-        !rSOILWAT2::has_soilTemp_failed()
-    )
+        !rSOILWAT2::has_soilTemp_failed(),
+        
+    ))
   }
   # Format VWC  -------------------------------------------
   #VWC1 <- VWC1[variable != 'Lyr_1', ]

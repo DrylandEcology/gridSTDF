@@ -127,7 +127,7 @@ clay <- 15
     # Run 2 - with future anomaly data
     #  --------------------------------------------------------------------------
     print(paste('Running Future', Sys.time()))
-    AnomalyData1 <- runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 30, SoilsDF,
+    AnomalyData1 <- runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 1, SoilsDF,
                                              currDOY, currMonth, currYear)
 
     AllOut <- AnomalyData1[[1]]
