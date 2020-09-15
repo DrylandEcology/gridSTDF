@@ -1,45 +1,40 @@
-library(rSOILWAT2)
-library(rSW2funs)
-library(splines)
+#library(rSOILWAT2)
+#library(rSW2funs)
+#library(splines)
 # data formatting
-library(data.table)
-library(lubridate)
-library(raster)
-library(zoo)
-library(caTools)
+#library(data.table)
+#library(lubridate)
+#library(raster)
+#library(zoo)
+#library(caTools)
 # app
-library(plumber)
-library(rvest)
+#library(plumber)
+#library(rvest)
 
 #source('functions/weatherFunctions.R')
-source('functions/soilsAndComp.R')
-source('functions/Outputs.R')
-source('functions/HelperFunctions.R')
-source('functions/ecoIndicators.R')
+#source('functions/soilsAndComp.R')
+#source('functions/Outputs.R')
+#source('functions/HelperFunctions.R')
+#source('functions/ecoIndicators.R')
 
 #
-# lat <- 35.1983
-# lng <- -111.6513
-# soils <- 2
-# sand <- 50
-# clay <- 15
-# comp <- 2
-# grasses <- .5
-# shrubs <- .5
-# trees <- 0
-# forbs <- 0
-# bg <- 0
+lat <- 35.1983
+lng <- -111.6513
+soils <- 2
+sand <- 50
+clay <- 15
+
 
 #* gather user data, execute soilwat simulations, and return outputs
 #* @param lat latitude of site
-#* @param long longitude of site
+#* @param lng longitude of site
 #* @param soils binary decision of user 1 is extract from a gridded source 2 is user input
 #* @param sand user input of sand texture
 #* @param clay user input of clay texture
 
 #* @get /gatherDataAndExecuteSW
  gatherDataAndExecuteSW <- function(lat, lng,
-                                soils, sand = 33, clay = 33, comp = 1) {
+                                soils, sand = 33, clay = 33) {
 
     ################### ----------------------------------------------------------------
     # Part 0 - Setup - format data from HTTP request, get dates
@@ -59,16 +54,14 @@ source('functions/ecoIndicators.R')
     ################### ----------------------------------------------------------------
     # Part 1 - Getting and formatting weather data for the historical and future runs
     ################### ----------------------------------------------------------------
-
-    # get historical weather data -> using geoknife ... this takes very long and needs to be changed
-
-    print(Sys.time())
+    
+    print(paste('Formatting Weather Data', Sys.time()))
     wdata <- getWeatherData(lat, lng, currYear,
                             dir = '~/Desktop/www.northwestknowledge.net/metdata/data/')
-    print(Sys.time())
-    # write.csv(wdata2, 'ExampleData/wdata.csv', row.names = FALSE)
-    #wdata <- fread('ExampleData/wdata.csv')
-
+    
+    weath <- rSOILWAT2::dbW_dataframe_to_weatherData(wdata[wdata$Year %in% c(1979:(currYear - 1)),
+                                                c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')], round = 4)
+    
     ################### ----------------------------------------------------------------
     # Part 2 - Sets soils and veg and lat
     ################### ----------------------------------------------------------------
@@ -77,8 +70,8 @@ source('functions/ecoIndicators.R')
     # set whether soils should be extracted from 250m data or chosen by user
     sw_in0 <- set_soils(sw_in0, soils, sand, clay)
 
-    #3 set whether composition should be predicted from climate or chosen by user
-    sw_in0 <- set_comp(sw_in0, comp, trees, shrubs, grasses, forbs, bg)
+    #3 predict composition from climate
+    sw_in0 <- set_comp(sw_in0, weath)
 
     # 4 set latitude. Used in GISSM calculations
     swSite_IntrinsicSiteParams(sw_in0)[["Latitude"]] <- lat * pi/180
@@ -96,23 +89,20 @@ source('functions/ecoIndicators.R')
     Soils$width <- diff(c(0, Soils$depth_cm))
     SoilsDF <- merge(Soils, SoilsDF, by = 'depth_cm')
     SoilsDF$variable <- paste0('Lyr_',1:dim(SoilsDF)[1])
-  # write.csv(SoilsDF, 'Tests/TestExample/SoilsDF.csv')
+
     # --------------------------------------------------------------------------
     # Run 1 - with observed historical data ------------------------------------
     # --------------------------------------------------------------------------
-    print('Running Historical')
+    print(paste('Running Historical', Sys.time()))
     swCarbon_Use_Bio(sw_in0) <- FALSE
     swCarbon_Use_WUE(sw_in0) <- FALSE
     swYears_EndYear(sw_in0) <- currYear - 1
 
-    weath <- dbW_dataframe_to_weatherData(wdata[wdata$Year %in% c(1979:(currYear - 1)),
-                                                c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')], round = 4)
-    sw_out0 <- sw_exec(inputData = sw_in0, weatherList = weath, quiet = FALSE)
+    sw_out0 <- sw_exec(inputData = sw_in0, weatherList = weath, quiet = TRUE)
     HistDataAll <- getOutputs(sw_out0, sw_in0)
 
     # format outputs
     HistDataAll1 <- setorder(HistDataAll[[1]], Year, Day)
-    #fwrite(HistDataAll1, 'Tests/TestExample/HistData.csv')
 
     HistDataAll1 <- getRolling(HistDataAll1)
 
@@ -136,15 +126,14 @@ source('functions/ecoIndicators.R')
     #  --------------------------------------------------------------------------
     # Run 2 - with future anomaly data
     #  --------------------------------------------------------------------------
-    print('Running Future')
-    print(Sys.time())
-    AnomalyData1 <- runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 1, SoilsDF,
+    print(paste('Running Future', Sys.time()))
+    AnomalyData1 <- runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 30, SoilsDF,
                                              currDOY, currMonth, currYear)
 
     AllOut <- AnomalyData1[[1]]
-    #fwrite(AllOut, 'Tests/TestExample/FutureData.csv')
-    MonthlyAnoms <- AnomalyData1[[3]]
-
+    MonthlyAnoms <- AnomalyData1[[4]]
+    
+    print(paste('Formatting Outputs', Sys.time()))
     AnomRunStats <- formatOutputsFuture(AllOut, SoilsDF)
 
     # eco vars ------------------------------------------------------------------
@@ -168,6 +157,7 @@ source('functions/ecoIndicators.R')
     # fwrite(Future_Shriver2018, 'ExampleData/Future_Shriver2018.csv')
     # #fwrite(Hist_GISSM, 'ExampleData/Hist_GISSM.csv')
     # #fwrite(Future_GISSM, 'ExampleData/Future_GISSM.csv')
+    print(paste('Done', Sys.time()))
     return(list(HistData_Norm_Stats, AnomRunStats, Shriver_Stats, GISSM_Stats))#, HistDataAll1))
 
 }

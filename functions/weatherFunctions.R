@@ -96,7 +96,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF,
   wdata$Date <- NULL
 
   # Aggregate to monthly values
-  monthlyWdata <- wdata[,.(Tmean_C = mean(Tmean_C), PPT_cm = sum(PPT_cm)), .(Month, Year)]
+  monthlyWdata <- setDT(wdata)[,.(Tmean_C = mean(Tmean_C), PPT_cm = sum(PPT_cm)), .(Month, Year)]
 
   # Convert monthly PPT to inches
   monthlyWdata$PPT_in <- monthlyWdata$PPT_cm / 2.54
@@ -220,8 +220,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF,
 
     MonthlyAnoms <- rbind(MonthlyAnoms, yearlydat)
   #}
-    fwrite(MonthlyAnoms, 'ExampleData/MonthlyAnoms.csv')
-
+    #fwrite(MonthlyAnoms, 'ExampleData/MonthlyAnoms.csv')
 
     # Step 4 ----------------------------------------------------------------------------------------------
     # Create future weather / integrate anomaly data into historical weather ----------------------------------------------------------
@@ -255,16 +254,16 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF,
       sw_out <- sw_exec(inputData = sw_in0, weatherList = weathAnomOneSim, quiet = TRUE)
 
       # Grab Data I want for this run ----------------------------------------------------------
-      Out1 <- getOutputs(sw_out, sw_in0, calc_GISSM = FALSE)
+      Out1 <- getOutputs(sw_out, sw_in0, calc_GISSM = TRUE)
 
       AllOut1 <- rbind(AllOut1, cbind(Out1[[1]], run = paste(nn, y, sep = '_')))
       Shriver_Out <- rbind(Shriver_Out, cbind(Out1[[2]], run = paste(nn, y, sep = '_')))
-      #GISSM_Out <- rbind(GISSM_Out, cbind(Out1[[3]], run = paste(nn, y, sep = '_')))
+      GISSM_Out <- rbind(GISSM_Out, cbind(Out1[[3]], run = paste(nn, y, sep = '_')))
 
   }
   }
 
-  return(list(AllOut1, Shriver_Out, #GISSM_Out, 
+  return(list(AllOut1, Shriver_Out, GISSM_Out, 
               MonthlyAnoms))
 
 }

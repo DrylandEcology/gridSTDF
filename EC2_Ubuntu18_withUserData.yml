@@ -290,7 +290,7 @@ Resources:
           R CMD INSTALL rSW2funs
 
           # clone and install  App Code
-          git clone -b master --single-branch https://code.chs.usgs.gov/candrews/shorttermdroughtforecaster Git/shorttermdroughtforecaster
+          git clone -b master --single-branch https://code.chs.usgs.gov/candrews/shorttermdroughtforecaster shorttermdroughtforecaster
 
           # copy awslog conf file, get latest awslog agents, enable cloud watch agents, setup to start on boot
           #cp /srv/shiny-server/shorttermdroughtforecaster/awslogs.conf /etc/awslogs/awslogs.conf
@@ -308,9 +308,9 @@ Resources:
           #download Data
           mkdir WeatherData
           cd WeatherData
-          wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P /tmp -A "tmmn_*.nc"
-          wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P /tmp -A "tmmx_*.nc"
-          wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P /tmp -A "pr_*.nc"
+          wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P . -A "tmmn_*.nc"
+          wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P . -A "tmmx_*.nc"
+          wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P . -A "pr_*.nc"
 
           #aws cli
           #apt-get install -y awscli

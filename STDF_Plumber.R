@@ -1,5 +1,24 @@
 # web interface
 library(plumber) #https://www.rplumber.io
+
+library(rSOILWAT2)
+library(rSW2funs)
+library(splines)
+# data formatting
+library(data.table)
+library(lubridate)
+library(raster)
+library(zoo)
+library(caTools)
+# app
+library(rvest)
+
+source('functions/weatherFunctions.R')
+source('functions/soilsAndComp.R')
+source('functions/Outputs.R')
+source('functions/HelperFunctions.R')
+source('functions/ecoIndicators.R')
+
 r <- plumb('functions/simulationFunctions.R')
 
 r$run(host = "0.0.0.0",port = 8080) # https://www.r-bloggers.com/hosting-a-plumber-api-on-aws/
