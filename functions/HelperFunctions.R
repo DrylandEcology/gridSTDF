@@ -50,13 +50,13 @@ makeWeathOneSim <- function(y, year1, thisYearObservedWData, weathAnomAll,
 
   # year3OG <- wdata[wdata$Year == y + 1, ]
   # year3OG <- makeDateMonthDat(year3OG, 'DOY')
-  # 
+  #
   # ggplot() +
   #   geom_line(data = year3OG, aes(Date, Tmax_C, group = 1), color = 'green') +
   #   geom_line(data = year3, aes(Date, Tmax_C, group = 1), lty = 'dashed')
-  # 
+  #
   # year3$Tmax_C - year3OG$Tmax_C
-  # 
+  #
 
   # Make one simulation's worth of data
   year2$Date <- year3$Date <- NULL

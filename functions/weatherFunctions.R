@@ -10,7 +10,7 @@ getWeatherData <- function(lat, lng, currYear, dir) {
   # Get info from netcdfs ....
   # https://www.northwestknowledge.net/metdata/data/
   files <- list.files(dir, full.names = TRUE)
-  
+
   # Tmax_C
   tmmxfiles <- grep('tmmx_', files, value = TRUE)
   for(f in 1:length(tmmxfiles)){
@@ -20,7 +20,7 @@ getWeatherData <- function(lat, lng, currYear, dir) {
     vals <- extract(nc, matrix(c(lng, lat), ncol = 2))[1,]
     wdata[wdata$Year == year, 'Tmax_C'][1:length(vals)] <- vals
   }
-  
+
   # Tmin_C
   tmmnfiles <- grep('tmmn_', files, value = TRUE)
   for(f in 1:length(tmmnfiles)){
@@ -254,7 +254,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF,
       sw_out <- sw_exec(inputData = sw_in0, weatherList = weathAnomOneSim, quiet = TRUE)
 
       # Grab Data I want for this run ----------------------------------------------------------
-      Out1 <- getOutputs(sw_out, sw_in0, calc_GISSM = TRUE)
+      Out1 <- getOutputs(sw_out, sw_in0, SoilsDF, calc_GISSM = TRUE)
 
       AllOut1 <- rbind(AllOut1, cbind(Out1[[1]], run = paste(nn, y, sep = '_')))
       Shriver_Out <- rbind(Shriver_Out, cbind(Out1[[2]], run = paste(nn, y, sep = '_')))
@@ -263,7 +263,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF,
   }
   }
 
-  return(list(AllOut1, Shriver_Out, GISSM_Out, 
+  return(list(AllOut1, Shriver_Out, GISSM_Out,
               MonthlyAnoms))
 
 }

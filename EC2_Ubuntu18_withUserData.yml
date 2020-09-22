@@ -176,7 +176,7 @@ Mappings:
       rootBlock: "/dev/xvda"
     Ubuntu18:
       amiID: ami-0bbe6b35405ecebdb
-      rootBlock: "/dev/xvda"
+      rootBlock: "/dev/sda1"
 Conditions:
   HasRole: !Not [ !Equals ["", !Ref Role ] ]
 Resources:
@@ -209,6 +209,9 @@ Resources:
           echo BEGIN
           date '+%Y-%m-%d %H:%M:%S'
 
+          whoami
+          pwd
+
           # setup development account
           sudo adduser devel --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password
           echo devel:stdf | sudo chpasswd
@@ -231,13 +234,7 @@ Resources:
           #install development packages so that some R packages will install
 
           # # rgdal
-          #apt-get -y install libgdal-dev libproj-dev gdal-bin
-
-          # # rgeos
-          #apt-get install libgeos-dev
-
-          # # ncdf4
-          #apt-get -y install netcdf-devel
+          apt-get -y install libgdal-dev libproj-dev gdal-bin
 
           # # Devtools / httr req
           apt-get -y install libssl-dev
@@ -274,20 +271,23 @@ Resources:
           R -e "install.packages('blob', repos='http://cran.rstudio.com/')"
           R -e "install.packages('RSQLite', repos='http://cran.rstudio.com/')"
           R -e "install.packages('circular', repos='http://cran.rstudio.com/')"
+          R -e "install.packages('rgdal', repos='http://cran.rstudio.com/')"
+          R -e "install.packages('ncdf4', repos='http://cran.rstudio.com/')"
+          R -e "install.packages('plyr', repos='http://cran.rstudio.com/')"
 
           mkdir Git
 
           # clone and install ‘rSW2utils’
           git clone -b master --single-branch --recursive https://github.com/DrylandEcology/rSW2utils.git Git/rSW2utils
-          R CMD INSTALL rSW2utils
+          R CMD INSTALL Git/rSW2utils
 
           # clone and install rSOILWAT2
           git clone -b master --single-branch --recursive https://github.com/DrylandEcology/rSOILWAT2.git Git/rSOILWAT2
-          R CMD INSTALL rSOILWAT2
+          R CMD INSTALL Git/rSOILWAT2
 
           # clone and install rSW2funs
           git clone -b master --single-branch --recursive https://github.com/DrylandEcology/rSW2funs.git Git/rSW2funs
-          R CMD INSTALL rSW2funs
+          R CMD INSTALL Git/rSW2funs
 
           # clone and install  App Code
           git clone -b master --single-branch https://code.chs.usgs.gov/candrews/shorttermdroughtforecaster shorttermdroughtforecaster
@@ -305,7 +305,8 @@ Resources:
           chown -R :appallow /srv/shiny-server/shorttermdroughtforecaster
           chmod -R g+rwx /srv/shiny-server/shorttermdroughtforecaster
 
-          #download Data
+          #download Data ------------------------------------------------------
+
           mkdir WeatherData
           cd WeatherData
           wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P . -A "tmmn_*.nc"

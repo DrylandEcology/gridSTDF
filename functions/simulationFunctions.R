@@ -54,14 +54,14 @@ clay <- 15
     ################### ----------------------------------------------------------------
     # Part 1 - Getting and formatting weather data for the historical and future runs
     ################### ----------------------------------------------------------------
-    
+
     print(paste('Formatting Weather Data', Sys.time()))
     wdata <- getWeatherData(lat, lng, currYear,
                             dir = '~/Desktop/www.northwestknowledge.net/metdata/data/')
-    
+
     weath <- rSOILWAT2::dbW_dataframe_to_weatherData(wdata[wdata$Year %in% c(1979:(currYear - 1)),
                                                 c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')], round = 4)
-    
+
     ################### ----------------------------------------------------------------
     # Part 2 - Sets soils and veg and lat
     ################### ----------------------------------------------------------------
@@ -99,7 +99,7 @@ clay <- 15
     swYears_EndYear(sw_in0) <- currYear - 1
 
     sw_out0 <- sw_exec(inputData = sw_in0, weatherList = weath, quiet = TRUE)
-    HistDataAll <- getOutputs(sw_out0, sw_in0)
+    HistDataAll <- getOutputs(sw_out0, sw_in0, SoilsDF)
 
     # format outputs
     HistDataAll1 <- setorder(HistDataAll[[1]], Year, Day)
@@ -132,7 +132,7 @@ clay <- 15
 
     AllOut <- AnomalyData1[[1]]
     MonthlyAnoms <- AnomalyData1[[4]]
-    
+
     print(paste('Formatting Outputs', Sys.time()))
     AnomRunStats <- formatOutputsFuture(AllOut, SoilsDF)
 
