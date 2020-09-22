@@ -276,7 +276,7 @@ Resources:
           R -e "install.packages('plyr', repos='http://cran.rstudio.com/')"
 
           mkdir Git
-          test
+          test2
 
           # clone and install ‘rSW2utils’
           git clone -b master --single-branch --recursive https://github.com/DrylandEcology/rSW2utils.git Git/rSW2utils
