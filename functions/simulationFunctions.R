@@ -105,17 +105,15 @@ clay <- 15
     HistDataAll1 <- setorder(HistDataAll[[1]], Year, Day)
 
     HistDataAll1 <- getRolling(HistDataAll1)
-
-    HistData_Norm_Stats <- HistDataAll1[HistDataAll1$Year %in% 1981:2010, ] # historical normal
-    HistData_Norm_Stats <- makeDateMonthDat(HistData_Norm_Stats, 'Day')     # Get date without the year
-    HistData_Norm_Stats$Year <- HistData_Norm_Stats$Day <- NULL
-    HistData_Norm_Stats <- setnames(setDT(HistData_Norm_Stats)[ ,sapply(.SD, function(x) list(med=median(x),
-                                                                                        x10=quantile(x, .1, na.rm = TRUE),
-                                                                                        x90 = quantile(x, .9, na.rm = TRUE))),
-                                                          .(Date)],
-                                 c('Date', sapply(names(HistData_Norm_Stats)[-c(11)], paste0, c(".med", ".10", ".90"))))# get all means and sds!!!
-    HistData_Norm_Stats <- getSWP(HistData_Norm_Stats, SoilsDF)
-    HistData_Norm_Stats <- setorder(HistData_Norm_Stats, Date)
+    
+    # Climatologies for plotting
+    HistData_Norm_Stats1 <- getHistoricalClimatology(HistDataRolling, 1981, 2011, SoilsDF)
+    HistData_Norm_Stats2 <- getHistoricalClimatology(HistDataRolling, 1981, 2010, SoilsDF)
+    HistData_Norm_Stats3 <- getHistoricalClimatology(HistDataRolling, 1982, 2011, SoilsDF)
+    
+    # Monthlys for future delta calculations
+    HistData_MonthlyMeans_2 <- formatOutputs_Monthlys(HistDataAll1, SoilsDF, 'historical', 1981, 2010)
+    HistData_MonthlyMeans_3 <- formatOutputs_Monthlys(HistDataAll1, SoilsDF, 'historical', 1982, 2011)
 
     # eco vars ------------------------------------------------------------------
     Hist_Shriver2018 <- data.table(Year = HistDataAll[[2]]$PlantedinYear,
@@ -134,20 +132,41 @@ clay <- 15
     MonthlyAnoms <- AnomalyData1[[4]]
 
     print(paste('Formatting Outputs', Sys.time()))
+    
+    # Recent past (6 months prior to current): included in 'future' runs --------
     AnomRunStats <- formatOutputsFuture(AllOut, SoilsDF)
-
+    AnomRunStats <- AnomRunStats[AnomRunStats$Date < currDate, ]
+    
+    # Upcoming year (current data + 1 year)
+    AnomRunStats2 <- formatOutputs_Monthlys(AllOut, SoilsDF, 'future')
+    AnomRunStats2 <- AnomRunStats2[AnomRunStats2$Date  >= (currDate - 31), ]
+    
     # eco vars ------------------------------------------------------------------
     Future_Shriver2018 <- data.table(Year = AnomalyData1[[2]]$PlantedinYear, run = AnomalyData1[[2]]$run,
                                      Prob =  p_Shriver2018(AnomalyData1[[2]]$Temp_mean, AnomalyData1[[2]]$VWC_mean))
 
     Future_GISSM <- data.table(AnomalyData1[[3]])
+    
+    ################### ----------------------------------------------------------------
+    # Part 4 - Calculate deltas, formout outputs
+    ################### ----------------------------------------------------------------
 
+    # calculate deltas and approx and format
+    TempData <- calcDeltasAndApprox(HistData_Norm_Stats1, HistData_MonthlyMeans,
+                                    AnomRunStats, AnomRunStats2,
+                                    'avg_C')
+    PPTdata <- calcDeltasAndApprox(HistData_Norm_Stats1, HistData_MonthlyMeans,
+                                   AnomRunStats, AnomRunStats2,
+                                   'ppt')
+    VWCdata <- calcDeltasAndApprox(HistData_Norm_Stats1, HistData_MonthlyMeans,
+                                   AnomRunStats, AnomRunStats2,
+                                   'VWC.Shallow')
     # format ecovars for writing out -------------------------------------------
     Shriver_Stats <- formatShriver2018(Hist_Shriver2018, Future_Shriver2018, currYear)
     GISSM_Stats <- formatGISSM(Hist_GISSM, Future_GISSM)
 
     ################### ----------------------------------------------------------------
-    # Part 4 - Write out formatted outputs
+    # Part 5 - Write out formatted outputs
     ################### ----------------------------------------------------------------
     #fwrite(HistData_Norm_Stats, 'ExampleData/HistData_Norm_Stats.csv')
     # fwrite(MonthlyAnoms, 'ExampleData/MonthlyAnoms.csv')
