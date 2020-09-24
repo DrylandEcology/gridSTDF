@@ -2,14 +2,10 @@ AllVarData <- read.csv('ExampleData/AllVarData.csv', stringsAsFactors = FALSE)
 AllVarData$Date <- as.Date(AllVarData$Date)
 indx <- grep('VWC.Shallow', names(AllVarData))
 VWCdata <- AllVarData[,c(1,indx)]
+
 ######################################################################################
 ################# PREP --------------------------------------------------------------- 
 ######################################################################################
-
-#HistDataNormMean_18MNs
-# Historical Climatological diffs. - gray shaded area
-HistDataNormMean_18MNs$Hist.VWC.Shallow.rollmean.90.diff <- HistDataNormMean_18MNs$VWC.Shallow_rollmean.90 - HistDataNormMean_18MNs$VWC.Shallow_rollmean.med
-HistDataNormMean_18MNs$Hist.VWC.Shallow.rollmean.10.diff <- HistDataNormMean_18MNs$VWC.Shallow_rollmean.10 - HistDataNormMean_18MNs$VWC.Shallow_rollmean.med
 
 VWCdata$Type <- ifelse(VWCdata$RecentPast.VWC.Shallow.Diffs.Med > 0, 'pos', 'neg')
 VWCdata$Type2 <- ifelse(VWCdata$NearFut.VWC.Shallow.Diffs.Med > 0, 'pos', 'neg')
@@ -20,9 +16,9 @@ VWCdata$Type2 <- ifelse(VWCdata$NearFut.VWC.Shallow.Diffs.Med > 0, 'pos', 'neg')
 
 Panel1 <- ggplot() +
   # repeating long-term historical daily median
-  geom_ribbon(data = HistDataNormMean_18MNs, aes(x = Date, y = VWC.Shallow_rollmean.med, 
+  geom_ribbon(data = VWCdata, aes(x = Date, y = VWC.Shallow_rollmean.med, 
                    ymin = VWC.Shallow_rollmean.10, ymax = VWC.Shallow_rollmean.90,  alpha=0.1), fill = 'lightgrey') +
-  geom_line(data = HistDataNormMean_18MNs, aes(Date, VWC.Shallow_rollmean.med), color = 'black') +
+  geom_line(data = VWCdata, aes(Date, VWC.Shallow_rollmean.med), color = 'black') +
   
   # recent past dailys
   geom_line(data = VWCdata, aes(Date, RecentPast.VWC.Shallow.mean.med), color = 'goldenrod', size = .3) +
@@ -51,10 +47,10 @@ ggsave('Tests/TestExample/VWC_Absolute_NewVersion.png', height = 4, width = 8)
 Panel2 <- ggplot() + 
   
   # 0 line and 10 - 90% for the historical -----
-geom_ribbon(data = HistDataNormMean_18MNs, aes(Date, ymin = Hist.VWC.Shallow.rollmean.10.diff, 
-                                               ymax = Hist.VWC.Shallow.rollmean.90.diff, alpha=0.01), fill = 'lightgrey') +
-  geom_line(data = HistDataNormMean_18MNs, aes(Date, Hist.VWC.Shallow.rollmean.10.diff), size = .1, color = 'black') +
-  geom_line(data = HistDataNormMean_18MNs, aes(Date,  Hist.VWC.Shallow.rollmean.90.diff), size = .1, color = 'black') +
+geom_ribbon(data = VWCdata, aes(Date, ymin = VWC.Shallow.roll.10.diff, 
+                                               ymax = VWC.Shallow.roll.90.diff, alpha=0.01), fill = 'lightgrey') +
+  geom_line(data = VWCdata, aes(Date, VWC.Shallow.roll.10.diff), size = .1, color = 'black') +
+  geom_line(data = VWCdata, aes(Date,  VWC.Shallow.roll.90.diff), size = .1, color = 'black') +
   
   # Observed Differences from past as bars -----
 geom_bar(data = VWCdata, aes(Date, RecentPast.VWC.Shallow.Diffs.Med, fill = Type), stat = "identity", size = .1) +

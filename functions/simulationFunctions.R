@@ -7,13 +7,14 @@
 
 #* @get /gatherDataAndExecuteSW
  gatherDataAndExecuteSW <- function(lat, lng,
-                                soils, sand = 33, clay = 33, dir = getwd(),
-                                write = FALSE, verbose = FALSE) {
+                                soils, sand = 33, clay = 33,
+                                write = FALSE, verbose = TRUE) {
      
 
     ################### ----------------------------------------------------------------
     # Part 0 - Setup - format data from HTTP request, get dates
     ################### ----------------------------------------------------------------
+    dir <- '/home/devel/shorttermdroughtforecaster' # NEED TO FIX THIS .... AWS vs. local environment, etc.
     setwd(dir)
      
     lat <- as.numeric(lat)
@@ -122,7 +123,7 @@
     MonthlyAnoms <- AnomalyData1[[4]]
 
     # Recent past (6 months prior to current): included in 'future' runs --------
-    AnomRunStats <- formatOutputsFuture(AllOut, SoilsDF)
+    AnomRunStats <- formatOutputsFuture(AllOut, SoilsDF, currDate)
     AnomRunStats <- AnomRunStats[AnomRunStats$Date < currDate, ]
     
     # Upcoming year (current data + 1 year)
@@ -147,8 +148,9 @@
     
     for(v in seq(Vars)){
         OneVarData <- suppressMessages(calcDeltasApproxAndFormat(HistData_Norm_Stats1, HistData_MonthlyMeans,
-                                                AnomRunStats, AnomRunStats2,
-                                                Vars[v], currDate, todayMonthDay, currYear))
+                                                                 as.data.frame(HistDataNormMean_18MNs),
+                                                                 AnomRunStats, AnomRunStats2,
+                                                                 Vars[v], currDate, todayMonthDay, currYear))
         
         AllVarData <- merge(AllVarData, OneVarData)
     }

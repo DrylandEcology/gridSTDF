@@ -6,13 +6,6 @@ TempData <- AllVarData[,c(1,indx)]
 ######################################################################################
 ################# PREP --------------------------------------------------------------- 
 ######################################################################################
-
-HistDataNormMean_18MNs
-
-# Historical Climatological diffs. - gray shaded area
-HistDataNormMean_18MNs$Hist.avg_C.rollmean.90.diff <- HistDataNormMean_18MNs$avg_C_rollmean.90 - HistDataNormMean_18MNs$avg_C_rollmean.med
-HistDataNormMean_18MNs$Hist.avg_C.rollmean.10.diff <- HistDataNormMean_18MNs$avg_C_rollmean.10 - HistDataNormMean_18MNs$avg_C_rollmean.med
-
 TempData$Type2 <- ifelse(TempData$NearFut.avg_C.Diffs.Med > 0, 'pos', 'neg')
 TempData$Type <- ifelse(TempData$RecentPast.avg_C.Diffs.Med > 0, 'pos', 'neg')
 
@@ -22,9 +15,9 @@ TempData$Type <- ifelse(TempData$RecentPast.avg_C.Diffs.Med > 0, 'pos', 'neg')
 
 Panel1 <- ggplot() +
   #  climatological historical daily median & quantiles
-  geom_ribbon(data = HistDataNormMean_18MNs, aes(x = Date, y = avg_C_rollmean.med, 
+  geom_ribbon(data = TempData, aes(x = Date, y = avg_C_rollmean.med, 
                                                  ymin = avg_C_rollmean.10, ymax = avg_C_rollmean.90,  alpha=0.1), fill = 'lightgrey') +
-  geom_line(data = HistDataNormMean_18MNs, aes(Date, avg_C_rollmean.med),  color = 'black') +
+  geom_line(data = TempData, aes(Date, avg_C_rollmean.med),  color = 'black') +
   
   # recent past dailys
   geom_line(data = TempData, aes(Date, RecentPast.avg_C.mean.med), color = 'goldenrod', size = .3) +
@@ -53,10 +46,10 @@ ggsave('figureCode/presentationFigs/savedFigs/Temp_Absolute_NewVersion.png', hei
 Panel2 <- ggplot() + 
   
   # 0 line and 10 - 90% for the historical -----
-geom_ribbon(data = HistDataNormMean_18MNs, aes(Date, ymin = Hist.avg_C.rollmean.10.diff, 
-                                               ymax = Hist.avg_C.rollmean.90.diff, alpha=0.01), fill = 'lightgrey') +
-  geom_line(data = HistDataNormMean_18MNs, aes(Date, Hist.avg_C.rollmean.10.diff), size = .1, color = 'black') +
-  geom_line(data = HistDataNormMean_18MNs, aes(Date,  Hist.avg_C.rollmean.90.diff), size = .1, color = 'black') +
+geom_ribbon(data = TempData, aes(Date, ymin = avg_C_roll.10.diff, 
+                                               ymax = avg_C_roll.90.diff, alpha=0.01), fill = 'lightgrey') +
+  geom_line(data = TempData, aes(Date, avg_C_roll.10.diff), size = .1, color = 'black') +
+  geom_line(data = TempData, aes(Date,  avg_C_roll.90.diff), size = .1, color = 'black') +
   
   # Observed Differences from past as bars -----
 geom_bar(data = TempData, aes(Date, RecentPast.avg_C.Diffs.Med, fill = Type), stat = "identity", size = .1) +
