@@ -1,0 +1,83 @@
+AllVarData <- read.csv('ExampleData/AllVarData.csv', stringsAsFactors = FALSE)
+AllVarData$Date <- as.Date(AllVarData$Date)
+indx <- grep('VWC.Shallow', names(AllVarData))
+VWCdata <- AllVarData[,c(1,indx)]
+######################################################################################
+################# PREP --------------------------------------------------------------- 
+######################################################################################
+
+#HistDataNormMean_18MNs
+# Historical Climatological diffs. - gray shaded area
+HistDataNormMean_18MNs$Hist.VWC.Shallow.rollmean.90.diff <- HistDataNormMean_18MNs$VWC.Shallow_rollmean.90 - HistDataNormMean_18MNs$VWC.Shallow_rollmean.med
+HistDataNormMean_18MNs$Hist.VWC.Shallow.rollmean.10.diff <- HistDataNormMean_18MNs$VWC.Shallow_rollmean.10 - HistDataNormMean_18MNs$VWC.Shallow_rollmean.med
+
+VWCdata$Type <- ifelse(VWCdata$RecentPast.VWC.Shallow.Diffs.Med > 0, 'pos', 'neg')
+VWCdata$Type2 <- ifelse(VWCdata$NearFut.VWC.Shallow.Diffs.Med > 0, 'pos', 'neg')
+
+######################################################################################
+################# Plotting Begins #################
+######################################################################################
+
+Panel1 <- ggplot() +
+  # repeating long-term historical daily median
+  geom_ribbon(data = HistDataNormMean_18MNs, aes(x = Date, y = VWC.Shallow_rollmean.med, 
+                   ymin = VWC.Shallow_rollmean.10, ymax = VWC.Shallow_rollmean.90,  alpha=0.1), fill = 'lightgrey') +
+  geom_line(data = HistDataNormMean_18MNs, aes(Date, VWC.Shallow_rollmean.med), color = 'black') +
+  
+  # recent past dailys
+  geom_line(data = VWCdata, aes(Date, RecentPast.VWC.Shallow.mean.med), color = 'goldenrod', size = .3) +
+  # recent past median
+  geom_line(data = VWCdata, aes(Date, RecentPast.VWC.Shallow_rollmean.med), color = 'goldenrod', size = 1.1) +
+  
+   # VWCdata quantiles & median 
+  geom_line(data = VWCdata, aes(Date, NearFut.VWC.Shallow.mean.10), color = 'darkcyan')  + 
+  geom_line(data = VWCdata, aes(Date, NearFut.VWC.Shallow.mean.90), color = 'darkcyan')  +
+  geom_line(data = VWCdata, aes(Date, NearFut.VWC.Shallow.mean.med), color = 'darkcyan', size = 1.1)  +
+  
+  
+  # theme
+  theme_bw() + theme(legend.position = "bottom",
+                     legend.title = element_blank()) + 
+  guides(alpha = FALSE) +
+  #scale_color_manual(values = c('darkcyan', 'black', 'darkgoldenrod3')) +
+  geom_vline(xintercept = as.Date(Sys.time()), color = 'darkorchid3') +
+  scale_x_date(date_breaks = "2 months", date_labels = "%m-%Y", expand = c(0,0)) +
+  labs(y = 'VWC (cm/cm)')
+
+plot(Panel1)
+ggsave('Tests/TestExample/VWC_Absolute_NewVersion.png', height = 4, width = 8)
+
+# Panel 2 ----------------------------------------------------------------------------
+Panel2 <- ggplot() + 
+  
+  # 0 line and 10 - 90% for the historical -----
+geom_ribbon(data = HistDataNormMean_18MNs, aes(Date, ymin = Hist.VWC.Shallow.rollmean.10.diff, 
+                                               ymax = Hist.VWC.Shallow.rollmean.90.diff, alpha=0.01), fill = 'lightgrey') +
+  geom_line(data = HistDataNormMean_18MNs, aes(Date, Hist.VWC.Shallow.rollmean.10.diff), size = .1, color = 'black') +
+  geom_line(data = HistDataNormMean_18MNs, aes(Date,  Hist.VWC.Shallow.rollmean.90.diff), size = .1, color = 'black') +
+  
+  # Observed Differences from past as bars -----
+geom_bar(data = VWCdata, aes(Date, RecentPast.VWC.Shallow.Diffs.Med, fill = Type), stat = "identity", size = .1) +
+  geom_bar(data = VWCdata, aes(Date, NearFut.VWC.Shallow.Diffs.Med, fill = Type2), stat = "identity", size = .1) +
+  
+  # thick line of differences
+  geom_line(data = VWCdata, aes(Date, RecentPast.VWC.Shallow.Diffs.Med), color = 'goldenrod', size = .8) +
+  geom_line(data = VWCdata, aes(Date, NearFut.VWC.Shallow.Diffs.Med), color = 'darkcyan', size = .8) +
+  
+  # 10 and 90 VWCdata diffs
+  geom_line(data = VWCdata, aes(Date, NearFut.VWC.Shallow.Diffs.10), color = 'darkcyan')  + 
+  geom_line(data = VWCdata, aes(Date, NearFut.VWC.Shallow.Diffs.90), color = 'darkcyan')  +
+  
+  # theme
+  geom_vline(xintercept = as.Date(Sys.time()), color = 'darkorchid3') +
+  geom_hline(yintercept = 0) +
+  
+  theme_bw() + theme(legend.position = "none")  +
+  scale_fill_manual(values = c('brown4', 'forestgreen')) +
+  scale_x_date(date_breaks = "2 months", date_labels = "%m-%Y", expand = c(0,0)) +
+  #scale_color_manual(values = c('darkcyan', 'darkgoldenrod3')) +
+  labs(y = 'VWC diffs (cm/cm)')
+
+plot(Panel2)
+ggsave('Tests/TestExample/VWC_Diff_NewVersion.png', height = 4, width = 8)
+

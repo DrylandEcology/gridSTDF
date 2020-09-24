@@ -156,6 +156,105 @@ formatOutputs_Monthlys <- function(AllOut, SoilsDF, TP, yearBegin, yearEnd) {
   
 }
 
+#' Get an 18 month time series of the climatolgical records.
+#' 
+#' Takes into account that different climatologies are used for predictions in 
+#' in different years. For example, predictions for the current year use 1980 - 2010
+#' to assist in predicting future conditions, while the next year uses 1981 - 2011.
+#' 
+#' @param HistData_Norm_Stats1 data.frame that will account for six months in the past
+#' @param HistData_Norm_Stats2 data.frame that will account for dates in the current year
+#' @param HistData_Norm_Stats3 data.frame that will account dates in the next year
+#' @param currDate Current date.
+#' @param currMonth Current month
+#' @param currYear Current year
+#' @param todayMonthDay today's date in the format MM-DD
+#' 
+#' @return data.frame containing 18 month time series, 6 months in past, 12 in the
+#' future.
+
+get18MonthClimatologicalRecord <- function(HistData_Norm_Stats1, 
+                                           HistData_Norm_Stats2,
+                                           HistData_Norm_Stats3,
+                                           currDate, currMonth, currYear, 
+                                           todayMonthDay) {
+  ##### ------------------------------------------------------------------------------
+  # Hist Norms --------------------------------------------------------------------------
+  ##### ------------------------------------------------------------------------------
+  
+  #  Get data for prior 6 months
+  sixMonthsAgo <- format(currDate - 183,  format="%m-%d")
+  r1 <- which(grepl(todayMonthDay, HistData_Norm_Stats1$Date))
+  r2 <- which(grepl(sixMonthsAgo, HistData_Norm_Stats1$Date))
+  dateIndex <- if( r2 > r1) { 
+    c(r2:366, 1:(r1- 1))
+  } else{
+    c(r2:(r1 - 1))  
+  }
+  
+  #  Format historical record for "Last 6 Months" ----------------------------------------------
+  ### For before today (all years)
+  HistData_Norm_Stats1 <- HistData_Norm_Stats1[dateIndex,]
+  HistData_Norm_Stats1$Year <- ifelse(HistData_Norm_Stats1$Date > todayMonthDay, currYear - 1 , currYear)
+  HistData_Norm_Stats1$Date <- as.Date(paste(HistData_Norm_Stats1$Year, HistData_Norm_Stats1$Date, sep = '-'))
+  HistData_Norm_Stats1 <- setorder(HistData_Norm_Stats1, Date) 
+  
+  #  Format historical record for "Curr Year' (year 2) ----------------------------------------------
+  ## Current Year - Future
+  HistData_Norm_Stats2$Year <- ifelse(HistData_Norm_Stats2$Date > todayMonthDay, currYear, currYear + 1)
+  HistData_Norm_Stats2 <- HistData_Norm_Stats2[Year == currYear, ]
+  HistData_Norm_Stats2$Date <- as.Date(paste(HistData_Norm_Stats2$Year, HistData_Norm_Stats2$Date, sep = '-'))
+  
+  #  Format historical record for "Next Year' (year 3) ----------------------------------------------
+  HistData_Norm_Stats3$Year <- ifelse(HistData_Norm_Stats3$Date > todayMonthDay, currYear, currYear + 1)
+  HistData_Norm_Stats3 <- HistData_Norm_Stats3[Year == (currYear + 1), ]
+  HistData_Norm_Stats3$Date <- as.Date(paste(HistData_Norm_Stats3$Year, HistData_Norm_Stats3$Date, sep = '-'))
+  
+  # Append
+  HistDataNormMean_18MNs <- rbind(HistData_Norm_Stats1, HistData_Norm_Stats2, HistData_Norm_Stats3)
+  
+  # Go to the first day of the same month of the next year
+  HistDataNormMean_18MNs <- HistDataNormMean_18MNs[HistDataNormMean_18MNs$Date < as.Date(paste0(currYear + 1, '-' ,currMonth + 1,'-01')),] 
+  
+  return(HistDataNormMean_18MNs)
+}
+
+#' Format historical monthlys for deltas calculations taking into account
+#' varying climatologies.
+#' 
+#' @param HistData_MonthlyMeans_2 data,frame containing historical monthly values
+#' @param HistData_MonthlyMeans_3 data,frame containing historical monthly values
+#' @param currYear numeric. Current year
+#' @param todayMonthDay today's date in the format MM-DD
+#' 
+#' @return data.frame containing a year's worth of monthly delta data.
+
+formatHistoricalMonthlys <- function(HistData_MonthlyMeans_2,
+                                                HistData_MonthlyMeans_3,
+                                                currYear, todayMonthDay) {
+  
+  ##### ------------------------------------------------------------------------------
+  # Monthly Means ---------------------------------------------------------------------
+  ##### ------------------------------------------------------------------------------
+  
+  ## Current Year - Future
+  HistData_MonthlyMeans_2$Year <- ifelse(HistData_MonthlyMeans_2$Date > todayMonthDay, currYear, currYear + 1)
+  HistData_MonthlyMeans_2 <- HistData_MonthlyMeans_2[Year == currYear, ]
+  HistData_MonthlyMeans_2$Date <- as.Date(paste(HistData_MonthlyMeans_2$Year, HistData_MonthlyMeans_2$Date, sep = '-'))
+  
+  #  Format historical record for "Next Year' (year 3) ----------------------------------------------
+  HistData_MonthlyMeans_3$Year <- ifelse(HistData_MonthlyMeans_3$Date > todayMonthDay, currYear, currYear + 1)
+  # Add one extra month for interpolation
+  HistData_MonthlyMeans_3[HistData_MonthlyMeans_3$Year == currYear, 'Year'][1] <- currYear + 1
+  
+  HistData_MonthlyMeans_3 <- HistData_MonthlyMeans_3[Year == (currYear + 1), ]
+  HistData_MonthlyMeans_3$Date <- as.Date(paste(HistData_MonthlyMeans_3$Year, HistData_MonthlyMeans_3$Date, sep = '-'))
+  
+  # make one year record
+  HistData_MonthlyMeans <- rbind(HistData_MonthlyMeans_2, HistData_MonthlyMeans_3)
+}
+  
+  
 #' Format and return outputs from future SOILWAT2 runs
 #' 
 #' @param AllOut data.frame containing results from all future simulations.
@@ -211,7 +310,7 @@ getRolling <- function(Data2){
   # get rolling sums and means for ppt and temps
 
   Data2$ppt_rollsum <- rollapply(Data2$ppt,  width = 30, FUN = sum, fill = 'extend', align = 'center')# for historical data can just calc continuously 30 day sum
-  Data2$avgC_rollmean <- runmean(Data2$avg_C,  k = 30, endrule = 'mean', align = 'center')#
+  Data2$avg_C_rollmean <- runmean(Data2$avg_C,  k = 30, endrule = 'mean', align = 'center')#
   Data2$VWC.Shallow_rollmean <- runmean(Data2$VWC.Shallow,  k = 30, endrule = 'mean', align = 'center')
   Data2$VWC.Intermediate_rollmean <- runmean(Data2$VWC.Intermediate,  k = 30, endrule = 'mean', align = 'center')
   Data2$VWC.Deep_rollmean <- runmean(Data2$VWC.Deep,  k = 30, endrule = 'mean', align = 'center')
@@ -291,7 +390,7 @@ getShriver2018Vars <- function(TempDF, VWCDF) {
 
 calcDeltasApproxAndFormat <- function(HistData1, HistDataMonthly,
                                       FutureData1, FutureDataMonthly, 
-                                      Var, currDate) {
+                                      Var, currDate, todayMonthDay, currYear) {
   
   # -----------------------------------------------------------------------------
   # Step 1 - Join Dailys from before today's data (RecentPast) to reflect actual patterns (no approx / monthlys)
@@ -302,20 +401,24 @@ calcDeltasApproxAndFormat <- function(HistData1, HistDataMonthly,
   Hist <- as.data.frame(HistData1)[,c(1, indx)]
   names(Hist)[2:4] <- paste0('Hist.', names(Hist)[2:4])
   
+  # 
+  Hist$Year <- ifelse(Hist$Date > todayMonthDay, currYear, currYear - 1 )
+  Hist$Date <- as.Date(paste(currYear, Hist$Date,sep='-'), format = "%Y-%m-%d")
+  Hist$Year <- NULL
+  
   indx <- grep( paste0(Var, '_roll'), names(FutureData1))
   indx2 <- grep( paste0(Var, '.mean.med'), names(FutureData1))
   Fut <-  as.data.frame(FutureData1)[,c(1, indx2, indx)]
+  indx <- grep('.10|.90', names(Fut), invert = TRUE)
+  Fut <- Fut[,indx]
   names(Fut)[2:3] <- paste0('RecentPast.', names(Fut)[2:3])
-  Fut$Date <- as.Date(Fut$Date)
   
   PastDailys <- merge(Hist, Fut) 
   
   #  Calc deltas ---------------------------------------------------------------------
-  # Differences between future and historical
+  # Differences between future and historical - thick yellow line
   PastDailys[,paste0('RecentPast.',Var,'.Diffs.Med')] <- PastDailys[, 6] - PastDailys[,2]
-  #PastDailys[,paste0('RecentPast.',Var,'.Diffs.10')] <- PastDailys[, 7] - PastDailys[,2]
-  #PastDailys[,paste0('RecentPast.',Var,'.Diffs.90')] <- PastDailys[, 8] - PastDailys[,2]
-  
+
   # -----------------------------------------------------------------------------
   # Step 2 - Join Monthly Means and to calc diffs (no approx yet just monthlys)
   # -----------------------------------------------------------------------------
@@ -376,6 +479,8 @@ calcDeltasApproxAndFormat <- function(HistData1, HistDataMonthly,
   ## Hist.avg_C.mean.90 - elim
   ## "Fut.avg_C.mean.med" - Panel 1, blue      
   ## "Fut.avg_C.mean.10" - Panel 1
+  ## "Fut.avg_C.mean.90" - Panel 1
+  
   ## "NearFut.avg_C.Diffs.Med" - Panel 2
   ## "NearFut.avg_C.Diffs.10" - Panel 2
   ## "NearFut.avg_C.Diffs.90" - Panel 2

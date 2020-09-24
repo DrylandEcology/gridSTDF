@@ -1,30 +1,3 @@
-#library(rSOILWAT2)
-#library(rSW2funs)
-#library(splines)
-# data formatting
-#library(data.table)
-#library(lubridate)
-#library(raster)
-#library(zoo)
-#library(caTools)
-# app
-#library(plumber)
-#library(rvest)
-
-#source('functions/weatherFunctions.R')
-#source('functions/soilsAndComp.R')
-#source('functions/Outputs.R')
-#source('functions/HelperFunctions.R')
-#source('functions/ecoIndicators.R')
-
-#
-lat <- 35.1983
-lng <- -111.6513
-soils <- 2
-sand <- 50
-clay <- 15
-
-
 #* gather user data, execute soilwat simulations, and return outputs
 #* @param lat latitude of site
 #* @param lng longitude of site
@@ -34,11 +7,15 @@ clay <- 15
 
 #* @get /gatherDataAndExecuteSW
  gatherDataAndExecuteSW <- function(lat, lng,
-                                soils, sand = 33, clay = 33) {
+                                soils, sand = 33, clay = 33, dir = getwd(),
+                                write = FALSE, verbose = FALSE) {
+     
 
     ################### ----------------------------------------------------------------
     # Part 0 - Setup - format data from HTTP request, get dates
     ################### ----------------------------------------------------------------
+    setwd(dir)
+     
     lat <- as.numeric(lat)
     lng <- as.numeric(lng)
     print(lat)
@@ -50,14 +27,16 @@ clay <- 15
     currDOY <- yday(Sys.Date())
     currMonth <- month(Sys.Date())
     currYear <- year(Sys.Date())
-
+    currDate <- Sys.Date()
+    todayMonthDay <- format(Sys.Date() , format="%m-%d")
+    
     ################### ----------------------------------------------------------------
     # Part 1 - Getting and formatting weather data for the historical and future runs
     ################### ----------------------------------------------------------------
 
-    print(paste('Formatting Weather Data', Sys.time()))
+    if(verbose) print(paste('Formatting Weather Data', Sys.time()))
     wdata <- getWeatherData(lat, lng, currYear,
-                            dir = '~/Desktop/www.northwestknowledge.net/metdata/data/')
+                            dir = '../../www.northwestknowledge.net/metdata/data/')
 
     weath <- rSOILWAT2::dbW_dataframe_to_weatherData(wdata[wdata$Year %in% c(1979:(currYear - 1)),
                                                 c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')], round = 4)
@@ -93,7 +72,7 @@ clay <- 15
     # --------------------------------------------------------------------------
     # Run 1 - with observed historical data ------------------------------------
     # --------------------------------------------------------------------------
-    print(paste('Running Historical', Sys.time()))
+    if(verbose) print(paste('Running Historical', Sys.time()))
     swCarbon_Use_Bio(sw_in0) <- FALSE
     swCarbon_Use_WUE(sw_in0) <- FALSE
     swYears_EndYear(sw_in0) <- currYear - 1
@@ -103,18 +82,27 @@ clay <- 15
 
     # format outputs
     HistDataAll1 <- setorder(HistDataAll[[1]], Year, Day)
-
-    HistDataAll1 <- getRolling(HistDataAll1)
+    HistDataRolling <- getRolling(HistDataAll1)
     
     # Climatologies for plotting
     HistData_Norm_Stats1 <- getHistoricalClimatology(HistDataRolling, 1981, 2011, SoilsDF)
     HistData_Norm_Stats2 <- getHistoricalClimatology(HistDataRolling, 1981, 2010, SoilsDF)
     HistData_Norm_Stats3 <- getHistoricalClimatology(HistDataRolling, 1982, 2011, SoilsDF)
     
+    HistDataNormMean_18MNs <- get18MonthClimatologicalRecord(HistData_Norm_Stats1,
+                                                             HistData_Norm_Stats2,
+                                                             HistData_Norm_Stats3,
+                                                             currDate, currMonth,
+                                                             currYear, todayMonthDay)
     # Monthlys for future delta calculations
     HistData_MonthlyMeans_2 <- formatOutputs_Monthlys(HistDataAll1, SoilsDF, 'historical', 1981, 2010)
     HistData_MonthlyMeans_3 <- formatOutputs_Monthlys(HistDataAll1, SoilsDF, 'historical', 1982, 2011)
 
+    # make one year record
+    HistData_MonthlyMeans <- formatHistoricalMonthlys(HistData_MonthlyMeans_2, 
+                                                      HistData_MonthlyMeans_3,
+                                                      currYear, todayMonthDay)
+                                                      
     # eco vars ------------------------------------------------------------------
     Hist_Shriver2018 <- data.table(Year = HistDataAll[[2]]$PlantedinYear,
         Prob = p_Shriver2018(HistDataAll[[2]]$Temp_mean, HistDataAll[[2]]$VWC_mean))
@@ -124,15 +112,15 @@ clay <- 15
     #  --------------------------------------------------------------------------
     # Run 2 - with future anomaly data
     #  --------------------------------------------------------------------------
-    print(paste('Running Future', Sys.time()))
-    AnomalyData1 <- runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 1, SoilsDF,
+    if(verbose) print(paste('Running Future', Sys.time()))
+    AnomalyData1 <- runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 30, SoilsDF,
                                              currDOY, currMonth, currYear)
-
+    
+    if(verbose) print(paste('Formatting Outputs', Sys.time()))
+    
     AllOut <- AnomalyData1[[1]]
     MonthlyAnoms <- AnomalyData1[[4]]
 
-    print(paste('Formatting Outputs', Sys.time()))
-    
     # Recent past (6 months prior to current): included in 'future' runs --------
     AnomRunStats <- formatOutputsFuture(AllOut, SoilsDF)
     AnomRunStats <- AnomRunStats[AnomRunStats$Date < currDate, ]
@@ -152,15 +140,19 @@ clay <- 15
     ################### ----------------------------------------------------------------
 
     # calculate deltas and approx and format
-    TempData <- calcDeltasAndApprox(HistData_Norm_Stats1, HistData_MonthlyMeans,
-                                    AnomRunStats, AnomRunStats2,
-                                    'avg_C')
-    PPTdata <- calcDeltasAndApprox(HistData_Norm_Stats1, HistData_MonthlyMeans,
-                                   AnomRunStats, AnomRunStats2,
-                                   'ppt')
-    VWCdata <- calcDeltasAndApprox(HistData_Norm_Stats1, HistData_MonthlyMeans,
-                                   AnomRunStats, AnomRunStats2,
-                                   'VWC.Shallow')
+    Vars <- c('avg_C', 'ppt', 'VWC.Shallow', 'VWC.Intermediate', 'VWC.Deep',
+              'SWP.Shallow', 'SWP.Intermediate', 'SWP.Deep')
+    
+    AllVarData <- data.frame(Date = as.Date((currDate-183):(currDate+365)))
+    
+    for(v in seq(Vars)){
+        OneVarData <- suppressMessages(calcDeltasApproxAndFormat(HistData_Norm_Stats1, HistData_MonthlyMeans,
+                                                AnomRunStats, AnomRunStats2,
+                                                Vars[v], currDate, todayMonthDay, currYear))
+        
+        AllVarData <- merge(AllVarData, OneVarData)
+    }
+    
     # format ecovars for writing out -------------------------------------------
     Shriver_Stats <- formatShriver2018(Hist_Shriver2018, Future_Shriver2018, currYear)
     GISSM_Stats <- formatGISSM(Hist_GISSM, Future_GISSM)
@@ -168,15 +160,14 @@ clay <- 15
     ################### ----------------------------------------------------------------
     # Part 5 - Write out formatted outputs
     ################### ----------------------------------------------------------------
-    #fwrite(HistData_Norm_Stats, 'ExampleData/HistData_Norm_Stats.csv')
-    # fwrite(MonthlyAnoms, 'ExampleData/MonthlyAnoms.csv')
-    #fwrite(AnomRunStats, 'ExampleData/AnomRun_Stats.csv')
-    #
-    # fwrite(Hist_Shriver2018, 'ExampleData/Hist_Shriver2018.csv')
-    # fwrite(Future_Shriver2018, 'ExampleData/Future_Shriver2018.csv')
-    # #fwrite(Hist_GISSM, 'ExampleData/Hist_GISSM.csv')
-    # #fwrite(Future_GISSM, 'ExampleData/Future_GISSM.csv')
-    print(paste('Done', Sys.time()))
-    return(list(HistData_Norm_Stats, AnomRunStats, Shriver_Stats, GISSM_Stats))#, HistDataAll1))
+    if(write){
+        fwrite(AllVarData, 'ExampleData/AllVarData.csv')
+        fwrite(Shriver_Stats, 'ExampleData/Shriver_Stats.csv')
+        fwrite(GISSM_Stats, 'ExampleData/GISSM_Stats.csv')
+    }
+    
+    if(verbose) print(paste('Done', Sys.time()))
+    
+    return(list(AllVarData, Shriver_Stats, GISSM_Stats))#, HistDataAll1))
 
 }
