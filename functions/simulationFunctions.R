@@ -14,8 +14,8 @@
     ################### ----------------------------------------------------------------
     # Part 0 - Setup - format data from HTTP request, get dates
     ################### ----------------------------------------------------------------
-    dir <- '/home/devel/shorttermdroughtforecaster' # NEED TO FIX THIS .... AWS vs. local environment, etc.
-    setwd(dir)
+  #  dir <- '/home/devel/shorttermdroughtforecaster' # NEED TO FIX THIS .... AWS vs. local environment, etc.
+   # setwd(dir)
      
     lat <- as.numeric(lat)
     lng <- as.numeric(lng)
@@ -114,7 +114,7 @@
     # Run 2 - with future anomaly data
     #  --------------------------------------------------------------------------
     if(verbose) print(paste('Running Future', Sys.time()))
-    AnomalyData1 <- runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 30, SoilsDF,
+    AnomalyData1 <- runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 3, SoilsDF,
                                              currDOY, currMonth, currYear)
     
     if(verbose) print(paste('Formatting Outputs', Sys.time()))

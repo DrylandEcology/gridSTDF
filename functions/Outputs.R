@@ -470,7 +470,7 @@ calcDeltasApproxAndFormat <- function(HistData1, HistDataMonthly,
   for(i in 2:yy) {
     vector <- FutMonths[[i]]
     new <- approx(FutMonths$Date, vector, xout = Fut_Daily_Approx$Date,
-                  na.rm = TRUE, rule = 2)$y
+                  rule = 2)$y
     
     Fut_Daily_Approx[[i]] <- new
   }
