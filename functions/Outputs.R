@@ -96,11 +96,11 @@ getHistoricalClimatology <- function(dataset, yearBegin, yearEnd, SoilsDF) {
 #' 
 formatOutputs_Monthlys <- function(AllOut, SoilsDF, TP, yearBegin, yearEnd) {
   
-  # Subset Historicall data
+  # Subset Historical data
   if(TP == 'historical') AllOut <- AllOut[AllOut$Year %in% yearBegin:yearEnd, ] 
   
   # Make Month dates -----------------------------------------------------------
-  if(TP == 'future')  AllOut$run <- sapply(strsplit(AllOut$run, '_'), '[', 2)
+  if(TP == 'future')  AllOut$run_year <- sapply(strsplit(AllOut$run, '_'), '[', 2)
   AllOut$Month <-  format(as.Date(strptime(paste(AllOut$Year, AllOut$Day), format="%Y %j")), format="%m")
   
   if(TP == 'future') {
@@ -114,19 +114,26 @@ formatOutputs_Monthlys <- function(AllOut, SoilsDF, TP, yearBegin, yearEnd) {
   
   # mean for every sim. year month ---------------------------------------------
   if(TP == 'future') {
+    # take a mean across all realizations and representations for most all vars
     AllOutMean <- setDT(AllOut)[, sapply(.SD, function(x) list(mean=mean(x))),
-                                .(run, Year, Date),
+                                .(run_year, Year, Date),
                                 .SDcols = c('avg_C', 'VWC.Deep', 'VWC.Intermediate', 
                                             'VWC.Shallow')]
+    # for precip - sum per realization/rep first .. then get mean of that value
     AllOutSum <- setDT(AllOut)[, .(ppt.sum = sum(ppt)), .(run, Year, Date)] 
+    AllOutSum$run_year <- sapply(strsplit(AllOutSum$run, '_'), '[', 2)
+    AllOutSum <- setDT(AllOutSum)[, .(ppt.sum = mean(ppt.sum)), .(run_year,Year, Date)] 
     
     AllOut <- merge(AllOutMean, AllOutSum)
-    AllOut$run <-  NULL 
+    AllOut$run_year <-  NULL 
+    
   } else{
+    # take a mean across all realizations and representations for most all vars
     AllOutMean <- setDT(AllOut)[, sapply(.SD, function(x) list(mean=mean(x))),
                                 .(Year, Date),
                                 .SDcols = c('avg_C', 'VWC.Deep', 'VWC.Intermediate', 
                                             'VWC.Shallow')]
+    # for ppt ... get values per each year
     AllOutSum <- setDT(AllOut)[, .(ppt.sum = sum(ppt)), .(Year, Date)] 
     
     AllOut <- merge(AllOutMean, AllOutSum)

@@ -114,7 +114,7 @@
     # Run 2 - with future anomaly data
     #  --------------------------------------------------------------------------
     if(verbose) print(paste('Running Future', Sys.time()))
-    AnomalyData1 <- runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 3, SoilsDF,
+    AnomalyData1 <- runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 10, SoilsDF,
                                              currDOY, currMonth, currYear)
     
     if(verbose) print(paste('Formatting Outputs', Sys.time()))
@@ -163,6 +163,7 @@
     # Part 5 - Write out formatted outputs
     ################### ----------------------------------------------------------------
     if(write){
+        fwrite(MonthllyAnoms, 'ExampleData/MonthlyAnoms.csv')
         fwrite(AllVarData, 'ExampleData/AllVarData.csv')
         fwrite(Shriver_Stats, 'ExampleData/Shriver_Stats.csv')
         fwrite(GISSM_Stats, 'ExampleData/GISSM_Stats.csv')
