@@ -1,4 +1,6 @@
 AllVarData <- read.csv('ExampleData/AllVarData.csv', stringsAsFactors = FALSE)
+lastWeatherDate <- read.csv('ExampleData/lastWeatherDate.csv')
+lastWeatherDate <- as.Date(lastWeatherDate[,1])
 AllVarData$Date <- as.Date(AllVarData$Date)
 indx <- grep('VWC.Shallow', names(AllVarData))
 VWCdata <- AllVarData[,c(1,indx)]
@@ -37,20 +39,22 @@ Panel1 <- ggplot() +
   guides(alpha = FALSE) +
   #scale_color_manual(values = c('darkcyan', 'black', 'darkgoldenrod3')) +
   geom_vline(xintercept = as.Date(Sys.time()), color = 'darkorchid3') +
+  geom_vline(xintercept = as.Date(lastWeatherDate), color = 'blue', lty = 'dashed') +
+  
   scale_x_date(date_breaks = "2 months", date_labels = "%m-%Y", expand = c(0,0)) +
   labs(y = 'VWC (cm/cm)')
 
 plot(Panel1)
-ggsave('Tests/TestExample/VWC_Absolute_NewVersion.png', height = 4, width = 8)
+ggsave('figureCode/presentationFigs/savedFigs/VWC_Absolute_NewVersion.png', height = 4, width = 8)
 
 # Panel 2 ----------------------------------------------------------------------------
 Panel2 <- ggplot() + 
   
   # 0 line and 10 - 90% for the historical -----
-geom_ribbon(data = VWCdata, aes(Date, ymin = VWC.Shallow.roll.10.diff, 
-                                               ymax = VWC.Shallow.roll.90.diff, alpha=0.01), fill = 'lightgrey') +
-  geom_line(data = VWCdata, aes(Date, VWC.Shallow.roll.10.diff), size = .1, color = 'black') +
-  geom_line(data = VWCdata, aes(Date,  VWC.Shallow.roll.90.diff), size = .1, color = 'black') +
+geom_ribbon(data = VWCdata, aes(Date, ymin = VWC.Shallow_roll.10.diff, 
+                                               ymax = VWC.Shallow_roll.90.diff, alpha=0.01), fill = 'lightgrey') +
+  geom_line(data = VWCdata, aes(Date, VWC.Shallow_roll.10.diff), size = .1, color = 'black') +
+  geom_line(data = VWCdata, aes(Date,  VWC.Shallow_roll.90.diff), size = .1, color = 'black') +
   
   # Observed Differences from past as bars -----
 geom_bar(data = VWCdata, aes(Date, RecentPast.VWC.Shallow.Diffs.Med, fill = Type), stat = "identity", size = .1) +
@@ -66,6 +70,8 @@ geom_bar(data = VWCdata, aes(Date, RecentPast.VWC.Shallow.Diffs.Med, fill = Type
   
   # theme
   geom_vline(xintercept = as.Date(Sys.time()), color = 'darkorchid3') +
+  geom_vline(xintercept = as.Date(lastWeatherDate), color = 'blue', lty = 'dashed') +
+  
   geom_hline(yintercept = 0) +
   
   theme_bw() + theme(legend.position = "none")  +
@@ -75,5 +81,5 @@ geom_bar(data = VWCdata, aes(Date, RecentPast.VWC.Shallow.Diffs.Med, fill = Type
   labs(y = 'VWC diffs (cm/cm)')
 
 plot(Panel2)
-ggsave('Tests/TestExample/VWC_Diff_NewVersion.png', height = 4, width = 8)
+ggsave('figureCode/presentationFigs/savedFigs/VWC_Diff_NewVersion.png', height = 4, width = 8)
 

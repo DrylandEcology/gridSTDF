@@ -1,4 +1,6 @@
 AllVarData <- read.csv('ExampleData/AllVarData.csv', stringsAsFactors = FALSE)
+lastWeatherDate <- read.csv('ExampleData/lastWeatherDate.csv')
+lastWeatherDate <- as.Date(lastWeatherDate[,1])
 AllVarData$Date <- as.Date(AllVarData$Date)
 indx <- grep('ppt', names(AllVarData))
 PPTdata <- AllVarData[,c(1,indx)]
@@ -33,6 +35,8 @@ Panel1 <- ggplot() +
   # theme
   theme_bw() +   
   geom_vline(xintercept = as.Date(Sys.time()), color = 'darkorchid3') +
+  geom_vline(xintercept = as.Date(lastWeatherDate), color = 'blue', lty = 'dashed') +
+  
   scale_x_date(date_breaks = "2 months", date_labels = "%m-%Y", expand = c(0,0)) +
   labs(y = 'precipitation (cm)')
 
@@ -64,6 +68,8 @@ Panel2 <- ggplot() +
   
   # theme
   geom_vline(xintercept = as.Date(Sys.time()), color = 'darkorchid3') +
+  geom_vline(xintercept = as.Date(lastWeatherDate), color = 'blue', lty = 'dashed') +
+  
   geom_hline(yintercept = 0) +
   theme_bw() + theme(legend.position = "none")  +
   scale_fill_manual(values = c('brown4', 'forestgreen')) +
