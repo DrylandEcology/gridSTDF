@@ -90,11 +90,15 @@ getHistoricalClimatology <- function(dataset, yearBegin, yearEnd, SoilsDF) {
 #' @param SoilsDF data.frame contains soils information include texture and depth.
 #' @param TP character. Either historical or future#' @param yearBegin numeric. Begin year of climatological range
 #' @param yearEnd numeric. End or year of climatological range.
+#' @param currDate. Date. today's date/
+#' @param todayMonthDay Date. in month-day format.
+#' @param currYearClimatology logical. Is this the climatology representing the current year
 #' 
 #' @return a data.frame containing monthly quantiles (10th, 50th, 90th) for
 #' climate and soil moisture variables
 #' 
-formatOutputs_Monthlys <- function(AllOut, SoilsDF, TP, yearBegin, yearEnd) {
+formatOutputs_Monthlys <- function(AllOut, SoilsDF, TP, yearBegin, yearEnd, currDate,
+                                   todayMonthDay, currYearClimatology = FALSE) {
   
   # Subset Historical data
   if(TP == 'historical') AllOut <- AllOut[AllOut$Year %in% yearBegin:yearEnd, ] 
@@ -104,8 +108,22 @@ formatOutputs_Monthlys <- function(AllOut, SoilsDF, TP, yearBegin, yearEnd) {
   AllOut$Month <-  format(as.Date(strptime(paste(AllOut$Year, AllOut$Day), format="%Y %j")), format="%m")
   
   if(TP == 'future') {
+    # first eliminate data that is before tday ... aka not the future
+    AllOut$Date <-  as.Date(strptime(paste(AllOut$Year, AllOut$Day), format="%Y %j"), format="%m-%d-%Y")
+    AllOut <- subset(AllOut, Date >= currDate)
     AllOut$Date <- as.Date(paste(AllOut$Year, AllOut$Month, '15', sep = '-'))
   } else{
+    # elminate data for currMonth ... if this sequence is a climatology for the current year
+    if(currYearClimatology == TRUE){
+      daysOut <- as.Date(todayMonthDay, format = "%m-%d")
+      d <- day(daysOut) - 1
+      daysOut <- as.Date((daysOut - d):(daysOut - 1))
+      daysOut <- format(daysOut, format = "%m-%d")
+      
+      AllOut <- makeDateMonthDat(AllOut, 'Day')
+      AllOut <- AllOut[!AllOut$Date %in% daysOut,]
+      AllOut$Date <- NULL
+    }
     Date <- paste(AllOut$Month, '15', sep = '-')
     AllOut <- cbind(Date, AllOut)
   }
@@ -152,12 +170,6 @@ formatOutputs_Monthlys <- function(AllOut, SoilsDF, TP, yearBegin, yearEnd) {
   
   # Convert VWC to SWP -----------------------------------------------------------
   AnomRunStats <- getSWP(AnomRunStats, SoilsDF)
-  
-  # Subset -----------------------------------------------------------------------
-  if(TP == 'future') {
-    AnomRunStats <- AnomRunStats[AnomRunStats$Date > Sys.Date() - 183, ] # 6 month lead ins 
-    AnomRunStats <- AnomRunStats[AnomRunStats$Date <  Sys.Date() + 396, ] #13 months in the future
-  }
   
   return(AnomRunStats)
   
@@ -245,7 +257,8 @@ formatHistoricalMonthlys <- function(HistData_MonthlyMeans_2,
   ##### ------------------------------------------------------------------------------
   
   ## Current Year - Future
-  HistData_MonthlyMeans_2$Year <- ifelse(HistData_MonthlyMeans_2$Date > todayMonthDay, currYear, currYear + 1)
+  indx <- paste0(substr(todayMonthDay,1,2),'-01')
+  HistData_MonthlyMeans_2$Year <- ifelse(HistData_MonthlyMeans_2$Date >= indx, currYear, currYear + 1)
   HistData_MonthlyMeans_2 <- HistData_MonthlyMeans_2[Year == currYear, ]
   HistData_MonthlyMeans_2$Date <- as.Date(paste(HistData_MonthlyMeans_2$Year, HistData_MonthlyMeans_2$Date, sep = '-'))
   
@@ -398,13 +411,15 @@ getShriver2018Vars <- function(TempDF, VWCDF) {
 #' @param currDate date. Today's date.
 #' @param todayMonthDay
 #' @param currYear numeric. Current year.
+#' @param lastWeatherDate Date. Date gridMet data was last uploaded
 #' 
 #' @return data.frame with properly formatted outputs.
 
 calcDeltasApproxAndFormat <- function(HistData1, HistDataMonthly,
                                       HistDataNormMean_18MNs,
                                       FutureData1, FutureDataMonthly, 
-                                      Var, currDate, todayMonthDay, currYear) {
+                                      Var, currDate, todayMonthDay, currYear,
+                                      lastWeatherDate) {
   
   # -----------------------------------------------------------------------------
   # Step 1 - Join Dailys from before today's date (RecentPast) to reflect actual patterns (no approx / monthlys)
@@ -496,7 +511,7 @@ calcDeltasApproxAndFormat <- function(HistData1, HistDataMonthly,
   
   indx <- grep('Hist.', names(PastDailys))
   PastDailys[,indx] <- NULL
-  PastDailys[PastDailys$Date > (currDate-15), 3:4] <- NA
+  PastDailys[PastDailys$Date > (lastWeatherDate-15), 3:4] <- NA
   
   # From Fut_Daily_Approx -------------------------------------------------
   ## Hist.avg_C.mean.med - elim

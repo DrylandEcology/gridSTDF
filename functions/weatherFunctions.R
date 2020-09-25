@@ -18,6 +18,12 @@ getWeatherData <- function(lat, lng, currYear, dir) {
 
     nc <- suppressWarnings(brick(tmmxfiles[f], varname = 'air_temperature'))
     vals <- extract(nc, matrix(c(lng, lat), ncol = 2))[1,]
+    
+    # determine "data of last weather" here
+    if(year == currYear){
+      lastWeatherDate <- as.Date(length(vals), origin = paste0(currYear,"-01-01"))
+    }
+    
     wdata[wdata$Year == year, 'Tmax_C'][1:length(vals)] <- vals
   }
 
@@ -51,7 +57,7 @@ getWeatherData <- function(lat, lng, currYear, dir) {
   wdata$Tmax_C <- wdata$Tmax_C - 273.15
   wdata$Tmin_C <- wdata$Tmin_C - 273.15
   wdata$PPT_cm <- wdata$PPT_cm /10
-  return(wdata)
+  return(list(wdata, lastWeatherDate))
 }
 
 runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF,

@@ -38,6 +38,9 @@
     if(verbose) print(paste('Formatting Weather Data', Sys.time()))
     wdata <- getWeatherData(lat, lng, currYear,
                             dir = '../../www.northwestknowledge.net/metdata/data/')
+    
+    lastWeatherDate <- wdata[[2]]
+    wdata <- wdata[[1]]
 
     weath <- rSOILWAT2::dbW_dataframe_to_weatherData(wdata[wdata$Year %in% c(1979:(currYear - 1)),
                                                 c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')], round = 4)
@@ -96,7 +99,8 @@
                                                              currDate, currMonth,
                                                              currYear, todayMonthDay)
     # Monthlys for future delta calculations
-    HistData_MonthlyMeans_2 <- formatOutputs_Monthlys(HistDataAll1, SoilsDF, 'historical', 1981, 2010)
+    HistData_MonthlyMeans_2 <- formatOutputs_Monthlys(HistDataAll1, SoilsDF, 'historical', 1981, 2010,
+                                                      currDate, todayMonthDay, currYearClimatology = TRUE)
     HistData_MonthlyMeans_3 <- formatOutputs_Monthlys(HistDataAll1, SoilsDF, 'historical', 1982, 2011)
 
     # make one year record
@@ -124,12 +128,11 @@
 
     # Recent past (6 months prior to current): included in 'future' runs --------
     AnomRunStats <- formatOutputsFuture(AllOut, SoilsDF, currDate)
-    AnomRunStats <- AnomRunStats[AnomRunStats$Date < currDate, ]
+    AnomRunStats <- AnomRunStats[AnomRunStats$Date < lastWeatherDate, ]
     
-    # Upcoming year (current data + 1 year)
-    AnomRunStats2 <- formatOutputs_Monthlys(AllOut, SoilsDF, 'future')
-    AnomRunStats2 <- AnomRunStats2[AnomRunStats2$Date  >= (currDate - 31), ]
-    
+    # Upcoming year (current date + 1 year)
+    AnomRunStats2 <- formatOutputs_Monthlys(AllOut, SoilsDF, 'future', currDate = currDate)
+
     # eco vars ------------------------------------------------------------------
     Future_Shriver2018 <- data.table(Year = AnomalyData1[[2]]$PlantedinYear, run = AnomalyData1[[2]]$run,
                                      Prob =  p_Shriver2018(AnomalyData1[[2]]$Temp_mean, AnomalyData1[[2]]$VWC_mean))
@@ -150,7 +153,8 @@
         OneVarData <- suppressMessages(calcDeltasApproxAndFormat(HistData_Norm_Stats1, HistData_MonthlyMeans,
                                                                  as.data.frame(HistDataNormMean_18MNs),
                                                                  AnomRunStats, AnomRunStats2,
-                                                                 Vars[v], currDate, todayMonthDay, currYear))
+                                                                 Vars[v], currDate, todayMonthDay, currYear,
+                                                                 lastWeatherDate))
         
         AllVarData <- merge(AllVarData, OneVarData)
     }
@@ -163,7 +167,8 @@
     # Part 5 - Write out formatted outputs
     ################### ----------------------------------------------------------------
     if(write){
-        fwrite(MonthllyAnoms, 'ExampleData/MonthlyAnoms.csv')
+        fwrite(MonthlyAnoms, 'ExampleData/MonthlyAnoms.csv')
+         fwrite(data.frame(lastWeatherDate), 'ExampleData/lastWeatherDate.csv')
         fwrite(AllVarData, 'ExampleData/AllVarData.csv')
         fwrite(Shriver_Stats, 'ExampleData/Shriver_Stats.csv')
         fwrite(GISSM_Stats, 'ExampleData/GISSM_Stats.csv')
@@ -171,6 +176,6 @@
     
     if(verbose) print(paste('Done', Sys.time()))
     
-    return(list(AllVarData, Shriver_Stats, GISSM_Stats))#, HistDataAll1))
+    return(list(AllVarData, Shriver_Stats, GISSM_Stats, lastWeatherDate, currDate))#, HistDataAll1))
 
 }
