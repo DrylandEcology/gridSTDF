@@ -222,6 +222,8 @@ Resources:
 
           # make local directories and change ownership
           cd /usr/local
+          ls
+
           sudo mkdir STDFapp
           cd STDFapp
 
