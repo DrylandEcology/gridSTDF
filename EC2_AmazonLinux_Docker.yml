@@ -1,0 +1,306 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: USGS CHS CloudFormation
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      -
+        Label:
+          default: "EC2 Configuration"
+        Parameters:
+          - OperatingSystem
+          - InstanceType
+          - TagKeyName
+          - TagValue
+          - Role
+          - VolumeSize
+      -
+        Label:
+          default: "Bootstrapping Configuration"
+        Parameters:
+          - AnsiblePullVersion
+          - InstallIEM
+      -
+        Label:
+          default: "Network Configuration"
+        Parameters:
+          - Subnet
+          - SecurityGroup
+    ParameterLabels:
+      OperatingSystem:
+        default: "Operating System"
+      InstanceType:
+        default: "Instance Type"
+      AnsiblePullVersion:
+        default: "Ansible-Pull Version"
+      InstallIEM:
+        default: "Install IEM"
+      TagKeyName:
+        default: "Tag Key"
+      TagValue:
+        default: "Tag Value"
+      VolumeSize:
+        default: "Volume Size"
+      SecurityGroup:
+        default: "Security Group(s)"
+Parameters:
+  Role:
+    Type: String
+    Default: csr-Ec2-Role-LP
+    Description: Enter the role name (instance profile) to apply to the ec2 instance. Leave blank for no role.
+  Subnet:
+    Description: The subnet to launch the instance in to. It must be part of the VPC chosen above.
+    Type: AWS::EC2::Subnet::Id
+  SecurityGroup:
+    Description: List of AWS Security Groups. Select one or many.
+    Type: List<AWS::EC2::SecurityGroup::Id>
+  OperatingSystem:
+    Description: Operating System Desired - AWSLinux2 and Ubuntu only supported on or above branch V3
+    Type: String
+    Default: AWSLinux2
+    AllowedValues:
+    - AWSLinux
+    - AWSLinux2
+    - RHEL.7.5
+    - RHEL.7.6.Beta
+    - CentOS.7.5
+    - Ubuntu14
+    - Ubuntu16
+    - Ubuntu17
+    - Ubuntu18
+  AnsiblePullVersion:
+   Description: Version of Ansible-Pull to bootstrap with
+   Type: String
+   Default: latest
+   AllowedValues:
+   - latest
+   - master
+   - v2
+   - v3
+  InstanceType:
+    Description: Desired Instance Size
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+    - t2.nano
+    - t2.micro
+    - t2.small
+    - t2.medium
+    - t2.large
+    - t2.xlarge
+    - t2.2xlarge
+    - m3.large
+    - m4.large
+    - m4.xlarge
+    - m4.2xlarge
+    - m4.4xlarge
+    - m4.10xlarge
+    - m4.16xlarge
+    - m5.large
+    - m5.xlarge
+    - m5.2xlarge
+    - m5.4xlarge
+    - m5.12xlarge
+    - m5.24xlarge
+    - c4.large
+    - c4.xlarge
+    - c4.2xlarge
+    - c4.4xlarge
+    - c4.8xlarge
+    - c5.large
+    - c5.xlarge
+    - c5.2xlarge
+    - c5.4xlarge
+    - c5.9xlarge
+    - c5.18xlarge
+    - x1e.xlarge
+    - x1e.2xlarge
+    - x1e.4xlarge
+    - x1e.8xlarge
+    - x1e.16xlarge
+    - x1e.32xlarge
+    - x1.32xlarge
+    - r4.large
+    - r4.xlarge
+    - r4.2xlarge
+    - r4.4xlarge
+    - r4.8xlarge
+    - r4.16xlarge
+  InstallIEM:
+    Description: Install IEM on non-ephemeral instances (to run for >14 days).
+    Type: String
+    Default: false
+    AllowedValues:
+    - true
+    - false
+  TagKeyName:
+    Description: 'Required: Enter the name of the key for the key-value. You''ll enter the actual value of the tag next.'
+    Type: String
+    Default: "Name"
+    MinLength: 1
+  TagValue:
+    Description: 'Required: Enter the tag you''d like applied to the instance.'
+    Type: String
+    MinLength: 1
+  VolumeSize:
+    Description: Enter the number of GBs you want your volume to be. The minimum value
+      is 8 GBs
+    Type: Number
+    Default: 100
+    MinValue: 8
+Mappings:
+  OS:
+    AWSLinux:
+      amiID: ami-01e24be29428c15b2
+      rootBlock: "/dev/xvda" # This is an HVM AMI
+    AWSLinux2:
+      amiID: ami-01bbe152bf19d0289
+      rootBlock: "/dev/xvda" # This is an HVM AMI
+    RHEL.7.5:
+      amiID: ami-096510cab1b6b2c6d
+      rootBlock: "/dev/sda1"
+    RHEL.7.6.Beta:
+      amiID: ami-036affea69a1101c9
+      rootBlock: "/dev/sda1"
+    CentOS.7.5:
+      amiID: ami-01ed306a12b7d1c96
+      rootBlock: "/dev/sda1"
+    Ubuntu14:
+      amiID: ami-0ea790e761025f9ce
+      rootBlock: "/dev/xvda" # This is an HVM AMI
+    Ubuntu16:
+      amiID: ami-076e276d85f524150
+      rootBlock: "/dev/xvda"
+    Ubuntu17:
+      amiID: ami-70873908
+      rootBlock: "/dev/xvda"
+    Ubuntu18:
+      amiID: ami-0bbe6b35405ecebdb
+      rootBlock: "/dev/sda1"
+Conditions:
+  HasRole: !Not [ !Equals ["", !Ref Role ] ]
+Resources:
+  LinuxEc2:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !FindInMap [ OS, !Ref OperatingSystem, amiID ]
+      InstanceType: !Ref InstanceType
+      Monitoring: 'true'
+      IamInstanceProfile: !If [HasRole, !Ref Role, !Ref "AWS::NoValue"]
+      SourceDestCheck: 'true'
+      SubnetId: !Ref Subnet
+      SecurityGroupIds: !Ref SecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: !FindInMap [ OS, !Ref OperatingSystem, rootBlock ]
+        Ebs:
+          VolumeSize: !Ref VolumeSize
+      Tags:
+      - Key: !Ref TagKeyName
+        Value: !Ref TagValue
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          if ! grep -q Ubuntu /etc/os-release; then setenforce permissive; fi
+          if grep -q " 6" /etc/centos-release; then yum update curl -y; fi;
+          cd /root/
+
+          # log
+          exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+
+          # --------------------------------------------------------------------
+          # setup
+
+          echo BEGIN
+          date '+%Y-%m-%d %H:%M:%S'
+
+          whoami
+          pwd
+          ls
+
+          # update
+          yum update -y
+
+          # make local directories and change ownership
+          cd /usr/local
+          sudo mkdir STDFapp
+          cd STDFapp
+
+          #https://stackoverflow.com/questions/27611608/ec2-user-permissions
+          groupadd appallow
+          usermod -a -G appallow ec2-user
+          usermod -a -G appallow ssm-user
+          #usermod -a -G appallow shiny or what ever permission needed by docker, etc.
+          chown -R root:appallow /usr/local/STDFapp # change ownership
+          chmod 2775 /usr/local/STDFapp # add read/write
+          find /usr/local/STDFapp -type d -exec sudo chmod 2775 {} +
+          find /usr/local/STDFapp -type f -exec sudo chmod 0664 {} +
+
+          # --------------------------------------------------------------------
+          # Clone necessary packages and files from github
+          mkdir Git
+
+          # Get github
+          yum install git -y
+
+          # clone  rSOILWAT2
+          git clone -b master --single-branch --recursive https://github.com/DrylandEcology/rSOILWAT2.git Git/rSOILWAT2
+          cd Git/rSOILWAT2
+          git archive --format=tar.gz -o ../rSOILWAT2.tar.gz --prefix=rSOILWAT2/ master
+          cd ../
+
+          # clone ‘rSW2utils’
+          wget --no-check-certificate https://github.com/DrylandEcology/rSW2utils/archive/master.tar.gz
+          mv master.tar.gz rSW2utils.tar.gz
+
+          # clone  rSW2funs
+          wget --no-check-certificate https://github.com/DrylandEcology/rSW2funs/archive/master.tar.gz
+          mv master.tar.gz rSW2funs.tar.gz
+
+          # clone  App Code
+          cd ../
+          git clone -b DockerIntegration --single-branch https://code.chs.usgs.gov/candrews/shorttermdroughtforecaster shorttermdroughtforecaster
+
+          # mv dockerfile above short term app files
+          mv shorttermdroughtforecaster/dockerfile .
+
+          # install Docker https://docs.docker.com/engine/install/ubuntu/#installation-methods
+          ## or  https://docs.aws.amazon.com/AmazonECS/latest/developerguide/docker-basics.html
+
+          amazon-linux-extras install docker
+          yum install docker
+          service docker start
+
+          # Add the ec2-user to the docker group so you can execute Docker commands without using sudo.
+          usermod -a -G docker ssm-user
+
+          # https://www.rplumber.io/articles/hosting.html#docker-advanced
+          docker pull rstudio/plumber
+
+          # Create docker file https://o2r.info/containerit/articles/basic.html
+
+
+          # copy awslog conf file, get latest awslog agents, enable cloud watch agents, setup to start on boot
+          #cp /srv/shiny-server/shorttermdroughtforecaster/awslogs.conf /etc/awslogs/awslogs.conf
+          #apt-get install -y awslogs
+          #systemctl start awslogsd
+          #systemctl enable awslogsd.service
+
+
+          #download Data ------------------------------------------------------
+
+          #mkdir WeatherData
+          #cd WeatherData
+          #wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P . -A "tmmn_*.nc"
+          #wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P . -A "tmmx_*.nc"
+          #wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P . -A "pr_*.nc"
+
+          #aws cli
+          #apt-get install -y awscli
+          #aws s3 sync s3://sbsc-upload-data/Data .
+
+        #  echo END
+        #  date '+%Y-%m-%d %H:%M:%S'
+Outputs:
+  LinuxEc2InstanceId:
+    Description: Resource ID of the newly created EC2 instance
+    Value: !Ref LinuxEc2
