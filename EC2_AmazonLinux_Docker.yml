@@ -215,34 +215,34 @@ Resources:
 
           whoami
           pwd
-          ls
 
           # update
           yum update -y
 
           # make local directories and change ownership
           cd /usr/local
-          ls
 
-          sudo mkdir STDFapp
-          cd STDFapp
+          sudo mkdir app
+          cd app
 
           #https://stackoverflow.com/questions/27611608/ec2-user-permissions
           groupadd appallow
           usermod -a -G appallow ec2-user
           usermod -a -G appallow ssm-user
           #usermod -a -G appallow shiny or what ever permission needed by docker, etc.
-          chown -R root:appallow /usr/local/STDFapp # change ownership
-          chmod 2775 /usr/local/STDFapp # add read/write
-          find /usr/local/STDFapp -type d -exec sudo chmod 2775 {} +
-          find /usr/local/STDFapp -type f -exec sudo chmod 0664 {} +
+          chown -R root:appallow /usr/local/app # change ownership
+          chmod 2775 /usr/local/app # add read/write
+          find /usr/local/app -type d -exec sudo chmod 2775 {} +
+          find /usr/local/app -type f -exec sudo chmod 0664 {} +
 
+          mkdir STDF
+          cd STDF
           # --------------------------------------------------------------------
           # Clone necessary packages and files from github
-          mkdir Git
-
           # Get github
           yum install git -y
+
+          mkdir Git
 
           # clone  rSOILWAT2
           git clone -b master --single-branch --recursive https://github.com/DrylandEcology/rSOILWAT2.git Git/rSOILWAT2
@@ -260,10 +260,11 @@ Resources:
 
           # clone  App Code
           cd ../
-          git clone -b DockerIntegration --single-branch https://code.chs.usgs.gov/candrews/shorttermdroughtforecaster shorttermdroughtforecaster
+          git clone -b DockerIntegration --single-branch https://code.chs.usgs.gov/sbsc/shorttermdroughtforecaster shorttermdroughtforecaster
 
           # mv dockerfile above short term app files
-          mv shorttermdroughtforecaster/dockerfile .
+          cd ../
+          mv STDF/shorttermdroughtforecaster/dockerfile .
 
           # install Docker https://docs.docker.com/engine/install/ubuntu/#installation-methods
           ## or  https://docs.aws.amazon.com/AmazonECS/latest/developerguide/docker-basics.html
@@ -281,20 +282,22 @@ Resources:
           # Create docker file https://o2r.info/containerit/articles/basic.html
 
 
-          # copy awslog conf file, get latest awslog agents, enable cloud watch agents, setup to start on boot
-          #cp /srv/shiny-server/shorttermdroughtforecaster/awslogs.conf /etc/awslogs/awslogs.conf
-          #apt-get install -y awslogs
-          #systemctl start awslogsd
-          #systemctl enable awslogsd.service
-
-
-          #download Data ------------------------------------------------------
+          # --------------------------------------------------------------------
+          # download Data -------------------
 
           #mkdir WeatherData
           #cd WeatherData
           #wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P . -A "tmmn_*.nc"
           #wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P . -A "tmmx_*.nc"
           #wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P . -A "pr_*.nc"
+
+          # cron!!
+
+          # copy awslog conf file, get latest awslog agents, enable cloud watch agents, setup to start on boot
+          #cp /srv/shiny-server/shorttermdroughtforecaster/awslogs.conf /etc/awslogs/awslogs.conf
+          #apt-get install -y awslogs
+          #systemctl start awslogsd
+          #systemctl enable awslogsd.service
 
           #aws cli
           #apt-get install -y awscli
