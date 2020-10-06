@@ -8,9 +8,7 @@ RUN export DEBIAN_FRONTEND=noninteractive; apt-get -y update \
   libproj-dev \
   gdal-bin \
 
-RUN ["install2.r", "data.table", "lubridate", "raster",  "caTools",
- "rvest", "sp", "xml2", "zoo", "blob", "RSQLite", "circular", "rgdal", "ncdf4",
-  "plyr"]
+RUN ["install2.r", "data.table", "lubridate", "raster",  "caTools", "rvest", "sp", "xml2", "zoo", "blob", "RSQLite", "circular", "rgdal", "ncdf4", "plyr"]
 
 COPY . /usr/local/app/STDF
 WORKDIR /usr/local/app/STDF
