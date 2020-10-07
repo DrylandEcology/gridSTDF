@@ -271,7 +271,7 @@ Resources:
 
           # --------------------------------------------------------------------
           # download Weather Data -------------------
-          # -------------------------------------------------------------------
+          # --------------------------------------------------------------------
           mkdir WeatherData
           cd WeatherData
           wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P . -A "tmmn_*.nc"
@@ -289,7 +289,7 @@ Resources:
           yum install docker
           service docker start
 
-          # Add the ec2-user to the docker group so you can execute Docker commands without using sudo.
+          # Add the ssm-user to the docker group so you can execute Docker commands without using sudo.
           usermod -a -G docker ssm-user
 
           # --------------------------------------------------------------------
@@ -305,8 +305,7 @@ Resources:
           # # docker run -it --rm --entrypoint /bin/bash stdf
 
           # run
-          docker run -t -i -p 80:80 stdf
-
+          docker run -t -i -p 8080:8080 -v /usr/local/app/WeatherData:/usr/local/app/STDF stdf
           # copy awslog conf file, get latest awslog agents, enable cloud watch agents, setup to start on boot
           #cp /srv/shiny-server/shorttermdroughtforecaster/awslogs.conf /etc/awslogs/awslogs.conf
           #apt-get install -y awslogs

@@ -21,7 +21,7 @@ source('functions/ecoIndicators.R')
 
 
 source('functions/simulationFunctions.R')
-r <- plumb('functions/simulationFunctions.R')
+r <- plumber::plumb('functions/simulationFunctions.R')
 r$run(host = "0.0.0.0",port = 8080)
 
 # https://www.r-bloggers.com/hosting-a-plumber-api-on-aws/
