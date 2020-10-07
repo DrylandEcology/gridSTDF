@@ -26,4 +26,5 @@ EXPOSE 80
 
 RUN chmod +x "/usr/local/app/STDF/shorttermdroughtforecaster/STDF_plumber_docker.R"
 
-CMD ["/usr/local/app/STDF/shorttermdroughtforecaster/STDF_plumber_docker.R"]
+ENTRYPOINT ["R", "-f", "/usr/local/app/STDF/shorttermdroughtforecaster/STDF_plumber_docker.R", "--slave"]
+#CMD ["/usr/local/app/STDF/shorttermdroughtforecaster/STDF_plumber_docker.R"]
