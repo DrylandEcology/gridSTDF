@@ -237,15 +237,18 @@ Resources:
 
           mkdir STDF
           cd STDF
+
           # --------------------------------------------------------------------
           # Clone necessary packages and files from github
+          # --------------------------------------------------------------------
+
           # Get github
           yum install git -y
 
-          mkdir Git
+          mkdir Packages
 
           # clone  rSOILWAT2
-          git clone -b master --single-branch --recursive https://github.com/DrylandEcology/rSOILWAT2.git Git/rSOILWAT2
+          git clone -b master --single-branch --recursive https://github.com/DrylandEcology/rSOILWAT2.git Packages/rSOILWAT2
 
           # clone ‘rSW2utils’
           cd Git
@@ -256,14 +259,19 @@ Resources:
           wget --no-check-certificate https://github.com/DrylandEcology/rSW2funs/archive/master.tar.gz
           mv master.tar.gz rSW2funs.tar.gz
 
+          wget --no-check-certificate https://cran.r-project.org/src/contrib/Rcpp_1.0.5.tar.gz
+
           # clone  App Code
           cd ../
           git clone -b DockerIntegration --single-branch https://code.chs.usgs.gov/sbsc/shorttermdroughtforecaster shorttermdroughtforecaster
 
           # mv dockerfile above short term app files
           cd ../
-          mv STDF/shorttermdroughtforecaster/dockerfile .
+          mv STDF/shorttermdroughtforecaster/dockerfile .   # Create docker file https://o2r.info/containerit/articles/basic.html
 
+          # --------------------------------------------------------------------
+          # Docker !
+          # --------------------------------------------------------------------
           # install Docker https://docs.docker.com/engine/install/ubuntu/#installation-methods
           ## or  https://docs.aws.amazon.com/AmazonECS/latest/developerguide/docker-basics.html
 
@@ -274,13 +282,22 @@ Resources:
           # Add the ec2-user to the docker group so you can execute Docker commands without using sudo.
           usermod -a -G docker ssm-user
 
+          # --------------------------------------------------------------------
+          # Get Docker set up for app
+          # --------------------------------------------------------------------
           # https://www.rplumber.io/articles/hosting.html#docker-advanced
           docker pull rstudio/plumber
 
-          # Create docker file https://o2r.info/containerit/articles/basic.html
-          # interactive docker in bash ...
-          # # docker run -it --rm --entrypoint /bin/bash test
+          # build
+          docker build -t stdf .
+
+          # test interactively
+          # # docker run -it --rm --entrypoint /bin/bash stdf
+
+          # run
           # docker run -t -i -p 80:80 hello-world
+
+
 
           # --------------------------------------------------------------------
           # download Data -------------------
