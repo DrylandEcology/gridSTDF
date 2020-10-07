@@ -246,11 +246,9 @@ Resources:
 
           # clone  rSOILWAT2
           git clone -b master --single-branch --recursive https://github.com/DrylandEcology/rSOILWAT2.git Git/rSOILWAT2
-          cd Git/rSOILWAT2
-          git archive --format=tar.gz -o ../rSOILWAT2.tar.gz --prefix=rSOILWAT2/ master
-          cd ../
 
           # clone ‘rSW2utils’
+          cd Git
           wget --no-check-certificate https://github.com/DrylandEcology/rSW2utils/archive/master.tar.gz
           mv master.tar.gz rSW2utils.tar.gz
 
@@ -280,7 +278,9 @@ Resources:
           docker pull rstudio/plumber
 
           # Create docker file https://o2r.info/containerit/articles/basic.html
-
+          # interactive docker in bash ...
+          # # docker run -it --rm --entrypoint /bin/bash test
+          # docker run -t -i -p 80:80 hello-world
 
           # --------------------------------------------------------------------
           # download Data -------------------
@@ -298,10 +298,6 @@ Resources:
           #apt-get install -y awslogs
           #systemctl start awslogsd
           #systemctl enable awslogsd.service
-
-          #aws cli
-          #apt-get install -y awscli
-          #aws s3 sync s3://sbsc-upload-data/Data .
 
         #  echo END
         #  date '+%Y-%m-%d %H:%M:%S'
