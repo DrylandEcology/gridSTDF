@@ -14,8 +14,6 @@ library(plyr)
 # app
 library(rvest)
 
-setwd('/usr/local/app/STDF/shorttermdroughtforecaster') # if on AWS
-
 source('functions/weatherFunctions.R')
 source('functions/soilsAndComp.R')
 source('functions/Outputs.R')
