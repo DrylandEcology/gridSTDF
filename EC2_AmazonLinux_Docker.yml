@@ -270,6 +270,16 @@ Resources:
           mv STDF/shorttermdroughtforecaster/dockerfile .   # Create docker file https://o2r.info/containerit/articles/basic.html
 
           # --------------------------------------------------------------------
+          # download Weather Data -------------------
+          # -------------------------------------------------------------------
+          mkdir WeatherData
+          cd WeatherData
+          wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P . -A "tmmn_*.nc"
+          wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P . -A "tmmx_*.nc"
+          wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P . -A "pr_*.nc"
+          # cron!!
+
+          # --------------------------------------------------------------------
           # Docker !
           # --------------------------------------------------------------------
           # install Docker https://docs.docker.com/engine/install/ubuntu/#installation-methods
@@ -295,20 +305,7 @@ Resources:
           # # docker run -it --rm --entrypoint /bin/bash stdf
 
           # run
-          # docker run -t -i -p 80:80 hello-world
-
-
-
-          # --------------------------------------------------------------------
-          # download Data -------------------
-
-          #mkdir WeatherData
-          #cd WeatherData
-          #wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P . -A "tmmn_*.nc"
-          #wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P . -A "tmmx_*.nc"
-          #wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P . -A "pr_*.nc"
-
-          # cron!!
+          docker run -t -i -p 80:80 stdf
 
           # copy awslog conf file, get latest awslog agents, enable cloud watch agents, setup to start on boot
           #cp /srv/shiny-server/shorttermdroughtforecaster/awslogs.conf /etc/awslogs/awslogs.conf

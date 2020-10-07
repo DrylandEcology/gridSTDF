@@ -1,4 +1,4 @@
-FROM rocker/r-ver:3.6.3
+FROM rstudio/plumber
 MAINTAINER Caitlin Andrews <candrews@usgs.com>
 
 RUN export DEBIAN_FRONTEND=noninteractive; apt-get -y update \
@@ -8,6 +8,9 @@ RUN export DEBIAN_FRONTEND=noninteractive; apt-get -y update \
   libproj-dev \
   gdal-bin \
   libssl-dev
+
+# Install cron
+RUN apt-get install -y cron
 
 RUN ["install2.r", "data.table", "lubridate", "raster",  "caTools", "rvest", "sp", "xml2", "zoo", "blob", "RSQLite", "circular", "rgdal", "ncdf4", "plyr", "splines"]
 
@@ -21,4 +24,6 @@ RUN R -e 'install.packages("/usr/local/app/STDF/Packages/rSW2funs.tar.gz", repos
 
 EXPOSE 80
 
-CMD ["/usr/local/app/STDF/shorttermdroughtforcaster/STDF_plumber.R"]
+RUN chmod +x "/usr/local/app/STDF/shorttermdroughtforecaster/STDF_Plumber.R"
+
+CMD ["/usr/local/app/STDF/shorttermdroughtforecaster/STDF_Plumber.R"]
