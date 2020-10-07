@@ -9,10 +9,10 @@ RUN export DEBIAN_FRONTEND=noninteractive; apt-get -y update \
   gdal-bin \
   libssl-dev
 
-RUN ["install2.r", "data.table", "lubridate", "raster",  "caTools", "rvest", "sp", "xml2", "zoo", "blob", "RSQLite", "circular", "rgdal", "ncdf4", "plyr"]
+RUN ["install2.r", "data.table", "lubridate", "raster",  "caTools", "rvest", "sp", "xml2", "zoo", "blob", "RSQLite", "circular", "rgdal", "ncdf4", "plyr", "splines"]
 
-COPY . /usr/local/app/STDF/
-WORKDIR /usr/local/app/STDF/
+COPY . /usr/local/app/
+WORKDIR /usr/local/app/
 
 RUN R -e 'install.packages("/usr/local/app/STDF/Git/rSW2utils.tar.gz", repos = NULL, type = "source")'
 RUN R CMD INSTALL Git/rSOILWAT2
