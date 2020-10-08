@@ -266,8 +266,7 @@ Resources:
           git clone -b DockerIntegration --single-branch https://code.chs.usgs.gov/sbsc/shorttermdroughtforecaster shorttermdroughtforecaster
 
           # mv dockerfile above short term app files
-          cd ../
-          mv STDF/shorttermdroughtforecaster/dockerfile .   # Create docker file https://o2r.info/containerit/articles/basic.html
+          mv shorttermdroughtforecaster/dockerfile .   # Create docker file https://o2r.info/containerit/articles/basic.html
 
           # --------------------------------------------------------------------
           # download Weather Data -------------------

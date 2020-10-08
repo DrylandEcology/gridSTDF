@@ -16,6 +16,7 @@ RUN ["install2.r", "data.table", "lubridate", "raster",  "caTools", "rvest", "sp
 
 COPY . /usr/local/app/STDF
 WORKDIR /usr/local/app/STDF
+VOLUME /usr/local/app/STDF/WeatherData
 
 RUN R -e 'install.packages("/usr/local/app/STDF/Packages/Rcpp_1.0.5.tar.gz", repos = NULL, type = "source")'
 RUN R -e 'install.packages("/usr/local/app/STDF/Packages/rSW2utils.tar.gz", repos = NULL, type = "source")'
