@@ -237,13 +237,12 @@ Resources:
 
           mkdir STDF
           cd STDF
-
           # --------------------------------------------------------------------
           # Clone necessary packages and files from github
           # --------------------------------------------------------------------
 
           # Get github
-          yum install git -y
+          yum install -y git
 
           mkdir Packages
 
@@ -251,7 +250,7 @@ Resources:
           git clone -b master --single-branch --recursive https://github.com/DrylandEcology/rSOILWAT2.git Packages/rSOILWAT2
 
           # clone ‘rSW2utils’
-          cd Git
+          cd Packages
           wget --no-check-certificate https://github.com/DrylandEcology/rSW2utils/archive/master.tar.gz
           mv master.tar.gz rSW2utils.tar.gz
 
@@ -271,6 +270,7 @@ Resources:
           # --------------------------------------------------------------------
           # download Weather Data -------------------
           # --------------------------------------------------------------------
+          cd ../
           mkdir WeatherData
           cd WeatherData
           wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P . -A "tmmn_*.nc"
@@ -291,6 +291,10 @@ Resources:
           # Add the ssm-user to the docker group so you can execute Docker commands without using sudo.
           usermod -a -G docker ssm-user
 
+          # install docker-compose - https://docs.docker.com/compose/install/
+          curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
+
           # --------------------------------------------------------------------
           # Get Docker set up for app
           # --------------------------------------------------------------------
@@ -304,7 +308,9 @@ Resources:
           # # docker run -it --rm --entrypoint /bin/bash stdf
 
           # run
-          docker run -t -i -p 8080:8080 -v /usr/local/app/WeatherData:/usr/local/app/STDF stdf
+          docker run -t -i -p 8080:8080 -v /usr/local/app/WeatherData:/usr/local/app/STDF/WeatherData stdf
+          #docker-compose scale stdf=3
+
           # copy awslog conf file, get latest awslog agents, enable cloud watch agents, setup to start on boot
           #cp /srv/shiny-server/shorttermdroughtforecaster/awslogs.conf /etc/awslogs/awslogs.conf
           #apt-get install -y awslogs

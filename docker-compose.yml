@@ -1,0 +1,15 @@
+version: '2'
+services:
+  stdf:
+    build: ./STDF/
+    volumes:
+     - ./WeatherData:/usr/local/app/STDF/WeatherData
+    restart: always
+    ports:
+     - "8080:8080"
+  lb:
+    image: 'dockercloud/haproxy:1.2.1'
+    links:
+     - stdf
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
