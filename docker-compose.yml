@@ -7,11 +7,12 @@ services:
     restart: always
     expose:
      - "8080"
-  lb:
-    image: 'dockercloud/haproxy:latest'
-    links:
+  nginx:
+    image: 'nginx:latest'
+    restart: always
+    depends_on:
      - stdf
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+     - ./nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
-      - "8080:8080"
+      - "80:80"
