@@ -308,8 +308,8 @@ Resources:
           # # docker run -it --rm --entrypoint /bin/bash stdf
 
           # run
-          docker run -t -i -p 8080:8080 -v /usr/local/app/WeatherData:/usr/local/app/STDF/WeatherData stdf
-          #docker-compose scale stdf=3
+          #docker run -t -i -p 8080:8080 -v /usr/local/app/WeatherData:/usr/local/app/STDF/WeatherData stdf
+          docker-compose up --scale stdf=3
 
           # copy awslog conf file, get latest awslog agents, enable cloud watch agents, setup to start on boot
           #cp /srv/shiny-server/shorttermdroughtforecaster/awslogs.conf /etc/awslogs/awslogs.conf
