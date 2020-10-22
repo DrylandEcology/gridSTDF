@@ -266,7 +266,8 @@ Resources:
 
           # mv dockerfile above short term app files
           mv shorttermdroughtforecaster/dockerfile .   # Create docker file https://o2r.info/containerit/articles/basic.html
-          mv shorttermdroughtforecaster/ocker-compose.yml ../
+          mv shorttermdroughtforecaster/docker-compose.yml ../
+          mv shorttermdroughtforecaster/nginx.conf ../
           
           # --------------------------------------------------------------------
           # download Weather Data -------------------

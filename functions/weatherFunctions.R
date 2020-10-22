@@ -66,7 +66,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF,
   Nleads <- 12
 
   MonthlyAnoms <- data.frame() # for testing
-  AllOut1 <- Shriver_Out <- GISSM_Out <- data.frame()
+  AllOut1 <- Shriver_Out <- GISSM_Out <- OConnor_Out <- data.frame()
 
   # Determine Region from coordinates and shapefile ------------------------------------------
   CD102 <- shapefile(x = 'CD102/CD102.shp')
@@ -197,7 +197,7 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF,
   #saveRDS(generatedAnomData,  'Git/shorttermdroughtforecaster/ExampleData/generatedAnomData_BiasCorrected')
 
   for(nn in 1:n){
-    print(nn)
+    #print(nn)
 
     # Step 3 Get monthly averages across leads --------------------------------------------------
     OneYearAnom <- generatedAnomData[ , nn, ]
@@ -260,16 +260,16 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF,
       sw_out <- sw_exec(inputData = sw_in0, weatherList = weathAnomOneSim, quiet = TRUE)
 
       # Grab Data I want for this run ----------------------------------------------------------
-      Out1 <- getOutputs(sw_out, sw_in0, SoilsDF, calc_GISSM = TRUE)
+      Out1 <- getOutputs(sw_out, sw_in0, SoilsDF, calc_EcoVars = TRUE)
 
       AllOut1 <- rbind(AllOut1, cbind(Out1[[1]], run = paste(nn, y, sep = '_')))
       Shriver_Out <- rbind(Shriver_Out, cbind(Out1[[2]], run = paste(nn, y, sep = '_')))
       GISSM_Out <- rbind(GISSM_Out, cbind(Out1[[3]], run = paste(nn, y, sep = '_')))
-
+      OConnor_Out <- rbind(OConnor_Out, Out1[[4]])
+    }
   }
-  }
 
-  return(list(AllOut1, Shriver_Out, GISSM_Out,
+  return(list(AllOut1, Shriver_Out, GISSM_Out, OConnor_Out,
               MonthlyAnoms))
 
 }

@@ -3,11 +3,10 @@
 #'  @param sw_out SOILWAT2 output object
 #'  @param sw_in SOILWAT2 input object
 #'  @param SoilsDF a data.frame describing soils attributes, including depth grouping
-#'  @param calc_Shriver logical. Do you want to calculate results from the Shriver 2018 model
-#'  @param calc_GISSM logical. Do you want to calculate results form GISSM model.
+#'  @param calc_EcoVars logical. Do you want to calculate  ecological variables
 #'
 #'  @return A list of data.frames.
-getOutputs <- function(sw_out, sw_in, SoilsDF, calc_Shriver = TRUE, calc_GISSM = TRUE) {
+getOutputs <- function(sw_out, sw_in, SoilsDF, calc_EcoVars = TRUE) {
 
   # Temp and Precip
   Temp1 <- data.table(sw_out@TEMP@Day)
@@ -17,19 +16,23 @@ getOutputs <- function(sw_out, sw_in, SoilsDF, calc_Shriver = TRUE, calc_GISSM =
   PPT1 <- PPT1[, c('Year', 'Day', 'ppt')]
 
   # VWC ---------------------------------------------------
-  # Step 1 - Get weighted mean across depths for VWC
   VWC1 <-  data.table(sw_out@VWCMATRIC@Day)
   VWC1 <- melt.data.table(VWC1, id.vars = c('Year', 'Day'))
-
+  
+  # Soil Temperature
+  sTemp <- data.table(sw_out@SOILTEMP@Day)
+  
   # Get EcoVars ----------------------------------------------------------------
 
-  # Shriver 2018  Vars
-  if(calc_Shriver) {
+  if(calc_EcoVars) {
+    
+    # Shriver 2018  Vars
     Shriver2018Vars <- getShriver2018Vars(Temp1, VWC1)
-  }
 
-  # GISSM Vars
-  if(calc_GISSM) {
+    #OConnor Vars
+    Oconnor2020Vars <- getOConnor2020Vars(sTemp, VWC1)
+    
+    # GISSM Vars
     GISSM_1 <- suppressWarnings(calc_GISSM(
       x = sw_out,
       soillayer_depths_cm = rSOILWAT2::swSoils_Layers(sw_in)[, 1],
@@ -42,7 +45,8 @@ getOutputs <- function(sw_out, sw_in, SoilsDF, calc_Shriver = TRUE, calc_GISSM =
   }
   # Format VWC  -------------------------------------------
   #VWC1 <- VWC1[variable != 'Lyr_1', ]
-
+  # Step 1 - Get weighted mean across depths for VWC
+  
   VWC1 <-  merge(VWC1, SoilsDF)#, by = 'variable')
   VWC1 <- setDT(VWC1)[,.(VWC = weighted.mean(value, width)),
                       .(Year, Day, Depth)]
@@ -53,9 +57,9 @@ getOutputs <- function(sw_out, sw_in, SoilsDF, calc_Shriver = TRUE, calc_GISSM =
   Data <- merge(Temp1, PPT1, by = c('Year', 'Day'))
   Data <- merge(Data, VWC1,  by = c('Year', 'Day'))
 
-  if(!calc_GISSM && !calc_Shriver) return(list(Data))
-  if(!calc_GISSM && calc_Shriver) return(list(Data, Shriver2018Vars))
-  if(calc_GISSM  && calc_Shriver) return(list(Data, Shriver2018Vars, data.table(GISSM_1[[1]])))
+  if(!calc_EcoVars) return(list(Data))
+  if(calc_EcoVars) return(list(Data, Shriver2018Vars, 
+                               data.table(GISSM_1[[1]]), Oconnor2020Vars))
 
 }
 
@@ -376,7 +380,7 @@ getSWP <- function(DF, Soils) {
 #' Organizes variables necessary for Shriver 2018 model prediction
 #'
 #' @param TempDF a data.frame containing daily temperature data
-#' @param VWCDF a data.frame containing daily temperature data
+#' @param VWCDF a data.frame containing daily VWC data
 #'
 #' @return data.frame
 
@@ -397,6 +401,39 @@ getShriver2018Vars <- function(TempDF, VWCDF) {
   return(vars)
 
 }
+
+#' Organizes variables necessary to create figures based on Oconnors 2019 ERL
+#' paper. This includes to mean and standard error of soil temp and SWP in the
+#' 0-5cm soil layer.
+#'
+#' @param TempDF a data.frame containing daily soil temperature data
+#' @param SWPDF a data.frame containing daily swp data
+#'
+#' @return data.frame
+
+getOConnor2020Vars <- function(sTempDF, VWCDF) {
+  
+  # soil temp: 0 - 5cm, mean and std. error * 1.96
+  # SWP: 0 -5cm, mean and SE * 1.96
+  # all days
+  std <- function(x) sd(x)/sqrt(length(x))
+  
+  sTemp_top <- sTempDF[,.(sTemp_mean = mean(Lyr_1),
+                          sTemp_SE = std(Lyr_1)),
+                          .(Day)]
+  
+  VWC_top <- VWCDF[variable == 'Lyr_1',
+                          .(VWC_mean = mean(value),
+                            VWC_SE = std(value)), .(Day)]
+  
+  # will be converted to SWP in final formatting
+  
+  vars <- merge(sTemp_top, VWC_top,  by = c('Day'))
+
+  return(vars)
+  
+}
+
 
 #' Calculates monthly deltas between datasets, approximates daily values, and
 #' formats data
@@ -579,9 +616,9 @@ formatShriver2018 <- function(Hist_Shriver2018, Future_Shriver2018, currYear) {
 
 #' Organizes all GISSM output for passing along API
 #'
-#' @param Hist_Shriver2018 a data.frame containing outputs from the GISSM
+#' @param Hist_GISSM a data.frame containing outputs from the GISSM
 #' model for the historical period.
-#' @param Future_Shriver2018 a data.frame containing outputs from the GISSM
+#' @param Future_GISSM a data.frame containing outputs from the GISSM
 #'  model for the future period.
 #'
 #' @return data.frame
@@ -596,4 +633,45 @@ formatGISSM <- function(Hist_GISSM, Future_GISSM) {
   Future_GISSM$TP <- as.character(Future_GISSM$ryear)
 
   return(bind(Hist_GISSM,Future_GISSM))
+}
+
+#' Organizes all OConnor2020 output for passing along API
+#'
+#' @param Hist_OConnor2020 a data.frame containing outputs for the OConnor2020
+#' model for the historical period.
+#' @param Future_OConnor2020 a data.frame containing outputs for the OConnor2020
+#'  model for the future period.
+#'
+#' @return data.frame
+
+formatOConnor2020 <- function(Hist_OConnor2020, Future_OConnor2020, SoilsDF) {
+  
+  sand <- as.numeric(SoilsDF[1, 'sand_frac'])/100
+  clay <- as.numeric(SoilsDF[1, 'clay_frac'])/100
+  
+  # Historical -----------------------------------------------------------------
+  # convert VWC to SWP
+  Hist_OConnor20202 <- Hist_OConnor2020[, lapply(.SD, rSOILWAT2::VWCtoSWP,
+                              sand = sand,
+                              clay = clay),
+                     .(Day), .SDcols= c('VWC_mean', 'VWC_SE')]
+  
+  names(Hist_OConnor20202)[2:3] <- c('SWP_mean', 'SWP_SE')
+  
+  Hist <- merge(Hist_OConnor2020[,1:3], Hist_OConnor20202)
+  Hist$TP <- 'Historical'
+  
+  # Future ---------------------------------------------------------------------
+  Future_OConnor2020  <- Future_OConnor2020[, lapply(.SD, mean), .(Day)]
+  Future_OConnor20202 <- Future_OConnor2020[, lapply(.SD, rSOILWAT2::VWCtoSWP,
+                                                   sand = sand,
+                                                   clay = clay),
+                                          .(Day), .SDcols= c('VWC_mean', 'VWC_SE')]
+
+  names(Future_OConnor20202)[2:3] <- c('SWP_mean', 'SWP_SE')
+  
+  Fut <- merge(Future_OConnor2020[,1:3], Future_OConnor20202)
+  Fut$TP <- 'Future'
+  
+  return(rbind(Hist,Fut))
 }

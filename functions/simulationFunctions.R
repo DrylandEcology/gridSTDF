@@ -113,6 +113,8 @@
         Prob = p_Shriver2018(HistDataAll[[2]]$Temp_mean, HistDataAll[[2]]$VWC_mean))
 
     Hist_GISSM <- data.table(HistDataAll[[3]])
+    
+    Hist_OConnor2020 <- HistDataAll[[4]]
 
     #  --------------------------------------------------------------------------
     # Run 2 - with future anomaly data
@@ -124,7 +126,7 @@
     if(verbose) print(paste('Formatting Outputs', Sys.time()))
 
     AllOut <- AnomalyData1[[1]]
-    MonthlyAnoms <- AnomalyData1[[4]]
+    MonthlyAnoms <- AnomalyData1[[5]]
 
     # Recent past (6 months prior to current): included in 'future' runs --------
     AnomRunStats <- formatOutputsFuture(AllOut, SoilsDF, currDate)
@@ -138,6 +140,8 @@
                                      Prob =  p_Shriver2018(AnomalyData1[[2]]$Temp_mean, AnomalyData1[[2]]$VWC_mean))
 
     Future_GISSM <- data.table(AnomalyData1[[3]])
+    
+    Future_OConnor2020 <- data.table(AnomalyData1[[4]])
 
     ################### ----------------------------------------------------------------
     # Part 4 - Calculate deltas, formout outputs
@@ -162,6 +166,7 @@
     # format ecovars for writing out -------------------------------------------
     Shriver_Stats <- formatShriver2018(Hist_Shriver2018, Future_Shriver2018, currYear)
     GISSM_Stats <- formatGISSM(Hist_GISSM, Future_GISSM)
+    Oconnor_Stats <- formatOConnor2020(Hist_OConnor2020, Future_OConnor2020, SoilsDF)
 
     ################### ----------------------------------------------------------------
     # Part 5 - Write out formatted outputs
@@ -176,6 +181,6 @@
 
     if(verbose) print(paste('Done', Sys.time()))
 
-    return(list(AllVarData, Shriver_Stats, GISSM_Stats, lastWeatherDate, currDate))#, HistDataAll1))
+    return(list(AllVarData, Shriver_Stats, GISSM_Stats, Oconnor_Stats, lastWeatherDate, currDate))#, HistDataAll1))
 
 }
