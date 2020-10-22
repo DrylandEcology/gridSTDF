@@ -26,5 +26,5 @@ r$run(host = "0.0.0.0",port = 8080)
 
 # https://www.r-bloggers.com/hosting-a-plumber-api-on-aws/
 #
-curl "http://10.12.7.55:8080/gatherDataAndExecuteSW?clay=15&sand=50&soils=2&lng=-111.58&lat=35.258" > data.json
-curl "http://127.0.0.1:8080/gatherDataAndExecuteSW?clay=15&sand=50&soils=2&lng=-111.58&lat=35.258" > data3.json
+#curl "http://10.12.7.55:80/gatherDataAndExecuteSW?clay=15&sand=50&soils=2&lng=-111.58&lat=35.258" > data.json
+#curl "http://127.0.0.1:80/gatherDataAndExecuteSW?clay=15&sand=50&soils=2&lng=-111.58&lat=35.258" > data3.json

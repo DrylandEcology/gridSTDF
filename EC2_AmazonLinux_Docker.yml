@@ -266,7 +266,8 @@ Resources:
 
           # mv dockerfile above short term app files
           mv shorttermdroughtforecaster/dockerfile .   # Create docker file https://o2r.info/containerit/articles/basic.html
-
+          mv shorttermdroughtforecaster/ocker-compose.yml ../
+          
           # --------------------------------------------------------------------
           # download Weather Data -------------------
           # --------------------------------------------------------------------
@@ -299,6 +300,7 @@ Resources:
           # Get Docker set up for app
           # --------------------------------------------------------------------
           # https://www.rplumber.io/articles/hosting.html#docker-advanced
+          # https://pspdfkit.com/blog/2018/how-to-use-docker-compose-to-run-multiple-instances-of-a-service-in-development/
           docker pull rstudio/plumber
 
           # build
@@ -309,6 +311,7 @@ Resources:
 
           # run
           #docker run -t -i -p 8080:8080 -v /usr/local/app/WeatherData:/usr/local/app/STDF/WeatherData stdf
+          cd ../
           docker-compose up --scale stdf=3 -d
 
           # copy awslog conf file, get latest awslog agents, enable cloud watch agents, setup to start on boot
@@ -316,6 +319,9 @@ Resources:
           #apt-get install -y awslogs
           #systemctl start awslogsd
           #systemctl enable awslogsd.service
+
+          yum install amazon-cloudwatch-agent
+
 
         #  echo END
         #  date '+%Y-%m-%d %H:%M:%S'
