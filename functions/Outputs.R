@@ -30,7 +30,7 @@ getOutputs <- function(sw_out, sw_in, SoilsDF, calc_EcoVars = TRUE) {
     Shriver2018Vars <- getShriver2018Vars(Temp1, VWC1)
 
     #OConnor Vars
-    Oconnor2020Vars <- getOConnor2020Vars(sTemp, VWC1)
+    Oconnor2020Vars <- getOConnor2020Vars(sTemp, VWC1, SoilsDF)
     
     # GISSM Vars
     GISSM_1 <- suppressWarnings(calc_GISSM(
@@ -411,20 +411,31 @@ getShriver2018Vars <- function(TempDF, VWCDF) {
 #'
 #' @return data.frame
 
-getOConnor2020Vars <- function(sTempDF, VWCDF) {
+getOConnor2020Vars <- function(sTempDF, VWCDF, SoilsDF) {
+  
+  std <- function(x) sd(x)/sqrt(length(x))
+  
+  # Soil texture values
+  sand <- as.numeric(SoilsDF[1, 'sand_frac'])/100
+  clay <- as.numeric(SoilsDF[1, 'clay_frac'])/100
   
   # soil temp: 0 - 5cm, mean and std. error * 1.96
   # SWP: 0 -5cm, mean and SE * 1.96
   # all days
-  std <- function(x) sd(x)/sqrt(length(x))
-  
+
   sTemp_top <- sTempDF[,.(sTemp_mean = mean(Lyr_1),
-                          sTemp_SE = std(Lyr_1)),
+                          sTemp_CI95 = std(Lyr_1) * 1.96),
                           .(Day)]
   
-  VWC_top <- VWCDF[variable == 'Lyr_1',
-                          .(VWC_mean = mean(value),
-                            VWC_SE = std(value)), .(Day)]
+  # VWC mean
+  # standard error of SWP needs to be calculated from SWP, not from VWC and converted to SWP
+  VWC_top <- VWCDF[variable == 'Lyr_1', ]
+  
+  VWC_top$SWP <- rSOILWAT2::VWCtoSWP(VWC_top$value, sand, clay)
+  VWC_top$SWP <- ifelse(VWC_top$SWP < -8, -8, VWC_top$SWP)
+  VWC_top <- VWC_top[,.(SWP_mean = mean(SWP),
+                       SWP_CI95 = std(SWP) * 1.96),
+                     .(Day)]
   
   # will be converted to SWP in final formatting
   
@@ -644,34 +655,16 @@ formatGISSM <- function(Hist_GISSM, Future_GISSM) {
 #'
 #' @return data.frame
 
-formatOConnor2020 <- function(Hist_OConnor2020, Future_OConnor2020, SoilsDF) {
-  
-  sand <- as.numeric(SoilsDF[1, 'sand_frac'])/100
-  clay <- as.numeric(SoilsDF[1, 'clay_frac'])/100
-  
-  # Historical -----------------------------------------------------------------
-  # convert VWC to SWP
-  Hist_OConnor20202 <- Hist_OConnor2020[, lapply(.SD, rSOILWAT2::VWCtoSWP,
-                              sand = sand,
-                              clay = clay),
-                     .(Day), .SDcols= c('VWC_mean', 'VWC_SE')]
-  
-  names(Hist_OConnor20202)[2:3] <- c('SWP_mean', 'SWP_SE')
-  
-  Hist <- merge(Hist_OConnor2020[,1:3], Hist_OConnor20202)
-  Hist$TP <- 'Historical'
-  
-  # Future ---------------------------------------------------------------------
-  Future_OConnor2020  <- Future_OConnor2020[, lapply(.SD, mean), .(Day)]
-  Future_OConnor20202 <- Future_OConnor2020[, lapply(.SD, rSOILWAT2::VWCtoSWP,
-                                                   sand = sand,
-                                                   clay = clay),
-                                          .(Day), .SDcols= c('VWC_mean', 'VWC_SE')]
+formatOConnor2020 <- function(Hist_OConnor2020, Future_OConnor2020) {
 
-  names(Future_OConnor20202)[2:3] <- c('SWP_mean', 'SWP_SE')
+  # Historical -----------------------------------------------------------------
+  Hist_OConnor2020$TP <- 'Historical'
+  # Future --------------------------------------------------------------------
+  Future_OConnor2020  <- Future_OConnor2020[, lapply(.SD, mean), .(Day)]
+  Future_OConnor2020$TP <- 'Future'
+  # All
+  All <- rbind(Hist_OConnor2020,Future_OConnor2020)
+  All <- All[All$Day != 366,]
   
-  Fut <- merge(Future_OConnor2020[,1:3], Future_OConnor20202)
-  Fut$TP <- 'Future'
-  
-  return(rbind(Hist,Fut))
+  return(All)
 }
