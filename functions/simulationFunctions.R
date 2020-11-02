@@ -82,7 +82,7 @@
     swYears_EndYear(sw_in0) <- currYear - 1
 
     sw_out0 <- sw_exec(inputData = sw_in0, weatherList = weath, quiet = TRUE)
-    HistDataAll <- getOutputs(sw_out0, sw_in0, SoilsDF)
+    HistDataAll <- getOutputs(sw_out0, sw_in0, SoilsDF, TimePeriod = 'Historical')
 
     # format outputs
     HistDataAll1 <- setorder(HistDataAll[[1]], Year, Day)
@@ -121,7 +121,7 @@
     #  --------------------------------------------------------------------------
     if(verbose) print(paste('Running Future', Sys.time()))
     AnomalyData1 <- runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 30, SoilsDF,
-                                             currDOY, currMonth, currYear)
+                                             currDOY, currMonth, currYear, currDate)
 
     if(verbose) print(paste('Formatting Outputs', Sys.time()))
 
@@ -166,17 +166,18 @@
     # format ecovars for writing out -------------------------------------------
     Shriver_Stats <- formatShriver2018(Hist_Shriver2018, Future_Shriver2018, currYear)
     GISSM_Stats <- formatGISSM(Hist_GISSM, Future_GISSM)
-    Oconnor_Stats <- formatOConnor2020(Hist_OConnor2020, Future_OConnor2020, SoilsDF)
+    Oconnor_Stats <- formatOConnor2020(Hist_OConnor2020, Future_OConnor2020)
 
     ################### ----------------------------------------------------------------
     # Part 5 - Write out formatted outputs
     ################### ----------------------------------------------------------------
     if(write){
         fwrite(MonthlyAnoms, 'ExampleData/MonthlyAnoms.csv')
-         fwrite(data.frame(lastWeatherDate), 'ExampleData/lastWeatherDate.csv')
+        fwrite(data.frame(lastWeatherDate), 'ExampleData/lastWeatherDate.csv')
         fwrite(AllVarData, 'ExampleData/AllVarData.csv')
         fwrite(Shriver_Stats, 'ExampleData/Shriver_Stats.csv')
         fwrite(GISSM_Stats, 'ExampleData/GISSM_Stats.csv')
+        fwrite(Oconnor_Stats, 'ExampleData/Oconnor_Stats.csv')
     }
 
     if(verbose) print(paste('Done', Sys.time()))

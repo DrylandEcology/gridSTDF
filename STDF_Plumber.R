@@ -20,11 +20,12 @@ source('functions/Outputs.R')
 source('functions/HelperFunctions.R')
 source('functions/ecoIndicators.R')
 
-testing <- FALSE
+testing <- TRUE
 plumbing <- !testing
 # for testing
 if(testing) {
   source('functions/simulationFunctions.R')
+  #debug(getOutputs)
 
   lat <- 35.1983
   lng <- -111.6513
@@ -33,9 +34,9 @@ if(testing) {
   clay <- 15
 
   Outs <- gatherDataAndExecuteSW(lat, lng, soils, sand, clay, verbose = TRUE, write = TRUE)
-  source('figureCode/presentationFigs/Temperature2.R')
-  source('figureCode/presentationFigs/Precipitation2.R')
-  source('figureCode/presentationFigs/VWC3.R')
+  #source('figureCode/presentationFigs/Temperature2.R')
+  #source('figureCode/presentationFigs/Precipitation2.R')
+  #source('figureCode/presentationFigs/VWC3.R')
 
 }
 

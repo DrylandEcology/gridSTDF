@@ -262,13 +262,13 @@ Resources:
 
           # clone  App Code
           cd ../
-          git clone -b DockerIntegration --single-branch https://code.chs.usgs.gov/sbsc/shorttermdroughtforecaster shorttermdroughtforecaster
+          git clone -b master --single-branch https://code.chs.usgs.gov/sbsc/shorttermdroughtforecaster shorttermdroughtforecaster
 
           # mv dockerfile above short term app files
           mv shorttermdroughtforecaster/dockerfile .   # Create docker file https://o2r.info/containerit/articles/basic.html
           mv shorttermdroughtforecaster/docker-compose.yml ../
           mv shorttermdroughtforecaster/nginx.conf ../
-          
+
           # --------------------------------------------------------------------
           # download Weather Data -------------------
           # --------------------------------------------------------------------
@@ -313,7 +313,7 @@ Resources:
           # run
           #docker run -t -i -p 8080:8080 -v /usr/local/app/WeatherData:/usr/local/app/STDF/WeatherData stdf
           cd ../
-          docker-compose up --scale stdf=3 -d
+          docker-compose up --scale stdf=4 -d
 
           # copy awslog conf file, get latest awslog agents, enable cloud watch agents, setup to start on boot
           #cp /srv/shiny-server/shorttermdroughtforecaster/awslogs.conf /etc/awslogs/awslogs.conf

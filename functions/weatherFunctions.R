@@ -61,7 +61,7 @@ getWeatherData <- function(lat, lng, currYear, dir) {
 }
 
 runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF,
-                                     currDOY, currMonth, currYear){
+                                     currDOY, currMonth, currYear, currDate){
 
   Nleads <- 12
 
@@ -260,7 +260,8 @@ runFutureSWwithAnomalies <- function(lat, lng, sw_in0, wdata, res2, n, SoilsDF,
       sw_out <- sw_exec(inputData = sw_in0, weatherList = weathAnomOneSim, quiet = TRUE)
 
       # Grab Data I want for this run ----------------------------------------------------------
-      Out1 <- getOutputs(sw_out, sw_in0, SoilsDF, calc_EcoVars = TRUE)
+      Out1 <- getOutputs(sw_out, sw_in0, SoilsDF, calc_EcoVars = TRUE, TimePeriod = 'Future',
+                         currYear, currDate)
 
       AllOut1 <- rbind(AllOut1, cbind(Out1[[1]], run = paste(nn, y, sep = '_')))
       Shriver_Out <- rbind(Shriver_Out, cbind(Out1[[2]], run = paste(nn, y, sep = '_')))

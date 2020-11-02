@@ -103,3 +103,5 @@ makeMonthLeadRelationshipTable <- function(TempAnoms, currMonth) {
 
   return(monthLeads)
 }
+
+std <- function(x) sd(x)/sqrt(length(x))

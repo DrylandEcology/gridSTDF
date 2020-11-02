@@ -4,10 +4,14 @@
 #'  @param sw_in SOILWAT2 input object
 #'  @param SoilsDF a data.frame describing soils attributes, including depth grouping
 #'  @param calc_EcoVars logical. Do you want to calculate  ecological variables
+#'  @param TimePeriod character. Future or Historical
+#'  @param currYear numeric. The current year.
+#'  @param currDate data. The current date.
 #'
 #'  @return A list of data.frames.
-getOutputs <- function(sw_out, sw_in, SoilsDF, calc_EcoVars = TRUE) {
-
+getOutputs <- function(sw_out, sw_in, SoilsDF, calc_EcoVars = TRUE, 
+                       TimePeriod, currYear, currDate) {
+  
   # Temp and Precip
   Temp1 <- data.table(sw_out@TEMP@Day)
   Temp1 <- Temp1[, c('Year', 'Day', 'avg_C')]
@@ -30,7 +34,8 @@ getOutputs <- function(sw_out, sw_in, SoilsDF, calc_EcoVars = TRUE) {
     Shriver2018Vars <- getShriver2018Vars(Temp1, VWC1)
 
     #OConnor Vars
-    Oconnor2020Vars <- getOConnor2020Vars(sTemp, VWC1, SoilsDF)
+    Oconnor2020Vars <- getOConnor2020Vars(sTemp, VWC1, SoilsDF, TimePeriod,
+                                          currYear, currDate)
     
     # GISSM Vars
     GISSM_1 <- suppressWarnings(calc_GISSM(
@@ -408,38 +413,66 @@ getShriver2018Vars <- function(TempDF, VWCDF) {
 #'
 #' @param TempDF a data.frame containing daily soil temperature data
 #' @param SWPDF a data.frame containing daily swp data
+#' @param SoilsDF a data.frame containing soil texture information.
+#' @param TimePeriod character. Future or Historical
+#' @param currYear numeric. The current year.
+#' @param currDate data. The current date.
+
 #'
 #' @return data.frame
 
-getOConnor2020Vars <- function(sTempDF, VWCDF, SoilsDF) {
-  
-  std <- function(x) sd(x)/sqrt(length(x))
+getOConnor2020Vars <- function(sTempDF, VWCDF, SoilsDF, TimePeriod, 
+                               currYear = currYear,
+                               currDate = currDate) {
   
   # Soil texture values
   sand <- as.numeric(SoilsDF[1, 'sand_frac'])/100
   clay <- as.numeric(SoilsDF[1, 'clay_frac'])/100
   
+  if(TimePeriod == 'Future') {
+    
+    # subset so that data is either this year or next year
+    sTempDF <- sTempDF[Year >= currYear, ]
+    VWCDF <- VWCDF[Year >= currYear, ]
+    
+    # define periods of observed & forecast
+    sTempDF$Date <- as.Date(strptime(paste(sTempDF$Year, sTempDF$Day), format="%Y %j"), format="%m-%d-%Y")
+    VWCDF$Date <- as.Date(strptime(paste(VWCDF$Year, VWCDF$Day), format="%Y %j"), format="%m-%d-%Y")
+    
+    # elim more than 12 months out
+    elimDate <- currDate + 366
+    sTempDF <- sTempDF[sTempDF$Date < elimDate, ]
+    VWCDF <- VWCDF[VWCDF$Date < elimDate, ]
+    
+    sTempDF$TP <- ifelse(sTempDF$Date >= currDate, 'Forecast', 'Observed')
+    VWCDF$TP <- ifelse(VWCDF$Date >= currDate, 'Forecast', 'Observed')
+    
+    }
+  
+  if(TimePeriod == 'Historical') {
+    sTempDF$TP <- 'Historical'
+    VWCDF$TP <- 'Historical'
+  }
+  
   # soil temp: 0 - 5cm, mean and std. error * 1.96
   # SWP: 0 -5cm, mean and SE * 1.96
   # all days
+  sTemp_top <- sTempDF[, c('Year', 'Day', 'Lyr_1', 'TP')]
+  sTemp_top <- makeDateMonthDat(sTemp_top, 'Day')
+  sTemp_top <- sTemp_top[sTemp_top$Date %in% c(paste0('03-0',1:9),paste0('03-',10:31)) ,]
 
-  sTemp_top <- sTempDF[,.(sTemp_mean = mean(Lyr_1),
-                          sTemp_CI95 = std(Lyr_1) * 1.96),
-                          .(Day)]
-  
   # VWC mean
   # standard error of SWP needs to be calculated from SWP, not from VWC and converted to SWP
   VWC_top <- VWCDF[variable == 'Lyr_1', ]
+  VWC_top <- makeDateMonthDat(VWC_top, 'Day')
+  VWC_top <- VWC_top[VWC_top$Date %in% c(paste0('03-0',1:9),paste0('03-',10:31)) ,]
   
   VWC_top$SWP <- rSOILWAT2::VWCtoSWP(VWC_top$value, sand, clay)
   VWC_top$SWP <- ifelse(VWC_top$SWP < -8, -8, VWC_top$SWP)
-  VWC_top <- VWC_top[,.(SWP_mean = mean(SWP),
-                       SWP_CI95 = std(SWP) * 1.96),
-                     .(Day)]
   
-  # will be converted to SWP in final formatting
-  
-  vars <- merge(sTemp_top, VWC_top,  by = c('Day'))
+  # statistics taken in format step
+  vars <- merge(sTemp_top[,c('Date', 'Year', 'TP','Lyr_1')], 
+                VWC_top[,c('Date', 'Year', 'TP', 'SWP')],  by = c('Year','Date', 'TP'))
 
   return(vars)
   
@@ -656,15 +689,16 @@ formatGISSM <- function(Hist_GISSM, Future_GISSM) {
 #' @return data.frame
 
 formatOConnor2020 <- function(Hist_OConnor2020, Future_OConnor2020) {
-
-  # Historical -----------------------------------------------------------------
-  Hist_OConnor2020$TP <- 'Historical'
-  # Future --------------------------------------------------------------------
-  Future_OConnor2020  <- Future_OConnor2020[, lapply(.SD, mean), .(Day)]
-  Future_OConnor2020$TP <- 'Future'
-  # All
-  All <- rbind(Hist_OConnor2020,Future_OConnor2020)
-  All <- All[All$Day != 366,]
   
-  return(All)
+  # make one dataset
+  All <- rbind(Hist_OConnor2020, Future_OConnor2020)
+  
+  # get stats
+  Outs <- setDT(All)[, .(sTemp_mean = mean(Lyr_1),
+                                  sTemp_CI95 = std(Lyr_1 * 1.96),
+                                  SWP_mean = mean(SWP),
+                                  SWP_CI95 = std(SWP) * 1.96),
+                              .(Date, TP)]
+  
+  return(Outs)
 }
