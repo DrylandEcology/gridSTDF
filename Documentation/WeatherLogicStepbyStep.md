@@ -6,7 +6,7 @@ This document contains the step by step logic used to gather, downscale, and sim
 
 The Climate Prediction Center (CPC) of the National Weather Service (NWS) provides “long-lead” outlooks for temperature and precipitation for 102 regions in the lower 48 of the United States.
 
-![RegionMap](RegionMap.png)
+![RegionMap](images/RegionMap.png)
 
 These outlooks consist of the probability of whether a region will be hotter or cooler (temperature) and wetter or drier (precipitation)
 than their 30-year climatological normal (1980-2010) for [1 1-month and 13 3-month outlooks](https://www.cpc.ncep.noaa.gov/products/forecasts/month_to_season_outlooks.php). 
@@ -32,30 +32,30 @@ alongside NWS forecasts (Step 2), to predict a range of future anomalies with mu
 These predictd anomalies are bias corrected (Step 4) and integrated with historical data (Step 5) 
 from the climatic normal period to simulate 900 potential weather and soil moisture futures (Step 6). 
 
-### [Step 0 - Load packages and example data](ShortTermDroughtForecaster_Logic.ipynb#Step-0)
+### [Step 0 - Load packages and example data](ShortTermDroughtForecaster_WeatherForecastDownscaleLogic.ipynb)
 Load R packages and code necessary to walk through this step by step. The step by step is cumulative. You can walk through this guide by downloading the entire Repo locally and opening jupyter notebook.
 
-### [Step 1 - Gather point specific (lat, long) historic weather data from gridMet](ShortTermDroughtForecaster_Logic.ipynb#Step-1)
+### [Step 1 - Gather point specific (lat, long) historic weather data from gridMet](ShortTermDroughtForecaster_WeatherForecastDownscaleLogic.ipynb)
 Historical weather data for 1979 through current is downloaded from gridMet.
 
 ### [Step 2 - Gather and format short-term predictions from National Weather Service (NWS)](ShortTermDroughtForecaster_Logic.ipynb#step2)
 
 Based on site-specific coordinates, the correct regional NWS dataset is found for the coordinates. Values in this dataset are converted to the necessary units.
 
-### [Step 3 - Use multivariate sampling to generate a range of future anomalies for a specific location.](ShortTermDroughtForecaster_Logic.ipynb#step3)
+### [Step 3 - Use multivariate sampling to generate a range of future anomalies for a specific location.](ShortTermDroughtForecaster_WeatherForecastDownscaleLogic.ipynb)
 
 Historical data is converted to the same time step (leads) and units as the future forecasts. Covariances between historical precipiation and temperature are calculated. Means and variances from the NWS forecasts, alongside these historical covariances, are used to generate future anomalies (n = 30) using multivariate sampling.
  
-### [Step 4 - Bias correction of anomaly forecasts](ShortTermDroughtForecaster_Logic.ipynb#Step-4---Bias-correction-of-anomaly-forecasts)
+### [Step 4 - Bias correction of anomaly forecasts](ShortTermDroughtForecaster_WeatherForecastDownscaleLogic.ipynb)
 
 To account for the variation of random draws of anomalies using mulitvaraite sampling and non-normal precipitation distribution (when converted to the necessary units) we correct the anomaly forecasts to the NWS mean.\n",
 
-### [Step 5 - Integrate future anomalies with historical data to create future weather dataset.](ShortTermDroughtForecaster_Logic.ipynb#step5)
+### [Step 5 - Integrate future anomalies with historical data to create future weather dataset.](ShortTermDroughtForecaster_WeatherForecastDownscaleLogic.ipynb)
 
 Anomalies are converted from the lead scale to the monthly scale. These monthly anomaly values are then applied to the long-term historical climatic normal record (1981 - 2010). Each anomaly (n = 30) is applied to each year in the historical record (years = 30), resulting in 900 (n * years) potential futures.
 
-### [Step 6 - Use weather data to simulate futures](ShortTermDroughtForecaster_Logic.ipynb#step6)
+### [Step 6 - Use weather data to simulate futures](ShortTermDroughtForecaster_WeatherForecastDownscaleLogic.ipynb)
 
 Future years are appended with the previous years' observed data to account for the cunlative effects of weather on moisture in the soil profile. This new weather dataset is given to SOILWAT2, and future soil moisture is simulated.
  
-### [Step 7 - Results](ShortTermDroughtForecaster_Logic.ipynb#step7)
+### [Step 7 - Results](ShortTermDroughtForecaster_WeatherForecastDownscaleLogic.ipynb)

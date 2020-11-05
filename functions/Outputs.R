@@ -155,7 +155,7 @@ formatOutputs_Monthlys <- function(AllOut, SoilsDF, TP, yearBegin, yearEnd, curr
     AllOut$run_year <-  NULL
 
   } else{
-    # take a mean across all realizations and representations for most all vars
+    # take a mean across all vars
     AllOutMean <- setDT(AllOut)[, sapply(.SD, function(x) list(mean=mean(x))),
                                 .(Year, Date),
                                 .SDcols = c('avg_C', 'VWC.Deep', 'VWC.Intermediate',
@@ -511,7 +511,7 @@ calcDeltasApproxAndFormat <- function(HistData1, HistDataMonthly,
   Hist <- as.data.frame(HistData1)[,c(1, indx)]
   names(Hist)[2:4] <- paste0('Hist.', names(Hist)[2:4])
 
-  # ccreate date for joinging
+  # create date for joinging
   Hist$Year <- ifelse(Hist$Date > todayMonthDay, currYear, currYear - 1 )
   Hist$Date <- as.Date(paste(currYear, Hist$Date,sep='-'), format = "%Y-%m-%d")
   Hist$Year <- NULL
@@ -535,7 +535,7 @@ calcDeltasApproxAndFormat <- function(HistData1, HistDataMonthly,
   PastDailys[,paste0('RecentPast.',Var,'.Diffs.Med')] <- PastDailys[, indx[2]] - PastDailys[,indx[1]]
 
   # -----------------------------------------------------------------------------
-  # Step 2 - Join Monthly Means and to calc diffs (no approx yet just monthlys) for future
+  # Step 2 - Join Monthly Means  to calc diffs (no approx yet just monthlys) for future
   # -----------------------------------------------------------------------------
   indx <- grep(paste0(Var), names(HistDataMonthly))
   Hist2 <- as.data.frame(HistDataMonthly)[, c(1, indx)]
@@ -594,7 +594,7 @@ calcDeltasApproxAndFormat <- function(HistData1, HistDataMonthly,
   PastDailys[,indx] <- NULL
   PastDailys[PastDailys$Date > (lastWeatherDate-15), 3:4] <- NA
 
-  # From Fut_Daily_Approx -------------------------------------------------
+  #  From Fut_Daily_Approx -------------------------------------------------
   ## Hist.avg_C.mean.med - elim
   ## Hist.avg_C.mean.10 - elim
   ## Hist.avg_C.mean.90 - elim
