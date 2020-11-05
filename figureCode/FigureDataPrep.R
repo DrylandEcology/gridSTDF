@@ -10,55 +10,10 @@ currDate <- Sys.Date()
   
 # Historical Data -------------------------------------------------------------------
 if(readIn){
-  HistData_Norm_Stats <- fread('ExampleData/HistData_Norm_Stats.csv')
-  MonthlyAnoms <- fread('ExampleData/MonthlyAnoms.csv')
-  TempAnoms <- fread('ExampleData/TempAnoms.csv')
-  PPTAnoms <- fread('ExampleData/PPTAnoms.csv')
-  AnomRunStats <- fread('ExampleData/AnomRun_Stats.csv')
-  
+  MonthlyAnoms <- fread('../ExampleData/MonthlyAnoms.csv')
+  TempAnoms <- fread('../ExampleData/TempAnoms.csv')
+  PPTAnoms <- fread('../ExampleData/PPTAnoms.csv')
 }
-
-# fix dates so that (1) Time repeats itself 1.5 times and (2) it sees these averages as historical date . 
-# Restructure Dates
-todayMonthDay <- format(Sys.Date() , format="%m-%d")
-
-#  Get data for prior 6 months
-sixMonthsAgo <- format(Sys.Date() - 183,  format="%m-%d")
-r1 <- which(grepl(todayMonthDay, HistData_Norm_Stats$Date))
-r2 <- which(grepl(sixMonthsAgo, HistData_Norm_Stats$Date))
-dateIndex <- if( r2 > r1) { 
-    c(r2:366, 1:(r1- 1))
-  } else{
-    c(r2:(r1 - 1))  
-  }
-HistDataNormMean_18MNs <- HistData_Norm_Stats[dateIndex,]
-
-HistDataNormMean_18MNs$Year <- ifelse(HistDataNormMean_18MNs$Date > todayMonthDay, currYear - 1 , currYear)
-HistDataNormMean_18MNs$Date <- as.Date(paste(HistDataNormMean_18MNs$Year, HistDataNormMean_18MNs$Date, sep = '-'))
-HistDataNormMean_18MNs <- setorder(HistDataNormMean_18MNs, Date) 
-
-#  Format historical record 1 year forward fromt today's date ----------------------------------------------
-HistData_Norm_Stats$Year <- ifelse(HistData_Norm_Stats$Date > todayMonthDay, currYear, currYear + 1)
-# when you convert to Date, elimantes Feb. 29 if that year does not have a 2-29
-HistData_Norm_Stats$Date <- as.Date(paste(HistData_Norm_Stats$Year, HistData_Norm_Stats$Date, sep = '-'))
-HistData_Norm_Stats <- setorder(HistData_Norm_Stats, Date) 
-
-# Append
-HistDataNormMean_18MNs <- rbind(HistDataNormMean_18MNs, HistData_Norm_Stats)
-HistDataNormMean_18MNs <- HistDataNormMean_18MNs[complete.cases(HistDataNormMean_18MNs), ]
-
-# Go to the first day of the same month of the next year
-HistDataNormMean_18MNs <- HistDataNormMean_18MNs[
-  HistDataNormMean_18MNs$Date < as.Date(paste0(currYear + 1, '-' ,currMonth + 1,'-01')),] # 06 should be currMonth
-
-ggplot() +
- # geom_line(data = AllOut2, aes(Date, avgC_rollmean, color = run_Year)) +
-  geom_line(data = HistDataNormMean_18MNs, aes(Date, avgC_rollmean.med), color = 'purple') +
-  
- # geom_line(data = AnomRunStats, aes(Date, avgC_rollmean.med),
-#            color = 'limegreen')   +
-  geom_vline(aes(xintercept = as.Date('2020-02-29')))
-
 
 # Anomalies -------------------------------------------------------------------------------------------------
 # these are the 12 monthly anomalies generated
@@ -66,7 +21,7 @@ MonthlyAnoms$Year <- ifelse(MonthlyAnoms$Month < currMonth , 2021, 2020)
 MonthlyAnoms$Date <- as.Date(paste0(MonthlyAnoms$Year, '-' , MonthlyAnoms$Month, '-15'), format = '%Y-%m-%d')
 
 # How months and leads relate ----------------------
-monthLeads <- makeMonthLeadRelationshipTable(TempAnoms)
+monthLeads <- makeMonthLeadRelationshipTable(TempAnoms, currMonth)
 
 NWSAnomsAll1 <-  NWSAnomsAll2 <- data.frame()
 
@@ -84,10 +39,10 @@ for(m in 1:12){
 }
 
 NWSAnomsAll1 <- unique(NWSAnomsAll1)
-NWSAnomsAll1$Year <- ifelse(NWSAnomsAll1$m < 7, 2021, 2020)
+NWSAnomsAll1$Year <- ifelse(NWSAnomsAll1$m < currMonth, 2021, 2020)
 NWSAnomsAll1$Date <- as.Date(paste0(NWSAnomsAll1$Year, '-' , NWSAnomsAll1$m, '-05'), format = '%Y-%m-%d')
 
 NWSAnomsAll2 <- unique(NWSAnomsAll2)
-NWSAnomsAll2$Year <- ifelse(NWSAnomsAll2$m < 7, 2021, 2020)
+NWSAnomsAll2$Year <- ifelse(NWSAnomsAll2$m < currMonth, 2021, 2020)
 NWSAnomsAll2$Date <- as.Date(paste0(NWSAnomsAll2$Year, '-' , NWSAnomsAll2$m, '-05'), format = '%Y-%m-%d')
 

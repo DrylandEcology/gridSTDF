@@ -6,7 +6,7 @@ print('Density plots of monthly anomalies used in SOILWAT2 vs NWS')
 
 source('../figureCode/FigureDataPrep.R')
 MonthlyAnoms2 <- MonthlyAnoms # monthly anamoly data entered into SW
-MonthlyAnoms2$Month <- factor(MonthlyAnoms2$Month, levels = c(7:12, 1:6))
+MonthlyAnoms2$Month <- factor(MonthlyAnoms2$Month, levels = c(currMonth:12, 1:(currMonth-1)))
 generatedMean <- setDT(MonthlyAnoms2)[,.(meanGenAnom = mean(tempAnom)), .(Month)]
 
 cols <- c("Generated Monthlys" = "#7AFF33", "NWS Data" = "#CA33FF")
@@ -15,8 +15,8 @@ cols <- c("Generated Monthlys" = "#7AFF33", "NWS Data" = "#CA33FF")
 # temperature
 NWSMeans <- setDT(NWSAnomsAll1)[,.(meanAnom = mean(Anom_C)), .(m)]
 names(NWSMeans)[1] <- 'Month'
-NWSMeans$Month <- factor(NWSMeans$Month, levels = c(7:12, 1:6))
-NWSMeans$Year <- c(rep(2021,6), rep(2020, 6))
+NWSMeans$Month <- factor(NWSMeans$Month, levels = c(currMonth:12, 1:(currMonth-1)))
+NWSMeans$Year <- c(rep(2021, length(1:(currMonth-1))), rep(2020, length(currMonth:12)))
 NWSMeans$Date <- as.Date(paste0(NWSMeans$Year, '-', NWSMeans$Month, '-05'))
 
 tempHist <- ggplot(MonthlyAnoms2, aes(tempAnom)) +
@@ -35,11 +35,11 @@ tempBP <- ggplot() +
                width = 7, alpha = 0.8, outlier.shape = NA, outlier.size = -1) +
   stat_summary(data = MonthlyAnoms2, aes(Date, tempAnom, group = Month, ymax = ..y.., ymin = ..y..,
                                          color = 'Generated Monthlys'),
-               fun.y = mean, geom = "errorbar", size = 1.2) +
+               fun = mean, geom = "errorbar", size = 1.2) +
   #geom_point(data = MonthlyAnoms2, aes(Date, tempAnom, group = Month), shape = 21, size =.5, fill = NA) +
   # NWS dots and lines
   stat_summary(data = NWSMeans, aes(Date, meanAnom, ymax = ..y.., ymin = ..y.., color = 'NWS Data'),
-               fun.y = mean, geom = "errorbar", size = 1.2) +
+               fun = mean, geom = "errorbar", size = 1.2) +
   geom_pointrange(data = NWSAnomsAll1, aes(Date, Anom_C,
                                            ymin = Anom_C - ForecastedSD_Temp_C,
                                            ymax = Anom_C + ForecastedSD_Temp_C), shape = 21, fill = 'black', color = 'magenta') +
@@ -56,8 +56,8 @@ suppressWarnings(print(tempBP))
 # cm
 NWSMeans1 <- setDT(NWSAnomsAll2)[,.(meanForecastDiff = mean(Anom_cm)), .(m)]
 names(NWSMeans1)[1] <- 'Month'
-NWSMeans1$Month <- factor(NWSMeans1$Month, levels = c(7:12, 1:6))
-NWSMeans1$Year <- c(rep(2021,6), rep(2020, 6))
+NWSMeans1$Month <- factor(NWSMeans1$Month, levels = c(currMonth:12, 1:(currMonth-1)))
+NWSMeans1$Year <- c(rep(2021, length(1:(currMonth-1))), rep(2020, length(currMonth:12)))
 NWSMeans1$Date <- as.Date(paste0(NWSMeans1$Year, '-', NWSMeans1$Month, '-05'))
 NWSMeans1
 
@@ -83,11 +83,11 @@ PPTcmBP <-ggplot() +
                width = 7, alpha = 0.8,outlier.shape = NA, outlier.size = -1) +
   stat_summary(data = MonthlyAnoms2, aes(Date, pptAnom_cm, group = Month, ymax = ..y.., ymin = ..y..,
                                          color = 'Generated Monthlys'),
-               fun.y = mean, geom = "errorbar", size = 1.2) +
+               fun = mean, geom = "errorbar", size = 1.2) +
   #geom_point(data = MonthlyAnoms2, aes(Date, pptAnom_cm, group = Month), shape = 21, size =.5, fill = NA) +
   # NWS dots and lines
  stat_summary(data = NWSMeans1, aes(Date, meanForecastDiff, ymax = ..y.., ymin = ..y.., color = 'NWS Data'),
-               fun.y = mean, geom = "errorbar", size = 1.2) +
+               fun = mean, geom = "errorbar", size = 1.2) +
   geom_pointrange(data = NWSAnomsAll2, aes(Date, Anom_cm,
                                            ymin = Anom_cm - ForecastedSD_PPT_cm,
                                            ymax = Anom_cm + ForecastedSD_PPT_cm), shape = 21, fill = 'black', color = 'magenta') +
@@ -99,8 +99,8 @@ PPTcmBP <-ggplot() +
 # CF
 NWSMeans2 <- setDT(NWSAnomsAll2)[,.(meanForecastDiff = mean(Anom_CF)), .(m)]
 names(NWSMeans2)[1] <- 'Month'
-NWSMeans2$Month <- factor(NWSMeans2$Month, levels = c(7:12, 1:6))
-NWSMeans2$Year <- c(rep(2021,6), rep(2020, 6))
+NWSMeans2$Month <- factor(NWSMeans2$Month, levels = c(currMonth:12, 1:(currMonth-1)))
+NWSMeans2$Year <- c(rep(2021, length(1:(currMonth-1))), rep(2020, length(currMonth:12)))
 NWSMeans2$Date <- as.Date(paste0(NWSMeans2$Year, '-', NWSMeans2$Month, '-05'))
 
 generatedMean <- setDT(MonthlyAnoms2)[,.(meanGenAnom = mean(pptAnom_CF)), .(Month)]
@@ -124,11 +124,11 @@ PPTCFBP <-ggplot() +
                width = 7, alpha = 0.8, outlier.shape = NA, outlier.size = -1 )+
   stat_summary(data = MonthlyAnoms2, aes(Date, pptAnom_CF, group = Month, ymax = ..y.., ymin = ..y..,
                                          color = 'Generated Monthlys'),
-               fun.y = mean, geom = "errorbar", size = 1.2) +
+               fun = mean, geom = "errorbar", size = 1.2) +
  # geom_point(data = MonthlyAnoms2, aes(Date, pptAnom_CF, group = Month), shape = 21, size =.5, fill = NA) +
   # NWS dots and lines
   stat_summary(data = NWSMeans2, aes(Date, meanForecastDiff, ymax = ..y.., ymin = ..y.., color = 'NWS Data'),
-               fun.y = mean, geom = "errorbar", size = 1.2) +
+               fun = mean, geom = "errorbar", size = 1.2) +
   geom_point(data = NWSAnomsAll2, aes(Date, Anom_CF), shape = 21, fill = 'black', color = 'magenta') +
   labs(title = 'Precipitation anomalies (CF) by Month', y = 'Precipitation CF') +
  
