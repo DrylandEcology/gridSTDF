@@ -47,4 +47,4 @@ This app is containerized in [docker-compose](https://docs.docker.com/compose/) 
 on an AWS EC2 instance.
 
 Details about deployment are contained in the repository's [cloud formation
-script]('EC2_AmazonLinux_Docker.yml')
+script]('../EC2_AmazonLinux_Docker.yml').

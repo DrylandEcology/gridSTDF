@@ -58,7 +58,7 @@ Anomalies are converted from the lead scale to the monthly scale. These monthly 
 
 Future years are appended with the previous years' observed data to account for the cunlative effects of weather on moisture in the soil profile. This new weather dataset is given to SOILWAT2, and future soil moisture is simulated.
 
-### [Step 7 - Results and Figures](ExampleOutputsAndFigures.ipynb)
+### [Step 7 - Results and Figures](OutputsAndFigures.ipynb)
 
 A full description of how the results are formatted and displayed is available
-in the [Example Outputs and Figures](ExampleOutputsAndFigures.ipynb) notebook.
+in the [Example Outputs and Figures](OutputsAndFigures.ipynb) notebook.

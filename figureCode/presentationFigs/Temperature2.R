@@ -1,8 +1,8 @@
-library(ggplot2)
-AllVarData <- read.csv('ExampleData/AllVarData.csv', stringsAsFactors = FALSE)
-lastWeatherDate <- read.csv('ExampleData/lastWeatherDate.csv')
-lastWeatherDate <- as.Date(lastWeatherDate[,1])
-AllVarData$Date <- as.Date(AllVarData$Date)
+# library(ggplot2)
+# AllVarData <- read.csv('ExampleData/AllVarData.csv', stringsAsFactors = FALSE)
+# lastWeatherDate <- read.csv('ExampleData/lastWeatherDate.csv')
+#lastWeatherDate <- as.Date(lastWeatherDate[,1])
+#AllVarData$Date <- as.Date(AllVarData$Date)
 indx <- grep('avg_C', names(AllVarData))
 TempData <- AllVarData[,c(1,indx)]
 ######################################################################################
@@ -44,7 +44,7 @@ Panel1 <- ggplot() +
   labs(y = 'temperature (°C)')
 
 suppressWarnings(plot(Panel1))
-ggsave('figureCode/presentationFigs/savedFigs/Temp_Absolute_NewVersion.png', height = 4, width = 8)
+#ggsave('figureCode/presentationFigs/savedFigs/Temp_Absolute_NewVersion.png', height = 4, width = 8)
 
 # Panel 2 ----------------------------------------------------------------------------
 Panel2 <- ggplot() + 
@@ -80,5 +80,5 @@ geom_bar(data = TempData, aes(Date, RecentPast.avg_C.Diffs.Med, fill = Type), st
   labs(y = 'temperature diffs (°C)')
 
 suppressWarnings(plot(Panel2))
-ggsave('figureCode/presentationFigs/savedFigs/Temp_Diffs_NewVersion2.png', height = 4, width = 8)
+#ggsave('figureCode/presentationFigs/savedFigs/Temp_Diffs_NewVersion2.png', height = 4, width = 8)
 

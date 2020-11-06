@@ -1,7 +1,7 @@
-AllVarData <- read.csv('ExampleData/AllVarData.csv', stringsAsFactors = FALSE)
-lastWeatherDate <- read.csv('ExampleData/lastWeatherDate.csv')
-lastWeatherDate <- as.Date(lastWeatherDate[,1])
-AllVarData$Date <- as.Date(AllVarData$Date)
+# AllVarData <- read.csv('ExampleData/AllVarData.csv', stringsAsFactors = FALSE)
+# lastWeatherDate <- read.csv('ExampleData/lastWeatherDate.csv')
+# lastWeatherDate <- as.Date(lastWeatherDate[,1])
+# AllVarData$Date <- as.Date(AllVarData$Date)
 indx <- grep('ppt', names(AllVarData))
 PPTdata <- AllVarData[,c(1,indx)]
 
@@ -40,8 +40,8 @@ Panel1 <- ggplot() +
   scale_x_date(date_breaks = "2 months", date_labels = "%m-%Y", expand = c(0,0)) +
   labs(y = 'precipitation (cm)')
 
-plot(Panel1)
-ggsave('figureCode/presentationFigs/savedFigs/PPT_Absolute_NewVersion.png', height = 4, width = 8)
+suppressWarnings(plot(Panel1))
+#ggsave('figureCode/presentationFigs/savedFigs/PPT_Absolute_NewVersion.png', height = 4, width = 8)
 
 
 # Panel 2 ----------------------------------------------------------------------------
@@ -76,7 +76,7 @@ Panel2 <- ggplot() +
   scale_x_date(date_breaks = "2 months", date_labels = "%m-%Y", expand = c(0,0)) +
   labs(y = 'ppt diffs (cm)')
 
-plot(Panel2)
+suppressWarnings(plot(Panel2))
 
-ggsave('figureCode/presentationFigs/savedFigs/PPT_Diffs_NewVersion.png', height = 4, width = 8)
+#ggsave('figureCode/presentationFigs/savedFigs/PPT_Diffs_NewVersion.png', height = 4, width = 8)
 
