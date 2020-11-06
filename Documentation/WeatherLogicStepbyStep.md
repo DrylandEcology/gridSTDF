@@ -12,7 +12,7 @@ These outlooks consist of the probability of whether a region will be hotter or 
 than their 30-year climatological normal (1980-2010) for [1 1-month and 13 3-month outlooks](https://www.cpc.ncep.noaa.gov/products/forecasts/month_to_season_outlooks.php).
 These outlooks are updated on approximately mid-month ([release schedule](https://origin.cpc.ncep.noaa.gov/products/predictions/schedule.php)).
 The 1-month outlook is for the nearest upcoming month while the 3-month outlooks consist of 13 total forecasts for the next year. The 3-month outlooks overlap one another, and each individual month is included in up to 3 outlooks. For example, on May 15th, the closest 1-month outlook would be for June, and the nearest 3-month outlook would be for June-July-August. There are subsequent outlooks for July-August-September, August-September-October, and so on for the next 13 month period.
-Currrently, we are using the 13 3-month outlooks to generate predictions.
+Currently, we are using the 13 3-month outlooks to generate predictions.
 ![image](https://www.cpc.ncep.noaa.gov/products/predictions/multi_season/13_seasonal_outlooks/color/page2.gif)
 
 
@@ -27,9 +27,9 @@ water-balance model, SOILWAT2. SOILWAT2 is a site-specific model, that takes inp
 and mechanistically predicts daily soil moisture, a metric used for evaluating likely success of plant germination and survival.
 
 To do this, we gather site-specific historical weather information for a specific site (Step 1),
-and use historical patterns between historical temperature and precipiation data,
+and use historical patterns between historical temperature and precipitation data,
 alongside NWS forecasts (Step 2), to predict a range of future anomalies with multivariate sampling (Step 3).
-These predictd anomalies are bias corrected (Step 4) and integrated with historical data (Step 5)
+These predicted anomalies are bias corrected (Step 4) and integrated with historical data (Step 5)
 from the climatic normal period to simulate 900 potential weather and soil moisture futures (Step 6).
 
 ### [Step 0 - Load packages and example data](ShortTermDroughtForecaster_WeatherForecastDownscaleLogic.ipynb)
@@ -58,4 +58,7 @@ Anomalies are converted from the lead scale to the monthly scale. These monthly 
 
 Future years are appended with the previous years' observed data to account for the cunlative effects of weather on moisture in the soil profile. This new weather dataset is given to SOILWAT2, and future soil moisture is simulated.
 
-### [Step 7 - Results](ShortTermDroughtForecaster_WeatherForecastDownscaleLogic.ipynb)
+### [Step 7 - Results and Figures](ExampleOutputsAndFigures.ipynb)
+
+A full description of how the results are formatted and displayed is available
+in the [Example Outputs and Figures](ExampleOutputsAndFigures.ipynb) notebook.

@@ -36,10 +36,15 @@ for any time periods in which it is provided climate data.
 
 Application source code was written exclusively in R.
 
+The STDF is currently deployed as an API using the [plumber package](https://www.rplumber.io/).
+
 #### Dependencies
 Functionality for soil-water modeling relies on the R package: [rSOILWAT2](https://github.com/DrylandEcology/rSOILWAT2),
 a R plugin for the C based code of SOILWAT2.
 
 ### Deployment
-This app is containerized in (docker-compose)[https://docs.docker.com/compose/] and hosted
+This app is containerized in [docker-compose](https://docs.docker.com/compose/) and hosted
 on an AWS EC2 instance.
+
+Details about deployment are contained in the repository's [cloud formation
+script]('EC2_AmazonLinux_Docker.yml')
