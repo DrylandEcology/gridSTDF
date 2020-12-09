@@ -9,9 +9,9 @@
 #'  @param currDate data. The current date.
 #'
 #'  @return A list of data.frames.
-getOutputs <- function(sw_out, sw_in, SoilsDF, calc_EcoVars = TRUE, 
+getOutputs <- function(sw_out, sw_in, SoilsDF, calc_EcoVars = TRUE,
                        TimePeriod, currYear, currDate) {
-  
+
   # Temp and Precip
   Temp1 <- data.table(sw_out@TEMP@Day)
   Temp1 <- Temp1[, c('Year', 'Day', 'avg_C')]
@@ -22,21 +22,21 @@ getOutputs <- function(sw_out, sw_in, SoilsDF, calc_EcoVars = TRUE,
   # VWC ---------------------------------------------------
   VWC1 <-  data.table(sw_out@VWCMATRIC@Day)
   VWC1 <- melt.data.table(VWC1, id.vars = c('Year', 'Day'))
-  
+
   # Soil Temperature
   sTemp <- data.table(sw_out@SOILTEMP@Day)
-  
+
   # Get EcoVars ----------------------------------------------------------------
 
   if(calc_EcoVars) {
-    
+
     # Shriver 2018  Vars
     Shriver2018Vars <- getShriver2018Vars(Temp1, VWC1)
 
     #OConnor Vars
     Oconnor2020Vars <- getOConnor2020Vars(sTemp, VWC1, SoilsDF, TimePeriod,
                                           currYear, currDate)
-    
+
     # GISSM Vars
     GISSM_1 <- suppressWarnings(calc_GISSM(
       x = sw_out,
@@ -51,7 +51,7 @@ getOutputs <- function(sw_out, sw_in, SoilsDF, calc_EcoVars = TRUE,
   # Format VWC  -------------------------------------------
   #VWC1 <- VWC1[variable != 'Lyr_1', ]
   # Step 1 - Get weighted mean across depths for VWC
-  
+
   VWC1 <-  merge(VWC1, SoilsDF)#, by = 'variable')
   VWC1 <- setDT(VWC1)[,.(VWC = weighted.mean(value, width)),
                       .(Year, Day, Depth)]
@@ -63,7 +63,7 @@ getOutputs <- function(sw_out, sw_in, SoilsDF, calc_EcoVars = TRUE,
   Data <- merge(Data, VWC1,  by = c('Year', 'Day'))
 
   if(!calc_EcoVars) return(list(Data))
-  if(calc_EcoVars) return(list(Data, Shriver2018Vars, 
+  if(calc_EcoVars) return(list(Data, Shriver2018Vars,
                                data.table(GISSM_1[[1]]), Oconnor2020Vars))
 
 }
@@ -242,7 +242,12 @@ get18MonthClimatologicalRecord <- function(HistData_Norm_Stats1,
   HistDataNormMean_18MNs <- rbind(HistData_Norm_Stats1, HistData_Norm_Stats2, HistData_Norm_Stats3)
 
   # Go to the first day of the same month of the next year
-  HistDataNormMean_18MNs <- HistDataNormMean_18MNs[HistDataNormMean_18MNs$Date < as.Date(paste0(currYear + 1, '-' ,currMonth + 1,'-01')),]
+  d_indx <- if(currMonth != 12) {
+    paste0(currYear + 1, '-' , currMonth + 1,'-01')
+  } else {
+    paste0(currYear + 1, '-' , currMonth, '-01')
+  }
+  HistDataNormMean_18MNs <- HistDataNormMean_18MNs[HistDataNormMean_18MNs$Date < as.Date(d_indx),]
 
   return(HistDataNormMean_18MNs)
 }
@@ -265,19 +270,25 @@ formatHistoricalMonthlys <- function(HistData_MonthlyMeans_2,
   # Monthly Means ---------------------------------------------------------------------
   ##### ------------------------------------------------------------------------------
 
-  ## Current Year - Future
+  ## Data from HistData_MonthlyMeans_2 is associated with future months in this year.
   indx <- as.numeric(substr(todayMonthDay,1,2))
-  HistData_MonthlyMeans_2$Year <- ifelse(as.numeric(HistData_MonthlyMeans_2$Date) >= indx, currYear, currYear + 1)
+  HistData_MonthlyMeans_2$Year <- ifelse(as.numeric(substr(HistData_MonthlyMeans_2$Date, 1, 2)) >= indx,
+                                         currYear, currYear + 1)
   HistData_MonthlyMeans_2 <- HistData_MonthlyMeans_2[Year == currYear, ]
-  HistData_MonthlyMeans_2$Date <- as.Date(paste(HistData_MonthlyMeans_2$Year, HistData_MonthlyMeans_2$Date, sep = '-'))
+  HistData_MonthlyMeans_2$Date <- as.Date(paste(HistData_MonthlyMeans_2$Year, 
+                                                HistData_MonthlyMeans_2$Date, sep = '-'))
 
-  #  Format historical record for "Next Year' (year 3) ----------------------------------------------
-  HistData_MonthlyMeans_3$Year <- ifelse(HistData_MonthlyMeans_3$Date > todayMonthDay, currYear, currYear + 1)
+  #  Data from HistData_MonthlyMeans_2 is associated with future months in the NEXT year. (year 3) ----------------------------------------------
+  HistData_MonthlyMeans_3$Year <- ifelse(as.numeric(substr(HistData_MonthlyMeans_3$Date, 1, 2)) < indx,
+                                         currYear + 1, currYear)
   # Add one extra month for interpolation
   HistData_MonthlyMeans_3[HistData_MonthlyMeans_3$Year == currYear, 'Year'][1] <- currYear + 1
 
   HistData_MonthlyMeans_3 <- HistData_MonthlyMeans_3[Year == (currYear + 1), ]
-  HistData_MonthlyMeans_3$Date <- as.Date(paste(HistData_MonthlyMeans_3$Year, HistData_MonthlyMeans_3$Date, sep = '-'))
+  
+  HistData_MonthlyMeans_3$Date <- as.Date(paste(HistData_MonthlyMeans_3$Year, 
+                                                HistData_MonthlyMeans_3$Date,
+                                                sep = '-'))
 
   # make one year record
   HistData_MonthlyMeans <- rbind(HistData_MonthlyMeans_2, HistData_MonthlyMeans_3)
@@ -421,39 +432,39 @@ getShriver2018Vars <- function(TempDF, VWCDF) {
 #'
 #' @return data.frame
 
-getOConnor2020Vars <- function(sTempDF, VWCDF, SoilsDF, TimePeriod, 
+getOConnor2020Vars <- function(sTempDF, VWCDF, SoilsDF, TimePeriod,
                                currYear = currYear,
                                currDate = currDate) {
-  
+
   # Soil texture values
   sand <- as.numeric(SoilsDF[1, 'sand_frac'])/100
   clay <- as.numeric(SoilsDF[1, 'clay_frac'])/100
-  
+
   if(TimePeriod == 'Future') {
-    
+
     # subset so that data is either this year or next year
     sTempDF <- sTempDF[Year >= currYear, ]
     VWCDF <- VWCDF[Year >= currYear, ]
-    
+
     # define periods of observed & forecast
     sTempDF$Date <- as.Date(strptime(paste(sTempDF$Year, sTempDF$Day), format="%Y %j"), format="%m-%d-%Y")
     VWCDF$Date <- as.Date(strptime(paste(VWCDF$Year, VWCDF$Day), format="%Y %j"), format="%m-%d-%Y")
-    
+
     # elim more than 12 months out
     elimDate <- currDate + 366
     sTempDF <- sTempDF[sTempDF$Date < elimDate, ]
     VWCDF <- VWCDF[VWCDF$Date < elimDate, ]
-    
+
     sTempDF$TP <- ifelse(sTempDF$Date >= currDate, 'Forecast', 'Observed')
     VWCDF$TP <- ifelse(VWCDF$Date >= currDate, 'Forecast', 'Observed')
-    
+
     }
-  
+
   if(TimePeriod == 'Historical') {
     sTempDF$TP <- 'Historical'
     VWCDF$TP <- 'Historical'
   }
-  
+
   # soil temp: 0 - 5cm, mean and std. error * 1.96
   # SWP: 0 -5cm, mean and SE * 1.96
   # all days
@@ -466,16 +477,16 @@ getOConnor2020Vars <- function(sTempDF, VWCDF, SoilsDF, TimePeriod,
   VWC_top <- VWCDF[variable == 'Lyr_1', ]
   VWC_top <- makeDateMonthDat(VWC_top, 'Day')
   VWC_top <- VWC_top[VWC_top$Date %in% c(paste0('03-0',1:9),paste0('03-',10:31)) ,]
-  
+
   VWC_top$SWP <- rSOILWAT2::VWCtoSWP(VWC_top$value, sand, clay)
   VWC_top$SWP <- ifelse(VWC_top$SWP < -8, -8, VWC_top$SWP)
-  
+
   # statistics taken in format step
-  vars <- merge(sTemp_top[,c('Date', 'Year', 'TP','Lyr_1')], 
+  vars <- merge(sTemp_top[,c('Date', 'Year', 'TP','Lyr_1')],
                 VWC_top[,c('Date', 'Year', 'TP', 'SWP')],  by = c('Year','Date', 'TP'))
 
   return(vars)
-  
+
 }
 
 
@@ -689,16 +700,16 @@ formatGISSM <- function(Hist_GISSM, Future_GISSM) {
 #' @return data.frame
 
 formatOConnor2020 <- function(Hist_OConnor2020, Future_OConnor2020) {
-  
+
   # make one dataset
   All <- rbind(Hist_OConnor2020, Future_OConnor2020)
-  
+
   # get stats
   Outs <- setDT(All)[, .(sTemp_mean = mean(Lyr_1),
                                   sTemp_CI95 = std(Lyr_1 * 1.96),
                                   SWP_mean = mean(SWP),
                                   SWP_CI95 = std(SWP) * 1.96),
                               .(Date, TP)]
-  
+
   return(Outs)
 }
