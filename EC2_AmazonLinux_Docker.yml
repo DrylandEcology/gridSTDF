@@ -287,7 +287,6 @@ Resources:
           ## or  https://docs.aws.amazon.com/AmazonECS/latest/developerguide/docker-basics.html
 
           amazon-linux-extras install docker
-          yum install docker
           service docker start
 
           # Add the ssm-user to the docker group so you can execute Docker commands without using sudo.
@@ -322,6 +321,9 @@ Resources:
           #systemctl enable awslogsd.service
 
           yum install amazon-cloudwatch-agent
+          #cp /srv/shiny-server/longtermdroughtsimulator/awslogs.conf /etc/awslogs/awslogs.conf
+          #systemctl start awslogsd
+          #systemctl enable awslogsd.service
 
 
         #  echo END

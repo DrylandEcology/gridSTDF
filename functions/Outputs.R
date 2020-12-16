@@ -37,7 +37,7 @@ getOutputs <- function(sw_out, sw_in, SoilsDF, calc_EcoVars = TRUE,
     Oconnor2020Vars <- getOConnor2020Vars(sTemp, VWC1, SoilsDF, TimePeriod,
                                           currYear, currDate)
 
-    # GISSM Vars
+    GISSM Vars
     GISSM_1 <- suppressWarnings(calc_GISSM(
       x = sw_out,
       soillayer_depths_cm = rSOILWAT2::swSoils_Layers(sw_in)[, 1],
@@ -64,7 +64,8 @@ getOutputs <- function(sw_out, sw_in, SoilsDF, calc_EcoVars = TRUE,
 
   if(!calc_EcoVars) return(list(Data))
   if(calc_EcoVars) return(list(Data, Shriver2018Vars,
-                               data.table(GISSM_1[[1]]), Oconnor2020Vars))
+                               data.table(GISSM_1[[1]]), 
+                               Oconnor2020Vars))
 
 }
 
@@ -214,7 +215,8 @@ get18MonthClimatologicalRecord <- function(HistData_Norm_Stats1,
   sixMonthsAgo <- format(currDate - 183,  format="%m-%d")
   r1 <- which(grepl(todayMonthDay, HistData_Norm_Stats1$Date))
   r2 <- which(grepl(sixMonthsAgo, HistData_Norm_Stats1$Date))
-  dateIndex <- if( r2 > r1) {
+  
+  d_index <- if( r2 > r1) {
     c(r2:366, 1:(r1- 1))
   } else{
     c(r2:(r1 - 1))
@@ -222,7 +224,7 @@ get18MonthClimatologicalRecord <- function(HistData_Norm_Stats1,
 
   #  Format historical record for "Last 6 Months" ----------------------------------------------
   ### For before today (all years)
-  HistData_Norm_Stats1 <- HistData_Norm_Stats1[dateIndex,]
+  HistData_Norm_Stats1 <- HistData_Norm_Stats1[d_index,]
   HistData_Norm_Stats1$Year <- ifelse(HistData_Norm_Stats1$Date > todayMonthDay, currYear - 1 , currYear)
   HistData_Norm_Stats1$Date <- as.Date(paste(HistData_Norm_Stats1$Year, HistData_Norm_Stats1$Date, sep = '-'))
   HistData_Norm_Stats1 <- setorder(HistData_Norm_Stats1, Date)
@@ -245,7 +247,7 @@ get18MonthClimatologicalRecord <- function(HistData_Norm_Stats1,
   d_indx <- if(currMonth != 12) {
     paste0(currYear + 1, '-' , currMonth + 1,'-01')
   } else {
-    paste0(currYear + 1, '-' , currMonth, '-01')
+    paste0(currYear + 2, '-01', '-01')
   }
   HistDataNormMean_18MNs <- HistDataNormMean_18MNs[HistDataNormMean_18MNs$Date < as.Date(d_indx),]
 
