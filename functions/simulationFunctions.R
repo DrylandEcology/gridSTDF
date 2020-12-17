@@ -14,8 +14,11 @@
     ################### ----------------------------------------------------------------
     # Part 0 - Setup - format data from HTTP request, get dates
     ################### ----------------------------------------------------------------
-  #  dir <- '/home/devel/shorttermdroughtforecaster' # NEED TO FIX THIS .... AWS vs. local environment, etc.
-   # setwd(dir)
+    if(getwd() != "/usr/local/app/STDF/shorttermdroughtforecaster") {
+        setwd("/usr/local/app/STDF/shorttermdroughtforecaster")
+    }
+
+    print(paste(getwd()))
 
     lat <- as.numeric(lat)
     lng <- as.numeric(lng)

@@ -47,16 +47,16 @@ ENTRYPOINT ["R", "-f", "/usr/local/app/STDF/shorttermdroughtforecaster/STDF_plum
 # >           docker-compose up --scale stdf=4 -d
 
 # to debug  ----------
-# > docker run -it -v /usr/local/app/WeatherData:/usr/local/app/STDF/WeatherData --rm --entrypoint /bin/bash app_stdf
+# > docker run -it -v /usr/local/app/WeatherData:/usr/local/app/STDF/WeatherData --rm --entrypoint /bin/bash app_stdf1
 
 # ping 
 # curl "http://10.12.7.58:8080/gatherDataAndExecuteSW?clay=15&sand=50&soils=2&lng=-111.58&lat=35.258" > data.json
 
 # check logs with -------------------------
 # > docker logs -f app_stdf_1
-# > docker-composse logs -ft
+# > docker-compose logs -ft
 
 # stop, implement changes, and restart -----------------------------------------
 # > docker-compose down
-# > docker build --tag stdf .
-# > docker-compose up --scale stdf=4 -d
+# > ##### docker build --tag stdf .
+# > docker-compose up --build --scale stdf=4 -d
