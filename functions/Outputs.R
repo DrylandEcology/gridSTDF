@@ -37,7 +37,6 @@ getOutputs <- function(sw_out, sw_in, SoilsDF, calc_EcoVars = TRUE,
     Oconnor2020Vars <- getOConnor2020Vars(sTemp, VWC1, SoilsDF, TimePeriod,
                                           currYear, currDate)
 
-    GISSM Vars
     GISSM_1 <- suppressWarnings(calc_GISSM(
       x = sw_out,
       soillayer_depths_cm = rSOILWAT2::swSoils_Layers(sw_in)[, 1],
