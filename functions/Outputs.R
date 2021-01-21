@@ -519,13 +519,13 @@ calcDeltasApproxAndFormat <- function(HistData1, HistDataMonthly,
   # -----------------------------------------------------------------------------
   #### this includes calculating deltas for this past 6 months
 
-  indx <- grep( paste0(Var, '_roll'), names(HistData1))
-  Hist <- as.data.frame(HistData1)[,c(1, indx)]
-  names(Hist)[2:4] <- paste0('Hist.', names(Hist)[2:4])
+    indx <- grep( paste0(Var, '_roll'), names(HistData1))
+    Hist <- as.data.frame(HistData1)[,c(1, indx)]
+    names(Hist)[2:4] <- paste0('Hist.', names(Hist)[2:4])
 
   # create date for joinging
-  Hist$Year <- ifelse(Hist$Date > todayMonthDay, currYear, currYear - 1 )
-  Hist$Date <- as.Date(paste(currYear, Hist$Date,sep='-'), format = "%Y-%m-%d")
+  Hist$Year <- ifelse(Hist$Date > todayMonthDay, currYear -1, currYear )
+  Hist$Date <- as.Date(paste(Hist$Year, Hist$Date,sep='-'), format = "%Y-%m-%d")
   Hist$Year <- NULL
 
   indx <- grep( paste0(Var, '_roll'), names(FutureData1))
