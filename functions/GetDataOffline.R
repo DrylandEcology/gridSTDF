@@ -80,5 +80,5 @@ pptData <- getCPCData(ppturl, 'ppt')
 write.csv(tempData, 'CurrentAnomalyTempData.csv', row.names = FALSE) # farenheit
 write.csv(pptData, 'CurrentAnomalyPPTData.csv', row.names = FALSE) # inches
 
-write.csv(tempData, '/usr/local/app/STDF/shorttermdroughtforecaster/CurrentAnomalyTempData.csv', row.names = FALSE) # farenheit
-write.csv(pptData, '/usr/local/app/STDF/shorttermdroughtforecaster/CurrentAnomalyPPTData.csv', row.names = FALSE) # inches
+#write.csv(tempData, '/usr/local/app/STDF/shorttermdroughtforecaster/CurrentAnomalyTempData.csv', row.names = FALSE) # farenheit
+#write.csv(pptData, '/usr/local/app/STDF/shorttermdroughtforecaster/CurrentAnomalyPPTData.csv', row.names = FALSE) # inches
