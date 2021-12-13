@@ -123,7 +123,7 @@
     # Run 2 - with future anomaly data
     #  --------------------------------------------------------------------------
     if(verbose) print(paste('Running Future', Sys.time()))
-    AnomalyData1 <- runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, res2, n = 30, SoilsDF,
+    AnomalyData1 <- runFutureSWwithAnomalies(lat, lng,  sw_in0, wdata, n = 30, SoilsDF,
                                              currDOY, currMonth, currYear, currDate)
 
     if(verbose) print(paste('Formatting Outputs', Sys.time()))

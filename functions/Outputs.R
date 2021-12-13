@@ -13,18 +13,16 @@ getOutputs <- function(sw_out, sw_in, SoilsDF, calc_EcoVars = TRUE,
                        TimePeriod, currYear, currDate) {
 
   # Temp and Precip
-  Temp1 <- data.table(sw_out@TEMP@Day)
-  Temp1 <- Temp1[, c('Year', 'Day', 'avg_C')]
-
-  PPT1 <-  data.table(sw_out@PRECIP@Day)
-  PPT1 <- PPT1[, c('Year', 'Day', 'ppt')]
-
+  Data <- cbind(sw_out@TEMP@Day[, c('Year', 'Day', 'avg_C')], 
+                sw_out@PRECIP@Day[,'ppt'])
+  dimnames(Data)[[2]][4] <- 'ppt'
+  
   # VWC ---------------------------------------------------
   VWC1 <-  data.table(sw_out@VWCMATRIC@Day)
   VWC1 <- melt.data.table(VWC1, id.vars = c('Year', 'Day'))
 
   # Soil Temperature
-  sTemp <- data.table(sw_out@SOILTEMP@Day)
+  #sTemp <- sw_out@SOILTEMP@Day
 
   # Get EcoVars ----------------------------------------------------------------
 
@@ -34,8 +32,8 @@ getOutputs <- function(sw_out, sw_in, SoilsDF, calc_EcoVars = TRUE,
     Shriver2018Vars <- getShriver2018Vars(Temp1, VWC1)
 
     #OConnor Vars
-    Oconnor2020Vars <- getOConnor2020Vars(sTemp, VWC1, SoilsDF, TimePeriod,
-                                          currYear, currDate)
+    #Oconnor2020Vars <- getOConnor2020Vars(sTemp, VWC1, SoilsDF, TimePeriod,
+    #                                      currYear, currDate)
 
     GISSM_1 <- suppressWarnings(calc_GISSM(
       x = sw_out,
@@ -47,19 +45,20 @@ getOutputs <- function(sw_out, sw_in, SoilsDF, calc_EcoVars = TRUE,
 
     ))
   }
+ 
   # Format VWC  -------------------------------------------
   #VWC1 <- VWC1[variable != 'Lyr_1', ]
   # Step 1 - Get weighted mean across depths for VWC
-
-  VWC1 <-  merge(VWC1, SoilsDF)#, by = 'variable')
-  VWC1 <- setDT(VWC1)[,.(VWC = weighted.mean(value, width)),
-                      .(Year, Day, Depth)]
+  VWC1 <-  merge(VWC1, SoilsDF, by = 'variable')
+  VWC1 <- VWC1[,.(VWC = weighted.mean(value, width)),
+                       .(Year, Day, Depth)]
   VWC1$Depth <- paste0('VWC.', VWC1$Depth)
-  VWC1 <- dcast(VWC1, Year +  Day ~ Depth, value.var = 'VWC')
+  VWC1 <- dcast(VWC1, Year + Day ~  Depth, value.var = 'VWC')
 
   # Join up
-  Data <- merge(Temp1, PPT1, by = c('Year', 'Day'))
-  Data <- merge(Data, VWC1,  by = c('Year', 'Day'))
+  yy <- dim(VWC1)[2]
+  Data <- cbind(Data, sapply(VWC1, unlist)[,3:yy])
+  
 
   if(!calc_EcoVars) return(list(Data))
   if(calc_EcoVars) return(list(Data, Shriver2018Vars,

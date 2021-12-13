@@ -34,7 +34,7 @@ makeWeathOneSim <- function(y, year1, thisYearObservedWData, weathAnomAll,
    #   geom_line(data = year2, aes(Date, Tmax_C, group = 1)) +
    #   geom_line(data = thisYearObservedWData, aes(Date, Tmax_C, group = 1), color = 'purple') +
    #   geom_line(data = year2Fut, aes(Date, Tmax_C, group = 1), color = 'green')
-   #
+
 
   ### ---------
   ## year 3 ... forecasts that run into next year (aka 2021) and then scratch data for the rest of 2021

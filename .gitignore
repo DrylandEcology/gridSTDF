@@ -4,5 +4,6 @@
 .Ruserdata
 *.Rproj
 Tests/
-
+Data/
 *.csv
+.DS_Store
