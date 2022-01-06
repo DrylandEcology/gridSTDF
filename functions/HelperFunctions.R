@@ -22,7 +22,7 @@ makeWeathOneSim <- function(y, year1, thisYearObservedWData, weathAnomAll,
 
   # fill in with this years' observed data
   # should have the correct number of days always since they are good representation of the same year
-  year2[1:currDOY, c('Tmax_C', 'Tmin_C', 'PPT_cm')] <- thisYearObservedWData[1:currDOY, c('Tmax_C', 'Tmin_C', 'PPT_cm')]
+  year2[1:(currDOY-1), c('Tmax_C', 'Tmin_C', 'PPT_cm')] <- thisYearObservedWData[1:(currDOY-1), c('Tmax_C', 'Tmin_C', 'PPT_cm')]
 
   if(any(is.na(year2))) {
     print('NAs present in year2 data')

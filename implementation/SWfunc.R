@@ -4,8 +4,8 @@ setSW <- function(Lat, Long) {
   sw_in <- new("swInputData") # baseline data
   
   rSOILWAT2::swYears_StartYear(sw_in) <- 0
-  rSOILWAT2::swYears_EndYear(sw_in) <- 2021
-  rSOILWAT2::swYears_StartYear(sw_in) <- 1990
+  rSOILWAT2::swYears_EndYear(sw_in) <- 2022
+  rSOILWAT2::swYears_StartYear(sw_in) <- 1991
   
   # Specify geographic location of site
   rSOILWAT2::swSite_IntrinsicSiteParams(sw_in) <- c(

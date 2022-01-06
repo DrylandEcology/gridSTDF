@@ -2,6 +2,7 @@ rm(list=ls(all=TRUE))
 library(rSOILWAT2)
 library(rSW2data)
 library(DBI)
+library(RPostgres)
 library(RSQLite)
 library(raster)
 library(data.table)
@@ -9,16 +10,17 @@ library(lubridate)
 library(foreach)
 library(doParallel)
 
+#setwd('/caldera/projects/usgs/ecosystems/swbsc/DrylandEcohydrologyLab')
 #####---------------------------------------------------------------------------
 #Prep
-source('functions/weatherFunctions.R')
-source('functions/HelperFunctions.R')
-source('functions/Outputs.R')
-source('implementation/SWfunc.R')
-source('implementation/sql_funcs.R')
+source('gridSTDF/functions/weatherFunctions.R')
+source('gridSTDF/functions/HelperFunctions.R')
+source('gridSTDF/functions/Outputs.R')
+source('gridSTDF/implementation/SWfunc.R')
+source('gridSTDF/implementation/sql_funcs.R')
 
 
-numCores <- detectCores() -1
+numCores <- detectCores() - 1
 cl <- makeCluster(numCores) # default is PSOCK cluster
 
 # Defining packages and variables for cluster
@@ -33,14 +35,14 @@ clusterEvalQ(cl, {
   library(plyr)
   library(stringr)
   
-  db_user = 'postgres'
-  db_password = '32Pelican90!'
-  con <- DBI::dbConnect(RPostgres::Postgres(), dbname = 'test-STDF', 
+  db_user = 'mynonsuperuser'
+  db_password = 'grid-stdf-2022'
+  con <- DBI::dbConnect(RPostgres::Postgres(), dbname = 'gridSTDF_2022', 
                         user=db_user, password=db_password)
   
   con2 <- DBI::dbDriver('SQLite')
   weatherDB <- dbConnect(con2, 
-                         "Data/dbWeatherData_WesternUS_gridMET_historical.sqlite3")
+                         "gridSTDF/Data/dbWeatherData_WesternUS_gridMET_historical.sqlite3")
   NULL
 })
 
@@ -60,11 +62,11 @@ todayMonthDay <- format(Sys.Date() , format="%m-%d")
 # Inputs -----------------------------------------------------------------------
 
 # CD Region Shapefile
-CD102 <- shapefile(x = 'CD102/CD102.shp')
+CD102 <- shapefile(x = 'gridSTDF/CD102/CD102.shp')
 
 # NWS Anomalies
-TempAnomsWhole <- data.table::fread('CurrentAnomalyTempData.csv')
-PPTAnomsWhole <- data.table::fread('CurrentAnomalyPPTData.csv')
+TempAnomsWhole <- data.table::fread('gridSTDF/CurrentAnomalyTempData.csv')
+PPTAnomsWhole <- data.table::fread('gridSTDF/CurrentAnomalyPPTData.csv')
 
 # Establish date and time info --------------------------------------
 # Establish current month and how the 'LEAD's relate to months
@@ -109,7 +111,7 @@ gridSTDF_test_res <- foreach(i = indexes,
 
   
   wdata_2021_plus <- getWeatherData(Lat, Long, currYear,
-                          dir = 'Data/www.northwestknowledge.net/metdata/data/')
+                          dir = 'gridSTDF/Data/www.northwestknowledge.net/metdata/data/')
   
   lastWeatherDate <- wdata_2021_plus[[2]]
   wdata_2021_plus <- wdata_2021_plus[[1]]
