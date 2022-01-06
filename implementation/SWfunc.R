@@ -1,8 +1,6 @@
-setSW <- function(Lat, Long) {
+setSW <- function(Lat, Long, sw_in) {
   print(paste('Setting SW parameters', Sys.time()))
-  
-  sw_in <- new("swInputData") # baseline data
-  
+    
   rSOILWAT2::swYears_StartYear(sw_in) <- 0
   rSOILWAT2::swYears_EndYear(sw_in) <- 2022
   rSOILWAT2::swYears_StartYear(sw_in) <- 1991
