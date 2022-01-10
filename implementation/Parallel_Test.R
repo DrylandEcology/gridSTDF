@@ -131,7 +131,7 @@ gridSTDF_test_res <- foreach(i = indexes,
   ################### ----------------------------------------------------------------
   sw_in <- new("swInputData") # baseline data
   sw_in <- setVeg(sw_in, AllProdInfo, i)
-  sw_in <- setSW(Lat, Long, sw_in)
+  sw_in <- setSW(sw_in, Lat, Long)
   
   ################### ----------------------------------------------------------------
   # Part 3 - Run SOILWAT Historical!
