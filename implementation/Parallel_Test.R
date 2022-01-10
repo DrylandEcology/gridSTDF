@@ -22,6 +22,7 @@ source('gridSTDF/implementation/sql_funcs.R')
 
 numCores <- detectCores() - 1
 cl <- makeCluster(numCores) # default is PSOCK cluster
+registerDoParallel(cl)
 
 # Defining packages and variables for cluster
 clusterEvalQ(cl, {
@@ -46,7 +47,6 @@ clusterEvalQ(cl, {
   NULL
 })
 
-registerDoParallel(cl)
 
 ################### ----------------------------------------------------------------
 # Part 0 - Setup
@@ -68,6 +68,10 @@ CD102 <- shapefile(x = 'gridSTDF/CD102/CD102.shp')
 TempAnomsWhole <- data.table::fread('gridSTDF/CurrentAnomalyTempData.csv')
 PPTAnomsWhole <- data.table::fread('gridSTDF/CurrentAnomalyPPTData.csv')
 
+#Vegetation/Prod
+AllProdInfo <- data.table::fread('gridSTDF/Data/SWRuns_InputData_prod_pnv_1991-2020_v11.csv')
+AllProdInfo <- AllProdInfo[-1,]
+
 # Establish date and time info --------------------------------------
 # Establish current month and how the 'LEAD's relate to months
 # A LEAD of 1 relates to the forecast beginning where the currmonth + 1
@@ -85,7 +89,10 @@ indexes = c(10000:10500)
 gridSTDF_test_res <- foreach(i = indexes, 
                                 .inorder=FALSE,
                                 .combine='rbind',
-                                .export = toEXPORT) %dopar% {
+                                .noexport = 'con',
+                                .packages = c("DBI", "RSQLite", "rSOILWAT2", "rSW2data",
+                                "raster", "data.table", "lubridate", "plyr", "stringr"),
+                                .verbose = TRUE) %dopar% {
                                   
   
  # print(paste('Formatting Weather Data', Sys.time()))
@@ -109,7 +116,6 @@ gridSTDF_test_res <- foreach(i = indexes,
   ids <- rSOILWAT2:::select_years(years, 1990, 2020)
   wdata <- wdata[ids]
 
-  
   wdata_2021_plus <- getWeatherData(Lat, Long, currYear,
                           dir = 'gridSTDF/Data/www.northwestknowledge.net/metdata/data/')
   
@@ -123,13 +129,15 @@ gridSTDF_test_res <- foreach(i = indexes,
   ################### ----------------------------------------------------------------
   # Part 2 - Sets SW parameters besides weather
   ################### ----------------------------------------------------------------
-  sw_in <- setSW(Lat, Long)
+  sw_in <- new("swInputData") # baseline data
+  sw_in <- setVeg(sw_in, AllProdInfo, i)
+  sw_in <- setSW(Lat, Long, sw_in)
   
   ################### ----------------------------------------------------------------
   # Part 3 - Run SOILWAT Historical!
   ################### ----------------------------------------------------------------
   print(paste('Running Current', Sys.time()))
-  sw_out <- rSOILWAT2::sw_exec(inputData = sw_in, weatherList = wdata)
+  sw_out <- rSOILWAT2::sw_exec(inputData = sw_in, weatherList = wdata, quiet = FALSE)
   
   ################### ----------------------------------------------------------------
   # Part 4 - Run SOILWAT with future anomaly data
@@ -189,11 +197,11 @@ gridSTDF_test_res <- foreach(i = indexes,
 #  RSQLite::dbDisconnect(con)
 #})
 
-stopCluster(cl)
-stopImplicitCluster()
+# stopCluster(cl)
+# stopImplicitCluster()
 
-print(paste('End Parallel', Sys.time()))
-gc()
+# print(paste('End Parallel', Sys.time()))
+# gc()
 
 #str(gridSTDF_test_res)
 #View(gridSTDF_test_res[11])
