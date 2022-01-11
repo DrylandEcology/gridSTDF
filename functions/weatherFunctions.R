@@ -205,7 +205,7 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
     # Create future weather / integrate anomaly data into historical weather ----------------------------------------------------------
     years <- 1991:2021
     wdata2 <- wdata_dt[wdata_dt$Year %in% years, ]
-    weathAnomAll <- suppressWarnings(integrateAnomalyData(wdata2, yearlydat))
+    weathAnomAll <- integrateAnomalyData(wdata2, yearlydat)
     
     # Make weather data for one simulation
     ## Three years worth of data:

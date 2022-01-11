@@ -19,7 +19,6 @@ source('gridSTDF/functions/Outputs.R')
 source('gridSTDF/implementation/SWfunc.R')
 source('gridSTDF/implementation/sql_funcs.R')
 
-
 numCores <- detectCores() - 1
 cl <- makeCluster(numCores) # default is PSOCK cluster
 registerDoParallel(cl)
@@ -46,7 +45,6 @@ clusterEvalQ(cl, {
                          "gridSTDF/Data/dbWeatherData_WesternUS_gridMET_historical.sqlite3")
   NULL
 })
-
 
 ################### ----------------------------------------------------------------
 # Part 0 - Setup
@@ -85,10 +83,10 @@ toEXPORT <- c('currDOY', 'currMonth', 'currYear', 'currDate', 'todayMonthDay',
 ################### ------------------------------------------------------------
 print(paste('Begin Parallel', Sys.time()))
 
-indexes = c(10000:10500)
+indexes = c(10000:10100)
 gridSTDF_test_res <- foreach(i = indexes, 
                                 .inorder=FALSE,
-                                .combine='rbind',
+                                #.combine='rbind',
                                 .noexport = 'con',
                                 .packages = c("DBI", "RSQLite", "rSOILWAT2", "rSW2data",
                                 "raster", "data.table", "lubridate", "plyr", "stringr"),
