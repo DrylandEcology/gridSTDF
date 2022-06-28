@@ -21,7 +21,7 @@ sites <- dbReadTable(weatherDB, 'sites')
 # Insert!
 names <- paste0("(", paste0(c('id', 'latitude', 'longitude', 'weather_label'), collapse = ", "), ")")
 
-for(r in 254385:296006) {
+for(r in 1:296006) {
   
   if(r %in% seq(1, nrow(sites), 1000)) print(r)
   
