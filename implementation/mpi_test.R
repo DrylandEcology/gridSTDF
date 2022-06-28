@@ -99,7 +99,8 @@ parMM.spmd <- function(x, y){
   do.call(rbind, allgather(x[id,] %*% y)) } 
 
 time.proc <- system.time(replicate(10, parMM.spmd(x, x))) 
-comm.print(time.proc) finalize()
+comm.print(time.proc) 
+finalize()
 
 
 
