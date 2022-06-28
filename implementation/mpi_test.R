@@ -100,3 +100,34 @@ parMM.spmd <- function(x, y){
 
 time.proc <- system.time(replicate(10, parMM.spmd(x, x))) 
 comm.print(time.proc) finalize()
+
+
+
+
+library(pbdMPI, quiet = TRUE)
+# init()
+# .comm.size <- comm.size()
+# .comm.rank <- comm.rank()
+# 
+# msg <- sprintf("Hello world from process %d\n", .comm.rank)
+# comm.cat("Say hello:\n", quiet = TRUE)
+# comm.cat(msg, all.rank = TRUE)
+# 
+# k <- 10
+# x <- rep(.comm.rank, k)
+# comm.cat("\nOriginal x vector:\n", quiet = TRUE)
+# comm.print(x, all.rank = TRUE)
+# 
+# y <- allgather(x, unlist = TRUE)
+# A <- matrix(y, nrow = k, byrow = FALSE)
+# comm.cat("\nAllgather matrix (only showing process 0):\n", quiet = TRUE)
+# comm.print(A)
+# 
+# finalize()
+
+init()
+n <- 100 
+x <- split((1:n) + n * comm.rank(), rep(1:10, each = 10))
+sm <- pbdLapply(x, sum) 
+comm.print(unlist(sm)) 
+finalize()
