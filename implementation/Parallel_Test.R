@@ -19,22 +19,17 @@ source('gridSTDF/functions/Outputs.R')
 source('gridSTDF/implementation/SWfunc.R')
 source('gridSTDF/implementation/sql_funcs.R')
 
-numCores <- detectCores() - 1
-cl <- makeCluster(numCores) # default is PSOCK cluster
+numCores <- as.numeric(Sys.getenv("SLURM_CPUS_PER_TASK")) - 1
+print(numCores)
+cl <- makeCluster(numCores, outfile = "") # default is PSOCK cluster
 registerDoParallel(cl)
 
 # Defining packages and variables for cluster
 clusterEvalQ(cl, {
-  library(rSOILWAT2)
-  library(rSW2data)
   library(DBI)
   library(RSQLite)
-  library(raster)
-  library(data.table)
-  library(lubridate)
-  library(plyr)
-  library(stringr)
-  
+  library(RPostgres)
+
   db_user = 'mynonsuperuser'
   db_password = 'grid-stdf-2022'
   con <- DBI::dbConnect(RPostgres::Postgres(), dbname = 'gridSTDF_2022', 
@@ -44,7 +39,7 @@ clusterEvalQ(cl, {
   weatherDB <- dbConnect(con2, 
                          "gridSTDF/Data/dbWeatherData_WesternUS_gridMET_historical.sqlite3")
   NULL
-})
+ })
 
 ################### ----------------------------------------------------------------
 # Part 0 - Setup
@@ -87,8 +82,10 @@ indexes = c(10000:10100)
 gridSTDF_test_res <- foreach(i = indexes, 
                                 .inorder=FALSE,
                                 #.combine='rbind',
-                                .noexport = 'con',
-                                .packages = c("DBI", "RSQLite", "rSOILWAT2", "rSW2data",
+                                .noexport = c('con', 'weatherDB'),
+                                .packages = c("DBI", "RSQLite", 
+                                "RPostGres",
+                                "rSOILWAT2", "rSW2data",
                                 "raster", "data.table", "lubridate", "plyr", "stringr"),
                                 .verbose = TRUE) %dopar% {
                                   
@@ -129,7 +126,7 @@ gridSTDF_test_res <- foreach(i = indexes,
   ################### ----------------------------------------------------------------
   sw_in <- new("swInputData") # baseline data
   sw_in <- setVeg(sw_in, AllProdInfo, i)
-  sw_in <- setSW(sw_in, Lat, Long)
+  sw_in <- setSW(sw_in, Lat, Long, clim)
   
   ################### ----------------------------------------------------------------
   # Part 3 - Run SOILWAT Historical!
@@ -173,7 +170,7 @@ gridSTDF_test_res <- foreach(i = indexes,
   #print(paste('Begin', Sys.time()))
   AnomalyData1 <- runFutureSWwithAnomalies(sw_in0 = sw_in, wdata, SoilsDF,
                                            TempAnoms, PPTAnoms, 
-                                           Nleads, n = 10, 
+                                           Nleads, n = 5, 
                                            currDOY, currMonth, currYear, currDate)
   
   AnomalyData1 <- plyr::aaply(plyr::laply(AnomalyData1, as.matrix), c(2, 3), mean)

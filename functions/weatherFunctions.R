@@ -20,7 +20,7 @@ getWeatherData <- function(lat, lng, currYear, dir) {
     vals <- extract(nc, matrix(c(as.numeric(lng), as.numeric(lat)), ncol = 2))[1,]
     
     # determine "data of last weather" here
-    if(year == currYear){
+    if(year == currYear) {
       lastWeatherDate <- as.Date(length(vals), origin = paste0(currYear,"-01-01"))
     }
     
