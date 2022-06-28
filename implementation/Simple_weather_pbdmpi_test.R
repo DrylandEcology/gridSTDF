@@ -63,7 +63,7 @@ for (i in alljid) { # use while not for
   # ################### ------------------------------------------------------------
 
   weatherDB <- rSOILWAT2::dbW_setConnection(
-    dbFilePath = 'Data/dbWeatherData_WesternUS_gridMET_historical.sqlite3')
+    dbFilePath = 'Data/dbWeatherData_WesternUS_gridMET_1979-2021.sqlite3')
 
   Site_id <- Sites$Site_id[i]
   Lat <- Sites$Latitude[i]
@@ -76,7 +76,7 @@ for (i in alljid) { # use while not for
 
   wdata <- rSOILWAT2::dbW_getWeatherData(Site_id = Site_id)
   years <- rSOILWAT2::get_years_from_weatherData(wdata)
-  ids <- rSOILWAT2:::select_years(years, 1990, 2020)
+  ids <- rSOILWAT2:::select_years(years, 1990, 2021)
   wdata <- wdata[ids]
 
   currYear <- lubridate::year(Sys.Date())

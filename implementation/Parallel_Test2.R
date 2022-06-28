@@ -50,7 +50,7 @@ days <- 1095 # 3 years worth of days!
 
 # Sites ----------------------------------------------------------------------
 weatherDB <- rSOILWAT2::dbW_setConnection(
-  dbFilePath = 'Data/dbWeatherData_WesternUS_gridMET_historical.sqlite3')
+  dbFilePath = 'Data/dbWeatherData_WesternUS_gridMET_1979-2021.sqlite3')
 Sites <- rSOILWAT2::dbW_getSiteTable()
 
 # Misc Info --------------------------------------------------------------------

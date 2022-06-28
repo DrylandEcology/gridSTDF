@@ -1,7 +1,7 @@
 getWeatherData <- function(lat, lng, currYear, dir) {
   
   # Make data.frame of just years and days -------------------------------------------
-  wdata <- data.frame(Date = seq(from = as.Date('2021-01-01'),
+  wdata <- data.frame(Date = seq(from = as.Date('2022-01-01'),
                                  to = as.Date(paste0(currYear,'-12-31')), by="day"))
   wdata$Year <- year(wdata$Date)
   wdata$DOY <- yday(wdata$Date)
