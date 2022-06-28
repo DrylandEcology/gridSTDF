@@ -1,0 +1,14 @@
+cd /caldera/projects/usgs/ecosystems/swbsc/DrylandEcohydrologyLab/gridSTDF_Projects
+
+pg_ctl status -D test_db
+pg_ctl start -D test_db/ 
+psql -d gridSTDF_2022 -U mynonsuperuser
+
+srun -A swbsc -t 1:00:00 -N 1 -n 1 -c 40 --pty bash -i
+pg_ctl start -D test_db/ 
+module load gcc/8.3.0 cray-R/3.6.1
+module load geos/3.8.1 gdal/3.0.4 proj/6.2.1
+module load udunits2/2.2.26 cray-netcdf-hdf5parallel
+module load
+R
+
