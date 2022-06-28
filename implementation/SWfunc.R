@@ -41,7 +41,7 @@ setVeg <- function(sw_in, AllProdInfo, i) {
   
 }
 
-setSW <- function(sw_in, Lat, Long) {
+setSW <- function(sw_in, Lat, Long, calc_SiteClimate) {
   print(paste('Setting SW parameters', Sys.time()))
     
   rSOILWAT2::swYears_StartYear(sw_in) <- 0
