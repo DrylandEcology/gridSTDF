@@ -37,7 +37,7 @@ days <- 365 # 3 years worth of days!
 
 # filename <- "test_weather.nc"
 # 
-# ncid <- create.nc(filename, format="netcdf4", clobber = TRUE, mpi_comm=comm.c2f(), mpi_info=info.c2f())
+ncid <- create.nc(filename, format="netcdf4", clobber = TRUE, mpi_comm=comm.c2f(), mpi_info=info.c2f())
 # rdim <- dim.def.nc(ncid, "rows", numRows)
 # cdim <- dim.def.nc(ncid, "cols", numCols)
 # tdim <- dim.def.nc(ncid, "time", days)
@@ -92,11 +92,12 @@ for (i in alljid) { # use while not for
   # ---------- Outputs --------------------------------------------------------
   wdata_2021 <- wdata[['2021']]
 
-  # var.put.nc(ncfile = ncid,
-  #          variable = varid,
-  #          data  = wdata_2021@data[,'Tmax_C'], # the data
-  #          start=c(LonIdx, LatIdx, 1),
-  #          count=c(1, 1, days))
+  var.put.nc(ncfile = ncid,
+           variable = varid,
+           data  = wdata_2021@data[,'Tmax_C'], # the data
+           start=c(LonIdx, LatIdx, 1),
+           count=c(1, 1, days))
+  # Another netCDF that tracks success and failure
 }
 
 
