@@ -13,7 +13,7 @@
 # Add module
 #module list
 module switch PrgEnv-cray/6.0.5 PrgEnv-gnu/6.0.5
-module load R/3.6.3 gcc/8.2.0 openmpi/4.0.3
+module load cray-R/3.6.1 gcc/8.2.0 openmpi/4.0.3
 module load geos/3.8.1 gdal/3.0.4 proj/6.2.1 udunits2/2.2.26 cray-netcdf-hdf5parallel
 
 srun date
