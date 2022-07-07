@@ -45,9 +45,9 @@ ncid <- create.nc(filename, format="netcdf4", clobber = TRUE, mpi_comm=comm.c2f(
 
 # Get Weather and Site Info  ------------------------------------------------------------------------
 weatherDB <- rSOILWAT2::dbW_setConnection(
-  dbFilePath = 'Data/dbWeatherData_WesternUS_gridMET_historical.sqlite3')
+  dbFilePath = 'main/Data/dbWeatherData_WesternUS_gridMET_historical.sqlite3')
 Sites <- rSOILWAT2::dbW_getSiteTable()
-Sites <- as.data.frame(data.table::fread("Data/WeatherDBSitesTable_WestIndex.csv"))
+Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
 
 
 ################### ----------------------------------------------------------------
@@ -63,7 +63,7 @@ for (i in alljid) { # use while not for
   # ################### ------------------------------------------------------------
 
   weatherDB <- rSOILWAT2::dbW_setConnection(
-    dbFilePath = 'Data/dbWeatherData_WesternUS_gridMET_1979-2021.sqlite3')
+    dbFilePath = 'main/Data/dbWeatherData_WesternUS_gridMET_1979-2021.sqlite3')
 
   Site_id <- Sites$Site_id[i]
   Lat <- Sites$Latitude[i]
@@ -81,7 +81,7 @@ for (i in alljid) { # use while not for
 
   currYear <- lubridate::year(Sys.Date())
   wdata_2021_plus <- getWeatherData(Lat, Long, currYear,
-                                    dir = 'Data/www.northwestknowledge.net/metdata/data/')
+                                    dir = 'main/Data/www.northwestknowledge.net/metdata/data/')
 
   wdata_2021_plus <- wdata_2021_plus[[1]]
   wdata_2021_plus <- rSOILWAT2::dbW_dataframe_to_weatherData(wdata_2021_plus[,c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')], round = 4)
