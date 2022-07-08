@@ -18,5 +18,5 @@ module load cray-R/3.6.1 gcc/8.3.0 cray-mpich/7.7.11
 module load geos/3.8.1 gdal/3.0.4 proj/6.2.1 udunits2/2.2.26 cray-netcdf-hdf5parallel
 
 srun date
-srun Rscript main/implementation/Simple_weather_pbdmpitest.R
+srun Rscript main/implementation/Simple_weather_pbdmpi_test.R
 srun date
