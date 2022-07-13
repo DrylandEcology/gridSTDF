@@ -3,7 +3,7 @@ rm(list=ls(all=TRUE))
 
 library(pbdMPI, quiet = TRUE)
 library(RNetCDF, quiet = TRUE)
-library(lubridate)
+library(lubridate, quiet = TRUE)
 #library(raster)
 
 if(!interactive()) init()
@@ -46,7 +46,7 @@ ncid <- create.nc(filename, format="netcdf4", clobber = TRUE, mpi_comm=comm.c2f(
 # Get Weather and Site Info  ------------------------------------------------------------------------
 weatherDB <- rSOILWAT2::dbW_setConnection(
   dbFilePath = 'main/Data/dbWeatherData_WesternUS_gridMET_historical.sqlite3')
-Sites <- rSOILWAT2::dbW_getSiteTable()
+#Sites <- rSOILWAT2::dbW_getSiteTable()
 Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
 
 
