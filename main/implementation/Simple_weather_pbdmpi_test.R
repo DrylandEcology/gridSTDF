@@ -24,8 +24,6 @@ if(!interactive()) {
   n.workers <- size - 1
   comm.print(n.workers)
   
-  info.create()
-  
   alljid <- get.jid(n = 50, method = "block", all = FALSE) 
   comm.print(alljid)
 }
@@ -36,12 +34,14 @@ numCols <- 567 #ncols, latitude?
 days <- 365 # 3 years worth of days!
 
 filename <- "test_weather.nc"
-# 
+info.create() 
 ncid <- create.nc(filename, format="netcdf4", clobber = TRUE, mpi_comm=comm.c2f(), mpi_info=info.c2f())
 rdim <- dim.def.nc(ncid, "rows", numRows)
 cdim <- dim.def.nc(ncid, "cols", numCols)
 tdim <- dim.def.nc(ncid, "time", days)
 varid <- var.def.nc(ncid, "MaxTemp", "NC_FLOAT", c(rdim, cdim, tdim))
+
+
 
 # Get Weather and Site Info  ------------------------------------------------------------------------
 weatherDB <- rSOILWAT2::dbW_setConnection(
