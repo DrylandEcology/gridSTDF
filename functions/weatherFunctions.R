@@ -1,7 +1,7 @@
 getWeatherData <- function(lat, lng, currYear, dir) {
   
   # Make data.frame of just years and days -------------------------------------------
-  wdata <- data.frame(Date = seq(from = as.Date('2022-01-01'),
+  wdata <- data.frame(Date = seq(from = as.Date('2022-01-01'), # fix so automatically the new year
                                  to = as.Date(paste0(currYear,'-12-31')), by="day"))
   wdata$Year <- year(wdata$Date)
   wdata$DOY <- yday(wdata$Date)
@@ -16,8 +16,8 @@ getWeatherData <- function(lat, lng, currYear, dir) {
   for(f in 1:length(tmmxfiles)){
     year <- as.numeric(substr(tmmxfiles[f],  nchar(tmmxfiles[f]) - 6, nchar(tmmxfiles[f]) -3))
     
-    nc <- suppressWarnings(brick(tmmxfiles[f], varname = 'air_temperature'))
-    vals <- extract(nc, matrix(c(as.numeric(lng), as.numeric(lat)), ncol = 2))[1,]
+    nc <- suppressWarnings(raster::brick(tmmxfiles[f], varname = 'air_temperature'))
+    vals <- raster::extract(nc, matrix(c(as.numeric(lng), as.numeric(lat)), ncol = 2))[1,]
     
     # determine "data of last weather" here
     if(year == currYear) {
@@ -32,8 +32,8 @@ getWeatherData <- function(lat, lng, currYear, dir) {
   for(f in 1:length(tmmnfiles)){
     year <- as.numeric(substr(tmmnfiles[f],  nchar(tmmnfiles[f]) - 6, nchar(tmmnfiles[f]) -3))
     
-    nc <- suppressWarnings(brick(tmmnfiles[f], varname = 'air_temperature'))
-    vals <- extract(nc, matrix(c(as.numeric(lng), as.numeric(lat)), ncol = 2))[1,]
+    nc <- suppressWarnings(raster::brick(tmmnfiles[f], varname = 'air_temperature'))
+    vals <- raster::extract(nc, matrix(c(as.numeric(lng), as.numeric(lat)), ncol = 2))[1,]
     wdata[wdata$Year == year, 'Tmin_C'][1:length(vals)] <- vals
   }
   
@@ -42,8 +42,8 @@ getWeatherData <- function(lat, lng, currYear, dir) {
   for(f in 1:length(prfiles)){
     year <- as.numeric(substr(prfiles[f],  nchar(prfiles[f]) - 6, nchar(prfiles[f]) -3))
     
-    nc <- suppressWarnings(brick(prfiles[f], varname = 'precipitation_amount'))
-    vals <- extract(nc, matrix(c(as.numeric(lng), as.numeric(lat)), ncol = 2))[1,]
+    nc <- suppressWarnings(raster::brick(prfiles[f], varname = 'precipitation_amount'))
+    vals <- raster::extract(nc, matrix(c(as.numeric(lng), as.numeric(lat)), ncol = 2))[1,]
     wdata[wdata$Year == year, 'PPT_cm'][1:length(vals)] <- vals
   }
   

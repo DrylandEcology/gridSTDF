@@ -5,5 +5,7 @@
 *.Rproj
 Tests/
 Data/
+HPC_Files/Outs/
 *.csv
 .DS_Store
+*.nc
