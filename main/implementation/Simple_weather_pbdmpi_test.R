@@ -2,8 +2,9 @@
 rm(list=ls(all=TRUE))
 
 library(pbdMPI, quiet = TRUE)
-library(RNetCDF, quiet = TRUE)
+library(pbdNCDF4, quiet = TRUE)
 library(lubridate, quiet = TRUE)
+library(rSOILWAT2, quiet = TRUE)
 #library(raster)
 
 if(!interactive()) init()
@@ -15,33 +16,50 @@ source('functions/weatherFunctions.R')
 ################### ----------------------------------------------------------------
 
 # MPI Parameters ---------------------------------------------------------------
+rank <- comm.rank() # processor's rank
+size <- comm.size() # total processors (i.e. equal to tasks in the SLURM scripts)
+comm.print(size)
 
-if(!interactive()) {
-  
-  rank <- comm.rank()
-  size <- comm.size()
-  hostname <- spmd.get.processor.name()
-  n.workers <- size - 1
-  comm.print(n.workers)
-  
-  alljid <- get.jid(n = 50, method = "block", all = FALSE) 
-  comm.print(alljid)
-}
+n.workers <- size - 1 # reserve one for other activities
 
-# NetCDF-------------------------------------------------------------------------
-numRows <- 715 # nrows, longitude?
-numCols <- 567 #ncols, latitude?
-days <- 365 # 3 years worth of days!
+alljid <- get.jid(n = 296006, method = "block", all = FALSE) 
+comm.print(alljid)
 
-filename <- "test_weather.nc"
-info.create() 
-ncid <- create.nc(filename, format="netcdf4", clobber = TRUE, mpi_comm=comm.c2f(), mpi_info=info.c2f())
-rdim <- dim.def.nc(ncid, "rows", numRows)
-cdim <- dim.def.nc(ncid, "cols", numCols)
-tdim <- dim.def.nc(ncid, "time", days)
-varid <- var.def.nc(ncid, "MaxTemp", "NC_FLOAT", c(rdim, cdim, tdim))
+#NetCDF init (by writing it first) -----------------------------------------------------------------
+numRows <- 567 # nrows, latitude
+numCols <- 715 #ncols, longitude
+days <- 365 # 1 years worth of days!
 
+# #split metric
+# split <-  floor(numRows / size)
 
+# ### First set up "slab" just for an individual processor
+# st <- c(rank * split + 1, 1, 1)  # start argument for this processor
+# co <- c(split, numCols, days) # count argument for this processor (and all processors)
+
+# ## generate data structure that holds data
+# # x <- matrix(rank + 1, nrow = split, ncol = numCols) +
+# #  rep(1:numCols, each = split)
+# x2 <- array(data = 1, dim = c(split, numCols, days))
+
+### set up dimensions for full matrix of the netCDF (not just local slab)
+rdim <- ncdim_def("Latitude", "number", vals = 1:numRows)
+cdim <- ncdim_def("Longitude", "number", vals = 1:numCols)
+tdim <- ncdim_def("Time", "days", vals = 1:days)
+
+### define matrix variable in file (must not create full storage!!)
+x.nc_var <- ncvar_def(name = "testMatrix", units = "count",
+                     dim = list(rdim, cdim, tdim),
+                     missval = -999, prec = "float")
+comm.print("defined")
+
+### create (collectively) in parallel a file with given dimensions
+nc <- nc_create_par("test_maxtemp.nc", x.nc_var, verbose = FALSE)
+nc_var_par_access(nc, x.nc_var)
+
+################### ----------------------------------------------------------------
+# Part 1 - Getting and formatting historical weather data
+################### ----------------------------------------------------------------
 
 # Get Weather and Site Info  ------------------------------------------------------------------------
 weatherDB <- rSOILWAT2::dbW_setConnection(
@@ -49,19 +67,8 @@ weatherDB <- rSOILWAT2::dbW_setConnection(
 #Sites <- rSOILWAT2::dbW_getSiteTable()
 Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
 
-
-################### ----------------------------------------------------------------
-# Part 1 - Simulation
-################### ----------------------------------------------------------------
-
 for (i in alljid) { # use while not for
-
-  # #if(i %in% seq(1, nrow(Sites), 10)) print(i)
   
-  # ################### ------------------------------------------------------------
-  # # Part 1 - Getting and formatting historical weather data
-  # ################### ------------------------------------------------------------
-
   weatherDB <- rSOILWAT2::dbW_setConnection(
     dbFilePath = 'main/Data/dbWeatherData_WesternUS_gridMET_1979-2021.sqlite3')
 
@@ -71,7 +78,11 @@ for (i in alljid) { # use while not for
   LatIdx <- Sites$LatIndex[i]
   LonIdx <- Sites$LonIndex[i]
 
-  # if(!interactive()) comm.print(paste('Site', Site_id, 'running'))
+  st <- c(LatIdx, LonIdx, 1)
+  co <- c(1, 1, 365)
+  comm.print(st)
+
+  if(!interactive()) comm.print(paste('Site', Site_id, 'running'))
   # if(!interactive()) comm.print(LonIdx)
 
   wdata <- rSOILWAT2::dbW_getWeatherData(Site_id = Site_id)
@@ -80,33 +91,58 @@ for (i in alljid) { # use while not for
   wdata <- wdata[ids]
 
   currYear <- lubridate::year(Sys.Date())
-  wdata_2021_plus <- getWeatherData(Lat, Long, currYear,
+  wdata_currYear <- getWeatherData(Lat, Long, currYear,
                                     dir = 'main/Data/www.northwestknowledge.net/metdata/data/')
 
-  wdata_2021_plus <- wdata_2021_plus[[1]]
-  wdata_2021_plus <- rSOILWAT2::dbW_dataframe_to_weatherData(wdata_2021_plus[,c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')], round = 4)
+  wdata_currYear <- wdata_currYear[[1]]
+  wdata_currYear <- rSOILWAT2::dbW_dataframe_to_weatherData(wdata_currYear[,c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')], round = 4)
 
-  wdata <- c(wdata, wdata_2021_plus)
-  DBI::bDisconnect(wdata)
+  wdata <- c(wdata, wdata_currYear)
+  rSOILWAT2::dbW_disconnectConnection()
 
   # ---------- Outputs --------------------------------------------------------
-  wdata_2021 <- wdata[['2021']]
+  wdata_2022 <- wdata[['2022']]
+  wdata_2022_tmax <- as.vector(wdata_2022@data[,2])
 
-  var.put.nc(ncfile = ncid,
-           variable = varid,
-           data  = wdata_2021@data[,'Tmax_C'], # the data
-           start=c(LonIdx, LatIdx, 1),
-           count=c(1, 1, days))
-  # Another netCDF that tracks success and failure
+### write variable values to file
+
+  ncvar_put(nc, "testMatrix", wdata_2022_tmax, start = st, count = co)
+  nc_sync(nc) 
+    # Another netCDF that tracks success and failure
+
 }
 
+### close file
+nc_close(nc)
 
-# Shut down MPI ---------------------------------------------------------------
-if(!interactive()) {
 
-  #close.nc(ncid)
-  info.free()
-  barrier()
-  finalize()
-}
+################### ----------------------------------------------------------------
+# Part X - End and check
+################### ----------------------------------------------------------------
+
+# # Parallel open
+# nc <- nc_open_par("test_maxtemp.nc")
+# nc_var_par_access(nc, "testMatrix")
+
+# ### get data dimension.
+# n <- length(nc$dim$rows$vals)
+# p <- length(nc$dim$columns$vals)
+
+# ### read variable values to file
+# x <- ncvar_get(nc, "testMatrix", start = st, count = co)
+
+# ### Print results.
+# comm.cat("n = ", n, " p = ", p, "\n", sep = "")
+# comm.print(x, all.rank = TRUE)
+
+# ### close file
+# nc_close(nc)
+# ncdump("test_maxtemp.nc")
+
+ if(!interactive()) {
+
+#   #info.free()
+   barrier()
+   finalize()
+ }
 
