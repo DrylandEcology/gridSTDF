@@ -1,3 +1,5 @@
+### SHELL> mpiexec -np 4 Rscript --vanilla main/implementation/pbdMPI-hello.R 
+
 library(pbdMPI, quietly=TRUE)
 
 init()
