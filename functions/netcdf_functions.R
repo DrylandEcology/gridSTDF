@@ -1200,8 +1200,7 @@ create_netCDF <- function(
   }
 
   
-  on.exit(pbdNCDF4::nc_close(nc))
-  
+
   
   #------ Write dimensional variable values ------
   if (is_gridded) {
