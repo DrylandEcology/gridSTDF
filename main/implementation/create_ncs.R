@@ -34,7 +34,7 @@ nc_att_xy <- list(
 
 ## Write netCDF for gridded data
 
-create_netCDF(
+tmmx_nc <- create_netCDF(
   filename = "test_maxtemp.nc",
   overwrite = TRUE,
   xyspace = temp.nc1[["xyspace"]],

@@ -29,15 +29,6 @@ comm.print(alljid)
 # create netCDFs in parallel to write to:
 source('main/implementation/create_ncs.R')
 
-### define matrix variable in file (must not create full storage!!)
-x.nc_var <- ncvar_def(name = "testMatrix", units = "count",
-                     dim = list(rdim, cdim, tdim),
-                     missval = -999, prec = "float")
-
-### create (collectively) in parallel a file with given dimensions
-nc <- nc_create_par("test_maxtemp.nc", x.nc_var, verbose = FALSE)
-nc_var_par_access(nc, x.nc_var)
-
 ################### ----------------------------------------------------------------
 # Part 1 - Getting and formatting historical weather data
 ################### ----------------------------------------------------------------
@@ -87,8 +78,8 @@ for (i in alljid) { # use while not for
 
 ### write variable values to file
 
-  ncvar_put(nc, "testMatrix", wdata_2022_tmax, start = st, count = co)
-  nc_sync(nc) 
+  ncvar_put(tmmx_nc, "tmmx", wdata_2022_tmax, start = st, count = co)
+  nc_sync(tmmx_nc) 
     # Another netCDF that tracks success and failure
 
 }

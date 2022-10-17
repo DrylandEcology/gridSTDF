@@ -1414,6 +1414,7 @@ create_netCDF <- function(
     )
   }
   
+  return(nc)
   invisible(TRUE)
 }
 
