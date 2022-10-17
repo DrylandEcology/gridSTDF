@@ -5,11 +5,12 @@ library(pbdMPI, quiet = TRUE)
 library(pbdNCDF4, quiet = TRUE)
 library(lubridate, quiet = TRUE)
 library(rSOILWAT2, quiet = TRUE)
-#library(raster)
 
 if(!interactive()) init()
 
 source('functions/weatherFunctions.R')
+source('functions/netcdf_functions.R')
+
 
 ################### ----------------------------------------------------------------
 # Part 0 - Setup
@@ -25,37 +26,8 @@ n.workers <- size - 1 # reserve one for other activities
 alljid <- get.jid(n = 296006, method = "block", all = FALSE) 
 comm.print(alljid)
 
-#NetCDF init (by writing it first) -----------------------------------------------------------------
-numRows <- 567 # nrows, latitude
-numCols <- 715 #ncols, longitude
-days <- 365 # 1 years worth of days!
-
-# #split metric
-# split <-  floor(numRows / size)
-
-# ### First set up "slab" just for an individual processor
-# st <- c(rank * split + 1, 1, 1)  # start argument for this processor
-# co <- c(split, numCols, days) # count argument for this processor (and all processors)
-
-# ## generate data structure that holds data
-# # x <- matrix(rank + 1, nrow = split, ncol = numCols) +
-# #  rep(1:numCols, each = split)
-# x2 <- array(data = 1, dim = c(split, numCols, days))
-
-### set up dimensions for full matrix of the netCDF (not just local slab)
-rdim <- ncdim_def("Latitude", "number", vals = 1:numRows)
-cdim <- ncdim_def("Longitude", "number", vals = 1:numCols)
-tdim <- ncdim_def("Time", "days", vals = 1:days)
-
-### define matrix variable in file (must not create full storage!!)
-x.nc_var <- ncvar_def(name = "testMatrix", units = "count",
-                     dim = list(rdim, cdim, tdim),
-                     missval = -999, prec = "float")
-comm.print("defined")
-
-### create (collectively) in parallel a file with given dimensions
-nc <- nc_create_par("test_maxtemp.nc", x.nc_var, verbose = FALSE)
-nc_var_par_access(nc, x.nc_var)
+# create netCDFs in parallel to write to:
+source('main/implementation/create_ncs.R')
 
 ################### ----------------------------------------------------------------
 # Part 1 - Getting and formatting historical weather data
@@ -78,7 +50,7 @@ for (i in alljid) { # use while not for
   LatIdx <- Sites$LatIndex[i]
   LonIdx <- Sites$LonIndex[i]
 
-  st <- c(LatIdx, LonIdx, 1)
+  st <- c(LonIdx, LatIdx, 1)
   co <- c(1, 1, 365)
   comm.print(st)
 
@@ -106,7 +78,7 @@ for (i in alljid) { # use while not for
 
 ### write variable values to file
 
-  ncvar_put(nc, "testMatrix", wdata_2022_tmax, start = st, count = co)
+  ncvar_put(nc, "tmmx", wdata_2022_tmax, start = st, count = co)
   nc_sync(nc) 
     # Another netCDF that tracks success and failure
 

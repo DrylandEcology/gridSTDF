@@ -6,14 +6,16 @@ rm(list = ls(all = TRUE))
 library(stars)
 library(RNetCDF)
 
-file <- "main/Data/www.northwestknowledge.net/metdata/data/tmmx_2022.nc"
+file1 <- "main/Data/www.northwestknowledge.net/metdata/data/tmmx_2021.nc"
 file2 <- "~/Desktop/test_maxtemp.nc"
 
 
 # RNetCDF ----------------------------------------------------------------------
 temp.nc1 <- open.nc(file1)
 temp.nc2 <- open.nc(file2)
-print.nc(temp.nc1)
+print.nc(temp.nc11)
+print.nc(temp.nc2)
+
 
 # get
 lat <- var.get.nc(temp.nc,"Latitude")
