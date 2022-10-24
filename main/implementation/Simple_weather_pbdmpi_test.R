@@ -23,7 +23,7 @@ comm.print(size)
 
 n.workers <- size - 1 # reserve one for other activities
 
-alljid <- get.jid(n = 296006, method = "block", all = FALSE) 
+alljid <- get.jid(n = 6006, method = "block", all = FALSE) 
 comm.print(alljid)
 
 # create netCDFs in parallel to write to:
@@ -50,7 +50,7 @@ for (i in alljid) { # use while not for
   LatIdx <- Sites$LatIndex[i]
   LonIdx <- Sites$LonIndex[i]
 
-  st <- c(LonIdx, LonIdx, 1)
+  st <- c(LonIdx, LatIdx, 1)
   co <- c(1, 1, 365)
   comm.print(st)
 
