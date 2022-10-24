@@ -9,7 +9,7 @@ library(rSOILWAT2, quiet = TRUE)
 if(!interactive()) init()
 
 source('functions/weatherFunctions.R')
-source('functions/netcdf_functions2.R')
+source('functions/netcdf_functions.R')
 
 
 ################### ----------------------------------------------------------------
@@ -23,11 +23,11 @@ comm.print(size)
 
 n.workers <- size - 1 # reserve one for other activities
 
-alljid <- get.jid(n = 296006, method = "block", all = FALSE) 
+alljid <- get.jid(n = 1000, method = "block", all = FALSE) 
 comm.print(alljid)
 
 # create netCDFs in parallel to write to:
-source('main/implementation/create_ncs.R')
+source('projects/03-Make-Climatologies-netCDF/Create-template-netCDFs.R')
 
 ################### ----------------------------------------------------------------
 # Part 1 - Getting and formatting historical weather data
@@ -50,7 +50,7 @@ for (i in alljid) { # use while not for
   LatIdx <- Sites$LatIndex[i]
   LonIdx <- Sites$LonIndex[i]
 
-  st <- c(LonIdx, LonIdx, 1)
+  st <- c(LatIdx, LonIdx, 1)
   co <- c(1, 1, 365)
   comm.print(st)
 
@@ -58,14 +58,13 @@ for (i in alljid) { # use while not for
   # if(!interactive()) comm.print(LonIdx)
 
   wdata <- rSOILWAT2::dbW_getWeatherData(Site_id = Site_id)
-  years <- rSOILWAT2::get_years_from_weatherData(wdata)
-  ids <- rSOILWAT2:::select_years(years, 1990, 2021)
+  ids <- rSOILWAT2:::select_years(years, 1991, 2020)
   wdata <- wdata[ids]
-
-  currYear <- lubridate::year(Sys.Date())
-  wdata_currYear <- getWeatherData(Lat, Long, currYear,
-                                    dir = 'main/Data/www.northwestknowledge.net/metdata/data/')
-
+  
+  # get climatology
+  
+  
+  
   wdata_currYear <- wdata_currYear[[1]]
   wdata_currYear <- rSOILWAT2::dbW_dataframe_to_weatherData(wdata_currYear[,c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')], round = 4)
 

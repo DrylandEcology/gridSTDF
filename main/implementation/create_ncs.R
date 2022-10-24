@@ -2,7 +2,7 @@
 # source('functions/netcdf_functions.R')
 
 file1 <- "main/Data/www.northwestknowledge.net/metdata/data/tmmx_2021.nc"
-temp.nc1 <- rSW2st::read_netCDF(file1, method = "array", xy_names = c("lon", "lat"))
+temp.nc1 <- rSW2st::read_netCDF(file1, method = "array", xy_names = c("lon", "lat"), time_name = "day")
 #temp.nc11 <- open.nc("main/Data/www.northwestknowledge.net/metdata/data/tmmx_2021.nc")
 
 # Prepare attribute lists
@@ -44,6 +44,11 @@ tmmx_nc <- create_netCDF(
   xy_attributes = nc_att_xy,
   crs_attributes = nc_att_crs,
   time_values = 1:365,
+  time_attributes = list(
+    units = "days since 1900-01-01",
+    calendar = "standard",
+    unlim = FALSE
+  ),
   time_bounds = matrix(rep(1:365, 2), nrow = length(1:365), ncol = 2),
   type_timeaxis = "timeseries",
   global_attributes = nc_att_global, 
