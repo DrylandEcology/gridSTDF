@@ -21,8 +21,7 @@ source('functions/netcdf_functions.R')
 # Step 1 -----------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
-example1 <- '~/Downloads/Air_temperature/ta_yr_SOILWAT2_RangeDroughtExposure_historical_gn_19710101-20101231-clim.nc'
-example1 <- '~/Downloads/Precipitation_amount/pr_yr_SOILWAT2_RangeDroughtExposure_historical_gn_19710101-20101231-clim.nc'
+example1 <- 'ta_yr_SOILWAT2_RangeDroughtExposure_historical_gn_19710101-20101231-clim.nc'
 
 example1 <-  rSW2st::read_netCDF(example1, method = "array", 
                                  xy_names = c("lon", "lat"), time_name = "day")
