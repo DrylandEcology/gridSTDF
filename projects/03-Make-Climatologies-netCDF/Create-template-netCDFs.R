@@ -21,7 +21,7 @@ source('functions/netcdf_functions.R')
 # Step 1 -----------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
-example1 <- 'ta_yr_SOILWAT2_RangeDroughtExposure_historical_gn_19710101-20101231-clim.nc'
+example1 <- 'projects/03-Make-Climatologies-netCDF/ta_yr_SOILWAT2_RangeDroughtExposure_historical_gn_19710101-20101231-clim.nc'
 
 example1 <-  rSW2st::read_netCDF(example1, method = "array", 
                                  xy_names = c("lon", "lat"), time_name = "day")
@@ -64,6 +64,7 @@ time_bounds = matrix(c(c1, c2),
 
 attributes <- read.csv('projects/03-Make-Climatologies-netCDF/nc_atts.csv')
 
+names <- c('tmmx_nc', 'tmmn_nc', 'pr_nc')
 for(nc in 1:3){
   
   # 2) - Change for each run -----------------------------------------------------
@@ -74,7 +75,7 @@ for(nc in 1:3){
     units = attributes$var_units[nc], 
     description = attributes$var_description[nc],
     comment = attributes$var_comment[nc],
-    methods = attributes$var_methods[nc],
+    cell_methods = attributes$var_cell_methods[nc],
     prec = "float")
   
   nc_vars <- nc_var1
@@ -112,8 +113,8 @@ for(nc in 1:3){
   
   ## Write netCDF for gridded data
   
-  tmmx_nc <- create_netCDF(
-    filename = file.path('projects/03-Make-Climatologies-netCDF/Outputs/',
+  assign(names[nc], create_netCDF(
+    filename = file.path('projects/03-Make-Climatologies-netCDF/Outputs',
                          paste0(attributes$Name[nc], '_', format(Sys.Date(), "%m%Y"), '.nc')),
     overwrite = TRUE,
     xyspace = temp.nc1[["xyspace"]],
@@ -127,8 +128,8 @@ for(nc in 1:3){
     time_bounds = time_bounds, 
     type_timeaxis = "climatology",
     global_attributes = nc_att_global, 
-    isParallel = TRUE
-  )
+    isParallel = FALSE
+  ))
   
 }
 
