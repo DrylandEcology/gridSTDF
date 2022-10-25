@@ -6,7 +6,6 @@
 Tests/
 Data/
 HPC_Files/Outs/
-*.csv
+.csv
 .DS_Store
-*.nc
-Outputs/
+*.nc*
