@@ -51,7 +51,7 @@ for (i in alljid) { # use while not for
   LatIdx <- Sites$LatIndex[i]
   LonIdx <- Sites$LonIndex[i]
 
-  st <- c(LatIdx, LonIdx, 1)
+  st <- c(LonIdx, LatIdx, 1)
   co <- c(1, 1, 365)
   comm.print(st)
 
