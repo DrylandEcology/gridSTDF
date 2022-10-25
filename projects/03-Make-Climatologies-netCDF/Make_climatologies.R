@@ -87,7 +87,7 @@ for (i in alljid) { # use while not for
   nc_sync(tmmn_nc) 
 
   ncvar_put(pr_nc, "pr", pr, start = st, count = co)
-  nc_sync(pr) 
+  nc_sync(pr_nc) 
     # Another netCDF that tracks success and failure
 
 }
