@@ -4,6 +4,7 @@ library(pbdMPI, quiet = TRUE)
 library(pbdNCDF4, quiet = TRUE)
 library(lubridate, quiet = TRUE)
 library(rSOILWAT2, quiet = TRUE)
+library(RNetCDF, quiet = TRUE)
 
 if(!interactive()) init()
 
@@ -22,7 +23,7 @@ comm.print(size)
 
 n.workers <- size - 1 # reserve one for other activities
 
-alljid <- get.jid(n = 1000, method = "block", all = FALSE) 
+alljid <- get.jid(n = 10000, method = "block", all = FALSE) 
 comm.print(alljid)
 
 # create netCDFs in parallel to write to:
@@ -38,6 +39,7 @@ weatherDB <- rSOILWAT2::dbW_setConnection(
 #Sites <- rSOILWAT2::dbW_getSiteTable()
 Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
 
+comm.print('Begin loop')
 for (i in alljid) { # use while not for
   
   weatherDB <- rSOILWAT2::dbW_setConnection(
@@ -76,13 +78,16 @@ for (i in alljid) { # use while not for
 
 
   # ---------- Outputs --------------------------------------------------------
-  wdata_2022 <- wdata[['2022']]
-  wdata_2022_tmax <- as.vector(wdata_2022@data[,2])
+  ### write variable values to file
 
-### write variable values to file
-
-  ncvar_put(tmmx_nc, "tmmx", wdata_2022_tmax, start = st, count = co)
+  ncvar_put(tmmx_nc, "tmmx", tmmx, start = st, count = co)
   nc_sync(tmmx_nc) 
+
+  ncvar_put(tmmn_nc, "tmmn", tmmn, start = st, count = co)
+  nc_sync(tmmn_nc) 
+
+  ncvar_put(pr_nc, "pr", pr, start = st, count = co)
+  nc_sync(pr) 
     # Another netCDF that tracks success and failure
 
 }

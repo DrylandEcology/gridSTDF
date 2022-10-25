@@ -1,6 +1,6 @@
-rm(list = ls(all = TRUE))
-library(RNetCDF)
-source('functions/netcdf_functions.R')
+# rm(list = ls(all = TRUE))
+# library(RNetCDF)
+# source('functions/netcdf_functions.R')
 
 #devtools::install_github("r4ecology/rcdo", dependencies = TRUE, force = TRUE)
 # Clip file to our domain if you haven't already ----------------------------
@@ -94,7 +94,7 @@ for(nc in 1:3){
     title = "Short-term drought forecasts based on NWS long-leads for the western U.S.",
     created_date = paste0( format(Sys.Date(), "%Y-%m-%d")),
     version = paste0("v.", format(Sys.Date(), "%b%Y")),
-    created_by = paste(version$version.string, '; R packages: pbdncdf4', packageVersion("pbdncdf4")),
+    created_by = paste(version$version.string, '; R packages: pbdncdf4', packageVersion("pbdNCDF4")),
     source = paste("SOILWAT2 (v6.6.0);  rSOILWAT2", "; gridSTDF"),
     further_info_url = "https://github.com/DrylandEcology/",
     institution = "Southwest Biological Science Center, U.S. Geological Survey",
@@ -128,11 +128,12 @@ for(nc in 1:3){
     time_bounds = time_bounds, 
     type_timeaxis = "climatology",
     global_attributes = nc_att_global, 
-    isParallel = FALSE
+    isParallel = TRUE
   ))
   
 }
 
+comm.print("creation done")
 
 # check <-  rSW2st::read_netCDF('projects/03-Make-Climatologies-netCDF/Outputs/tmmx_gridSTDF_historical_19910101-20201231-clim-102022.nc',
 #                               method = "array", 
