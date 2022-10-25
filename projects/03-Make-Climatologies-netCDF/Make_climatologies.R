@@ -1,4 +1,3 @@
-### SHELL> mpiexec -np 4 Rscript --vanilla implementation/Simple_weather_pbdmpi_test.R
 rm(list=ls(all=TRUE))
 
 library(pbdMPI, quiet = TRUE)
@@ -58,18 +57,23 @@ for (i in alljid) { # use while not for
   # if(!interactive()) comm.print(LonIdx)
 
   wdata <- rSOILWAT2::dbW_getWeatherData(Site_id = Site_id)
+  years <- rSOILWAT2::get_years_from_weatherData(wdata)
   ids <- rSOILWAT2:::select_years(years, 1991, 2020)
   wdata <- wdata[ids]
+  wdata <- rSOILWAT2::dbW_weatherData_to_dataframe(wdata)
   
-  # get climatology
-  
-  
-  
-  wdata_currYear <- wdata_currYear[[1]]
-  wdata_currYear <- rSOILWAT2::dbW_dataframe_to_weatherData(wdata_currYear[,c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')], round = 4)
-
-  wdata <- c(wdata, wdata_currYear)
   rSOILWAT2::dbW_disconnectConnection()
+
+  # get climatology
+  tmmx <- aggregate(wdata[,3], list(wdata[,2]), FUN=mean) 
+  tmmx <- tmmx$x[1:365]
+
+  tmmn <- aggregate(wdata[,4], list(wdata[,2]), FUN=mean) 
+  tmmn <- tmmn$x[1:365]
+
+  pr <- aggregate(wdata[,5], list(wdata[,2]), FUN=mean) 
+  pr <- pr$x[1:365]
+
 
   # ---------- Outputs --------------------------------------------------------
   wdata_2022 <- wdata[['2022']]
