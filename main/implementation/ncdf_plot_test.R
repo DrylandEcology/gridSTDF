@@ -7,6 +7,7 @@ library(stars)
 library(RNetCDF)
 #devtools::install_github("r4ecology/rcdo", dependencies = TRUE, force = TRUE)
 library(rcdo)
+library(terra)
 
 file1 <- "main/Data/www.northwestknowledge.net/metdata/data/tmmx_2022.nc"
 file2 <- "~/Desktop/test_maxtemp2.nc"
@@ -22,9 +23,12 @@ nc_clip(file2,
 
 
 # RNetCDF ----------------------------------------------------------------------
-example1 <- '~/Downloads/Air_temperature/ta_q_SOILWAT2_RangeDroughtExposure_historical_gn_19710101-20101231-clim.nc'
+example1 <- '~/Downloads/Air_temperature/ta_yr_SOILWAT2_RangeDroughtExposure_median_RCP45_gn_20210101-21001231-clim.nc'
 
-temp.nc1 <- open.nc("west.temp.nc1")
+temp.nc1 <- open.nc(example1)
+temp.nc1 <- terra::rast(example1)
+plot(temp.nc1[[1]])
+plot(temp.nc1[[2]])
 temp.nc2 <- open.nc("west.temp.nc2")
 print.nc(temp.nc1)
 print.nc(temp.nc2)
