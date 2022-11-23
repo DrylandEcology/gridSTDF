@@ -77,8 +77,8 @@ ppturl <- 'https://www.cpc.ncep.noaa.gov/pacdir/NFORdir/HUGEdir2/cpcllfpd.dat'
 pptData <- getCPCData(ppturl, 'ppt')
 #summary(pptData)
 
-write.csv(tempData, 'CurrentAnomalyTempData.csv', row.names = FALSE) # farenheit
-write.csv(pptData, 'CurrentAnomalyPPTData.csv', row.names = FALSE) # inches
+write.csv(tempData, 'main/CurrentAnomalyTempData.csv', row.names = FALSE) # farenheit
+write.csv(pptData, 'main/CurrentAnomalyPPTData.csv', row.names = FALSE) # inches
 
 #write.csv(tempData, '/usr/local/app/STDF/shorttermdroughtforecaster/CurrentAnomalyTempData.csv', row.names = FALSE) # farenheit
 #write.csv(pptData, '/usr/local/app/STDF/shorttermdroughtforecaster/CurrentAnomalyPPTData.csv', row.names = FALSE) # inches
