@@ -1,0 +1,10 @@
+﻿short_name,Name,var_name,var_standardname,var_units,var_description,var_comment,var_comment2,var_cell_methods,time_units
+tmmx_clim,tmmx_dy_gridSTDF_historical_19910101-20201231-clim,tmmx,air_temperature,C,Daily Mean Maximum Temperature (2 meters above ground),"re-processed from gridMet (Abatzoglou, J.T., 2013)",,time: mean within days time: mean over years,days
+tmmn_clim,tmmn_dy_gridSTDF_historical_19910101-20201231_clim,tmmn,air_temperature,C,Daily Mean Minimum Temperature (2 meters above ground),"re-processed from gridMet (Abatzoglou, J.T., 2013)",,time: mean within days time: mean over years,days
+ppt_clim,ppt_dy_gridSTDF_historical_19910101-20201231-clim,ppt,precipitation_amount,mm,Daily Accumulated Precipitation,"re-processed from gridMet (Abatzoglou, J.T., 2013)",,time: sum within days time: mean over years,days
+vwc-shallow_clim,,vwc,,,,,,time: mean within days time: mean over years,days
+vwc-med_clim,,,,,,,,time: mean within days time: mean over years,days
+vwc-deep_clim,,,,,,,,time: sum within days time: mean over years,days
+swp-shallow_clim,,,,,,,,time: mean within days time: mean over years,days
+swp-med_clim,,,,,,,,time: mean within days time: mean over years,days
+swp-deep_clim,,,,,,,,time: sum within days time: mean over years,days

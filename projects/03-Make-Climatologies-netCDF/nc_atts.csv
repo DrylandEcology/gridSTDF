@@ -1,23 +1,13 @@
-﻿Name,var_standardname,var_longname,var_units,var_description,var_comment,var_cell_methods,time_units,time_longname
-tmmx_daily_gridSTDF_historical_19910101-20201231-clim,tmmx,air_temperature,C,Daily Mean Maximum Temperature (2m),"re-processed from gridMet (Abatzoglou, J.T., 2013)",time: mean over years,days,
-tmmn_daily_gridSTDF_historical_19910101-20201231_clim,tmmn,air_temperature,C,Daily Mean Minimum Temperature (2m),"re-processed from gridMet (Abatzoglou, J.T., 2013)",time: mean over years,days,
-pr_daily_gridSTDF_historical_19910101-20201231-clim,pr,precipitation_amount,mm,Daily Accumulated Precipitation,"re-processed from gridMet (Abatzoglou, J.T., 2013)",time: mean over years,days,
-tmean_mo_median_gridSTDF_prediction,tmean,air_temperature,C,Monthly Mean Temperature,,time: mean over days in month,months,
-tmean_mo_10pct_gridSTDF_prediction,tmean,air_temperature,C,Monthly Mean Temperature,,time: mean over days in month,months,
-tmean_mo_90pct_gridSTDF_prediction,tmean,air_temperature,C,Monthly Mean Temperature,,time: mean over days in month,months,
-ppt_mo_median_gridSTDF_prediction,pr,precipitation_amount,mm,Monthly Mean Temperature,,,months,
-ppt_mo_10pct_gridSTDF_prediction,pr,precipitation_amount,mm,Monthly Mean Temperature,,,months,
-ppt_mo_90pct_gridSTDF_prediction,pr,precipitation_amount,mm,Monthly Mean Temperature,,,months,
-,,,,,,,months,
-,,,,,,,months,
-,,,,,,,months,
-,,,,,,,months,
-,,,,,,,months,
-,,,,,,,months,
-,,,,,,,months,
-,,,,,,,months,
-s,,,,,,,months,
-,,,,,,,months,
-,,,,,,,months,
-,,,,,,,months,
-,,,,,,,months,
+﻿short_name,Name,var_name,var_standardname,var_units,var_description,var_comment,var_comment2,var_cell_methods,time_units
+tmmx_clim,tmmx_dy_gridSTDF_historical_19910101-20201231-clim,tmmx,air_temperature,C,Daily Mean Maximum Temperature (2 meters above ground),"re-processed from gridMet (Abatzoglou, J.T., 2013)",,time: mean within days time: mean over years,days
+tmmn_clim,tmmn_dy_gridSTDF_historical_19910101-20201231_clim,tmmn,air_temperature,C,Daily Mean Minimum Temperature (2 meters above ground),"re-processed from gridMet (Abatzoglou, J.T., 2013)",,time: mean within days time: mean over years,days
+ppt_clim,ppt_dy_gridSTDF_historical_19910101-20201231-clim,ppt,precipitation_amount,mm,Daily Accumulated Precipitation,"re-processed from gridMet (Abatzoglou, J.T., 2013)",,time: sum within days time: mean over years,days
+vwc-shallow_clim,vwc-shallow_dy_gridSTDF_historical_19910101-20201231-clim,vwc,volumetric_water_content,cm/cm,Daily Mean Volumetric Water Content in Shallow Soil Layers (0 - 15cm soil depth),,,time: mean within days time: mean over years,days
+vwc-med_clim,vwc-med_dy_gridSTDF_historical_19910101-20201231-clim,vwc,volumetric_water_content,cm/cm,Daily Mean Volumetric Water Content in Shallow Soil Layers (16 - 50cm soil depth),,,time: mean within days time: mean over years,days
+vwc-deep_clim,vwc-deep_dy_gridSTDF_historical_19910101-20201231-clim,vwc,volumetric_water_content,cm/cm,Daily Mean Volumetric Water Content in Shallow Soil Layers (51 - 185cm soil depth),,,time: mean within days time: mean over years,days
+swp-shallow_clim,swp-shallow_dy_gridSTDF_historical_19910101-20201231-clim,swp,soil_water_potential,MPa,Daily Mean Soil Water Potential  in Shallow Soil Layers (0 - 15cm soil depth),,,time: mean within days time: mean over years,days
+swp-med_clim,swp-med_dy_gridSTDF_historical_19910101-20201231-clim,swp,soil_water_potential,MPa,Daily Mean Soil Water Potential  in Shallow Soil Layers (16 - 50cm soil depth),,,time: mean within days time: mean over years,days
+swp-deep_clim,swp-deep_dy_gridSTDF_historical_19910101-20201231-clim,swp,soil_water_potential,MPa,Daily Mean Soil Water Potential  in Shallow Soil Layers (51 - 185cm soil depth),,,time: mean within days time: mean over years,days
+,,,,,,,,,
+,,,,,,,,,
+10 and 90s?!,,,,,,,,,

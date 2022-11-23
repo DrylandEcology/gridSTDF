@@ -57,7 +57,7 @@ NULL
 #'   then it is assumed that the \var{crs} is \var{crs_attributes[["crs_wkt"]]}.
 #'   If data are gridded, then passed to \code{\link{get_xyspace}};
 #'   if non-gridded, then passed to \code{\link{as_points}}.
-#' @param data_dims A list as returned by \code{\link{rSW2st::get_data_dims}}.
+#' @param data_dims A list as returned by \code{\link{get_data_dims}}.
 #'   If \code{NULL} and \code{data} is not missing, then calculated from
 #'   \code{data}.
 #' @param data_type A character string. The \var{netCDF} data type.
@@ -373,8 +373,8 @@ create_netCDF <- function(
     nc_shuffle = TRUE,
     nc_deflate = 5,
     nc_chunks = "by_zt",
-    isParallel = FALSE,
-    verbose = FALSE
+    verbose = FALSE,
+    isParallel = FALSE
 ) {
   #------ 1) Checks/preparations -----------------------------------------------
   stopifnot(requireNamespace("pbdNCDF4"))
@@ -586,7 +586,7 @@ create_netCDF <- function(
   if (is_gridded) {
     # Note: xvals are organized from west to east, yvals from south to north
     xy_grid <- try(
-      rSW2st::get_xyspace(xyspace, crs = crs_xyspace),
+      get_xyspace(xyspace, crs = crs_xyspace),
       silent = TRUE
     )
     
@@ -1194,13 +1194,10 @@ create_netCDF <- function(
       vars = c(nc_dimvars, list(crsdef), var_defs),
       force_v4 = TRUE
     )
-    
-    nc_var_par_access(nc, var_names[1])
-    
   }
-
   
-
+  on.exit(pbdNCDF4::nc_close(nc))
+  
   
   #------ Write dimensional variable values ------
   if (is_gridded) {
@@ -1404,7 +1401,7 @@ create_netCDF <- function(
     )
   }
   
-  
+
   
   
   #------ The end --------------------------------------------------------------
@@ -1417,11 +1414,4 @@ create_netCDF <- function(
   return(nc)
   invisible(TRUE)
 }
-
-
-
-
-
-
-
 
