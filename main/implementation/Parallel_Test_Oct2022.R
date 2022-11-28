@@ -1,5 +1,6 @@
 rm(list=ls(all=TRUE))
 suppressMessages(library(rSOILWAT2, quiet = TRUE))
+
 suppressMessages(library(rSW2data, quiet = TRUE))
 suppressMessages(library(RSQLite, quietly = TRUE))
 suppressMessages(library(DBI, quietly = TRUE))
@@ -223,26 +224,24 @@ for (j in alljid) { # use while not for
                                            Nleads, n = 5,
                                            currDOY, currMonth, currYear, currDate)
   
-  # start here for work
-  AnomalyData1 <- plyr::aaply(plyr::laply(AnomalyData1, as.matrix), c(2, 3), mean)
-  #if(verbose) print(paste('Formatting Outputs', Sys.time()))
-  #AllOut <- AnomalyData1[[1]]
-  #MonthlyAnoms <- AnomalyData1[[5]]
+  ################ -------------------------------------------------------------
+  # FORMAT OUTPUTS  --- Get 18 month median, 10, and 90 for all !!! ---
+  ################ -------------------------------------------------------------
   
-  # Recent past (6 months prior to current): included in 'future' runs --------
-  AnomRunStats <- formatOutputsFuture(AllOut, SoilsDF, currDate)
+  # 1 ------- Get means across all simulations for each run_year-year-day for all variables
+  # AnomalyData3 <- plyr::aaply(plyr::laply(AnomalyData2, as.matrix), c(2,3), mean)
+
+  # 2 - Get rolling means and then the quantiles of the rolling mean across sims --
+  AnomalyData2 <- do.call(rbind, AnomalyData1)
+  AnomRunStats <- formatOutputsFuture(AnomalyData2, SoilsDF, currDate)
+  
+  # 3 ------- Subset the Recent Past (6 months prior to current) from future ---
   AnomRunStats <- AnomRunStats[AnomRunStats$Date < lastWeatherDate, ]
   
-  # Upcoming year (current date + 1 year)
-  AnomRunStats2 <- formatOutputs_Monthlys(AllOut, SoilsDF, 'future', currDate = currDate)
-  
-  # eco vars ------------------------------------------------------------------
-  # Future_Shriver2018 <- data.table(Year = AnomalyData1[[2]]$PlantedinYear, run = AnomalyData1[[2]]$run,
-  #                                  Prob =  p_Shriver2018(AnomalyData1[[2]]$Temp_mean, AnomalyData1[[2]]$VWC_mean))
-  # 
-  # Future_GISSM <- data.table(AnomalyData1[[3]])
-  # 
-  # Future_OConnor2020 <- data.table(AnomalyData1[[4]])
+  # # 4 ---------- Upcoming year (current date + 1 year)
+  AnomalyData2 <- data.frame(AnomalyData2)
+  AnomRunStats2 <- formatOutputs_Monthlys(AnomalyData2, SoilsDF, 'future', currDate = currDate)
+
   
   ################### ----------------------------------------------------------------
   # Part 5 - Calculate deltas, formout outputs
@@ -252,7 +251,7 @@ for (j in alljid) { # use while not for
   Vars <- c('avg_C', 'ppt', 'VWC.Shallow', 'VWC.Intermediate', 'VWC.Deep',
             'SWP.Shallow', 'SWP.Intermediate', 'SWP.Deep')
   
-  AllVarData <- data.frame(Date = as.Date((currDate-183):(currDate+365)))
+  AllVarData <- data.frame(Date = seq((currDate-183),(currDate+365), "days"))
   
   for(v in seq(Vars)){
     OneVarData <- suppressMessages(calcDeltasApproxAndFormat(HistData_Norm_Stats1, HistData_MonthlyMeans,
@@ -263,6 +262,18 @@ for (j in alljid) { # use while not for
     
     AllVarData <- merge(AllVarData, OneVarData)
   }
+  
+  
+  
+  
+  # eco vars ------------------------------------------------------------------
+  # Future_Shriver2018 <- data.table(Year = AnomalyData1[[2]]$PlantedinYear, 
+  #                                  run = AnomalyData1[[2]]$run,
+  #                                  Prob =  p_Shriver2018(AnomalyData1[[2]]$Temp_mean, AnomalyData1[[2]]$VWC_mean))
+  # 
+  # Future_GISSM <- data.table(AnomalyData1[[3]])
+  # 
+  # Future_OConnor2020 <- data.table(AnomalyData1[[4]])
   
   # format ecovars for writing out -------------------------------------------
   # Shriver_Stats <- formatShriver2018(Hist_Shriver2018, Future_Shriver2018, currYear)

@@ -10,7 +10,7 @@
 #'
 #'  @return A list of data.frames.
 getOutputs <- function(sw_out, sw_in, SoilsDF, calc_EcoVars = TRUE,
-                       TimePeriod, currYear, currDate) {
+                       TimePeriod, currYear, currDate, run_year, nn) {
 
   # Temp and Precip
   Data <- cbind(sw_out@TEMP@Day[, c('Year', 'Day', 'avg_C')], 
@@ -54,11 +54,16 @@ getOutputs <- function(sw_out, sw_in, SoilsDF, calc_EcoVars = TRUE,
                        .(Year, Day, Depth)]
   VWC1$Depth <- paste0('VWC.', VWC1$Depth)
   VWC1 <- dcast(VWC1, Year + Day ~  Depth, value.var = 'VWC')
+  
+  if(TimePeriod == 'Future'){
+    Data <- cbind(Data, run = nn, run_year = run_year)
+  }  
 
   # Join up
   yy <- dim(VWC1)[2]
   Data <- cbind(Data, sapply(VWC1, unlist)[,3:yy])
   
+
 
   if(!calc_EcoVars) return(list(Data))
   if(calc_EcoVars) return(list(Data, Shriver2018Vars,
@@ -91,94 +96,6 @@ getHistoricalClimatology <- function(dataset, yearBegin, yearEnd, SoilsDF) {
   HistData_Norm_Stats <- setorder(HistData_Norm_Stats, Date)
 
   return(HistData_Norm_Stats)
-}
-
-#' Calculates monthly means of variables
-#'
-#' @param AllOut data.frame containging daily climate data
-#' @param SoilsDF data.frame contains soils information include texture and depth.
-#' @param TP character. Either historical or future#' @param yearBegin numeric. Begin year of climatological range
-#' @param yearEnd numeric. End or year of climatological range.
-#' @param currDate. Date. today's date/
-#' @param todayMonthDay Date. in month-day format.
-#' @param currYearClimatology logical. Is this the climatology representing the current year
-#'
-#' @return a data.frame containing monthly quantiles (10th, 50th, 90th) for
-#' climate and soil moisture variables
-#'
-formatOutputs_Monthlys <- function(AllOut, SoilsDF, TP, yearBegin, yearEnd, currDate,
-                                   todayMonthDay, currYearClimatology = FALSE) {
-
-  # Subset Historical data
-  if(TP == 'historical') AllOut <- AllOut[AllOut$Year %in% yearBegin:yearEnd, ]
-
-  # Make Month dates -----------------------------------------------------------
-  if(TP == 'future')  AllOut$run_year <- sapply(strsplit(AllOut$run, '_'), '[', 2)
-  AllOut$Month <-  format(as.Date(strptime(paste(AllOut$Year, AllOut$Day), format="%Y %j")), format="%m")
-
-  if(TP == 'future') {
-    # first eliminate data that is before tday ... aka not the future
-    AllOut$Date <-  as.Date(strptime(paste(AllOut$Year, AllOut$Day), format="%Y %j"), format="%m-%d-%Y")
-    AllOut <- subset(AllOut, Date >= currDate)
-    AllOut$Date <- as.Date(paste(AllOut$Year, AllOut$Month, '15', sep = '-'))
-  } else {
-    # elminate data for currMonth ... if this sequence is a climatology for the current year
-    if(currYearClimatology == TRUE){
-      daysOut <- as.Date(todayMonthDay, format = "%m-%d")
-      d <- day(daysOut) - 1
-      daysOut <- seq(daysOut - d, (daysOut - 1), "days")
-      daysOut <- format(daysOut, format="%m-%d")
-
-      AllOut <- makeDateMonthDat(AllOut, 'Day')
-      AllOut <- AllOut[!AllOut$Date %in% daysOut,]
-      AllOut$Date <- NULL
-    }
-    Date <- paste(AllOut$Month, '15', sep = '-')
-    AllOut <- cbind(Date, AllOut)
-  }
-
-  AllOut$Month <-  AllOut$Day <- NULL
-
-  # mean for every sim. year month ---------------------------------------------
-  if(TP == 'future') {
-    # take a mean across all realizations and representations for most all vars
-    AllOutMean <- setDT(AllOut)[, sapply(.SD, function(x) list(mean=mean(x))),
-                                .(run_year, Year, Date)]
-    # for precip - sum per realization/rep first .. then get mean of that value
-    AllOutSum <- setDT(AllOut)[, .(ppt.sum = sum(ppt)), .(run, Year, Date)]
-    AllOutSum$run_year <- sapply(strsplit(AllOutSum$run, '_'), '[', 2)
-    AllOutSum <- setDT(AllOutSum)[, .(ppt.sum = mean(ppt.sum)), .(run_year,Year, Date)]
-
-    AllOut <- merge(AllOutMean, AllOutSum)
-    AllOut$run_year <- NULL
-
-  } else {
-    # take a mean of all vars (except ppt ..)
-    AllOutMean <- setDT(AllOut)[, sapply(.SD, function(x) list(mean=mean(x))),
-                                .(Year, Date)]
-
-    # for ppt ... get values per each year
-    AllOutSum <- setDT(AllOut)[, .(ppt.sum = sum(ppt)), .(Year, Date)]
-
-    AllOut <- merge(AllOutMean, AllOutSum)
-
-  }
-
-  AllOut$Year <- AllOutMean$ppt.mean <- NULL
-
-  # Get median, 10th, and 90th for each month
-  AnomRunStats <- setnames(setDT(AllOut)[, sapply(.SD, function(x) list(med=median(x),
-                                                                        x10=quantile(x, .1, na.rm = TRUE),
-                                                                        x90 = quantile(x, .9, na.rm = TRUE))),
-                                         .(Date)],
-                           c('Date', sapply(names(AllOut)[-c(1)], paste0, c(".med", ".10", '.90'))))# get all means and sds!!!
-
-
-  # Convert VWC to SWP -----------------------------------------------------------
-  AnomRunStats <- getSWP(AnomRunStats, SoilsDF)
-
-  return(AnomRunStats)
-
 }
 
 #' Get an 18 month time series of the climatolgical records.
@@ -292,6 +209,94 @@ formatHistoricalMonthlys <- function(HistData_MonthlyMeans_2,
   HistData_MonthlyMeans <- rbind(HistData_MonthlyMeans_2, HistData_MonthlyMeans_3)
 }
 
+#' Calculates monthly means of variables
+#'
+#' @param AllOut data.frame containging daily climate data
+#' @param SoilsDF data.frame contains soils information include texture and depth.
+#' @param TP character. Either historical or future#' @param yearBegin numeric. Begin year of climatological range
+#' @param yearEnd numeric. End or year of climatological range.
+#' @param currDate. Date. today's date/
+#' @param todayMonthDay Date. in month-day format.
+#' @param currYearClimatology logical. Is this the climatology representing the current year
+#'
+#' @return a data.frame containing monthly quantiles (10th, 50th, 90th) for
+#' climate and soil moisture variables
+#'
+formatOutputs_Monthlys <- function(AllOut, SoilsDF, TP, yearBegin, yearEnd, currDate,
+                                   todayMonthDay, currYearClimatology = FALSE) {
+  
+  # Subset Historical data
+  if(TP == 'historical') AllOut <- AllOut[AllOut$Year %in% yearBegin:yearEnd, ]
+  
+  # Make Month dates -----------------------------------------------------------
+  AllOut$Month <-  format(as.Date(strptime(paste(AllOut[,'Year'], AllOut[,'Day']), format="%Y %j")), format="%m")
+  
+  if(TP == 'future') {
+    # first eliminate data that is before tday ... aka not the future
+    AllOut$Date  <-  as.Date(strptime(paste(AllOut[,'Year'], AllOut[,'Day']), format="%Y %j"), format="%m-%d-%Y")
+    AllOut <- subset(AllOut, Date >= currDate)
+    AllOut$Date <- as.Date(paste(AllOut$Year, AllOut$Month, '15', sep = '-'))
+  } else {
+    # elminate data for currMonth ... if this sequence is a climatology for the current year
+    if(currYearClimatology == TRUE){
+      daysOut <- as.Date(todayMonthDay, format = "%m-%d")
+      d <- day(daysOut) - 1
+      daysOut <- seq(daysOut - d, (daysOut - 1), "days")
+      daysOut <- format(daysOut, format="%m-%d")
+      
+      AllOut <- makeDateMonthDat(AllOut, 'Day')
+      AllOut <- AllOut[!AllOut$Date %in% daysOut,]
+      AllOut$Date <- NULL
+    }
+    Date <- paste(AllOut$Month, '15', sep = '-')
+    AllOut <- cbind(Date, AllOut)
+  }
+  
+  AllOut$Month <-  AllOut$Day <- NULL
+  
+  # mean for every sim. year month ---------------------------------------------
+  if(TP == 'future') {
+    # take a mean across all realizations and representations for most all vars
+    AllOutMean <- setDT(AllOut)[, sapply(.SD, function(x) list(mean=mean(x))),
+                                .(run_year, Year, Date)]
+    # for precip - sum per realization/rep first .. then get mean of that value
+    AllOut$run <- paste(AllOut$run, AllOut$run_year, sep = '_')
+    AllOutSum <- setDT(AllOut)[, .(ppt.sum = sum(ppt)), .(run, Year, Date)]
+    AllOutSum$run_year <- as.numeric(sapply(strsplit(AllOutSum$run, '_'), '[', 2))
+    AllOutSum <- setDT(AllOutSum)[, .(ppt.sum = mean(ppt.sum)), .(run_year,Year, Date)]
+    
+    AllOut <- merge(AllOutMean, AllOutSum)
+    AllOut$run_year <- NULL
+    
+  } else {
+    # take a mean of all vars (except ppt ..)
+    AllOutMean <- setDT(AllOut)[, sapply(.SD, function(x) list(mean=mean(x))),
+                                .(Year, Date)]
+    
+    # for ppt ... get values per each year
+    AllOutSum <- setDT(AllOut)[, .(ppt.sum = sum(ppt)), .(Year, Date)]
+    
+    AllOut <- merge(AllOutMean, AllOutSum)
+    
+  }
+  
+  AllOut$Year <- AllOutMean$ppt.mean <- NULL
+  
+  # Get median, 10th, and 90th for each month
+  AnomRunStats <- setnames(setDT(AllOut)[, sapply(.SD, function(x) list(med=median(x),
+                                                                        x10=quantile(x, .1, na.rm = TRUE),
+                                                                        x90 = quantile(x, .9, na.rm = TRUE))),
+                                         .(Date)],
+                           c('Date', sapply(names(AllOut)[-c(1)], paste0, c(".med", ".10", '.90'))))# get all means and sds!!!
+  
+  
+  # Convert VWC to SWP -----------------------------------------------------------
+  AnomRunStats <- getSWP(AnomRunStats, SoilsDF)
+  
+  return(AnomRunStats)
+  
+}
+
 
 #' Format and return outputs from future SOILWAT2 runs
 #'
@@ -305,21 +310,20 @@ formatHistoricalMonthlys <- function(HistData_MonthlyMeans_2,
 formatOutputsFuture <- function(AllOut, SoilsDF, currDate) {
 
   # Get means for each day in each year
-  AllOut$run_Year <- sapply(strsplit(AllOut$run, '_'), '[', 2)
   AllOut <- makeDateMonthDat(AllOut, 'Day')
   AllOut$Day <- AllOut$run <- NULL
 
-  AllOut2 <- setDT(AllOut)[, sapply(.SD, function(x) list(mean=mean(x))), .(run_Year, Year, Date)] # mean for every sim. year
+  AllOut2 <- setDT(AllOut)[, sapply(.SD, function(x) list(mean=mean(x))), .(run_year, Year, Date)] # mean for every sim. year
 
   # Get rolling means and sums per simulation
-  AllOut2 <- setorder(AllOut2, run_Year, Year, Date)
+  AllOut2 <- setorder(AllOut2, run_year, Year, Date)
   AllOut2 <- getRolling(AllOut2)
 
   # Make real dates
   AllOut2$Date <- as.Date(paste(AllOut2$Year, AllOut2$Date, sep = '-'))
 
   # Get quantiles of rolling
-  AllOut2$run_Year <- AllOut2$Year <- NULL
+  AllOut2$run_year <- AllOut2$Year <- NULL
 
   AnomRunStats <- setnames(setDT(AllOut2)[, sapply(.SD, function(x) list(med=median(x),
                                                                         x10=quantile(x, .1, na.rm = TRUE),
@@ -583,7 +587,7 @@ calcDeltasApproxAndFormat <- function(HistData1, HistDataMonthly,
   # -----------------------------------------------------------------------------
 
   # Create empty daily data frame for approximating across
-  Fut_Daily_Approx <- data.frame(Date = as.Date(as.Date(currDate - 31):as.Date(currDate + 365)))
+  Fut_Daily_Approx <- data.frame(Date = seq(as.Date(currDate - 31),as.Date(currDate + 365), "days"))
   Fut_Daily_Approx <- plyr::join(Fut_Daily_Approx, FutMonths)
 
   yy <- dim(Fut_Daily_Approx)[2]
@@ -643,7 +647,7 @@ calcDeltasApproxAndFormat <- function(HistData1, HistDataMonthly,
   Hist18MNs[,paste0(Var,'_roll.90.diff')] <- Hist18MNs[, indx3] - Hist18MNs[,indx1]
 
   # Join
-  AllDailys <- data.frame(Date = as.Date(as.Date(currDate - 183):as.Date(currDate + 365)))
+  AllDailys <- data.frame(Date = seq(as.Date(currDate - 183),as.Date(currDate + 365), "days"))
   AllDailys <- plyr::join(AllDailys, Hist18MNs)
   AllDailys <- plyr::join(AllDailys, PastDailys)
   AllDailys <- plyr::join(AllDailys, Fut_Daily_Approx)

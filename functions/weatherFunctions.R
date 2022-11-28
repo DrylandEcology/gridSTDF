@@ -168,7 +168,7 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
     generatedAnomData [, , "PPT_CF"] * PPTAnoms$ClimatatologicalMEAN_PPT_cm
   
   #saveRDS(generatedAnomData,  'Git/shorttermdroughtforecaster/ExampleData/generatedAnomData_BiasCorrected')
-  AllOut1 <- data.frame()
+  AllOut1 <- list()
   for(nn in 1:n){
     print(nn)
     
@@ -236,12 +236,14 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
       Out1 <- getOutputs(sw_out, sw_in0, SoilsDF, 
                          calc_EcoVars = FALSE, 
                          TimePeriod = 'Future',
-                          currYear, currDate)
+                          currYear, currDate, 
+                         run_year = y, nn = nn)
       
-  
-      names(Out1[1]) <-  paste(nn, y, sep = '_')
-      AllOut1 <- c(AllOut1, Out1)
+      names(Out1) <-   paste(nn, y, sep = '_')
+      AllOut1 <- append(AllOut1, Out1)
       
+      
+      #AllOut1 <- rbind(AllOut1, cbind(Out1[[1]], run = paste(nn, y, sep = '_')))
       # Shriver_Out <- rbind(Shriver_Out, cbind(Out1[[2]], run = paste(nn, y, sep = '_')))
       # GISSM_Out <- rbind(GISSM_Out, cbind(Out1[[3]], run = paste(nn, y, sep = '_')))
       # OConnor_Out <- rbind(OConnor_Out, Out1[[4]])
