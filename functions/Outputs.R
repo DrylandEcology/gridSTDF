@@ -121,13 +121,13 @@ formatOutputs_Monthlys <- function(AllOut, SoilsDF, TP, yearBegin, yearEnd, curr
     AllOut$Date <-  as.Date(strptime(paste(AllOut$Year, AllOut$Day), format="%Y %j"), format="%m-%d-%Y")
     AllOut <- subset(AllOut, Date >= currDate)
     AllOut$Date <- as.Date(paste(AllOut$Year, AllOut$Month, '15', sep = '-'))
-  } else{
+  } else {
     # elminate data for currMonth ... if this sequence is a climatology for the current year
     if(currYearClimatology == TRUE){
       daysOut <- as.Date(todayMonthDay, format = "%m-%d")
       d <- day(daysOut) - 1
-      daysOut <- as.Date((daysOut - d):(daysOut - 1))
-      daysOut <- format(daysOut, format = "%m-%d")
+      daysOut <- seq(daysOut - d, (daysOut - 1), "days")
+      daysOut <- format(daysOut, format="%m-%d")
 
       AllOut <- makeDateMonthDat(AllOut, 'Day')
       AllOut <- AllOut[!AllOut$Date %in% daysOut,]

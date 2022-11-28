@@ -42,9 +42,9 @@ getWeatherData <- function(lat, lng, currYear, dir) {
   for(f in 1:length(prfiles)){
     year <- as.numeric(substr(prfiles[f],  nchar(prfiles[f]) - 6, nchar(prfiles[f]) -3))
     
-    nc <- suppressWarnings(raster::brick(prfiles[f], varname = 'precipitation_amount'))
-    vals <- raster::extract(nc, matrix(c(as.numeric(lng), as.numeric(lat)), ncol = 2))[1,]
-    wdata[wdata$Year == year, 'PPT_cm'][1:length(vals)] <- vals
+    #nc <- suppressWarnings(raster::brick(prfiles[f], varname = 'precipitation_amount'))
+    #vals <- raster::extract(nc, matrix(c(as.numeric(lng), as.numeric(lat)), ncol = 2))[1,]
+    #wdata[wdata$Year == year, 'PPT_cm'][1:length(vals)] <- vals
   }
   
   # if there isn't 365 days in each year ... na.locf for temp and put 0 for ppt?

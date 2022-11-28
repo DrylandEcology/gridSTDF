@@ -81,7 +81,7 @@ for (j in alljid) { # use while not for
   ################### ------------------------------------------------------------
 
   weatherDB <- rSOILWAT2::dbW_setConnection(
-    dbFilePath = 'main/Data/dbWeatherData_WesternUS_gridMET_historical.sqlite3')
+    dbFilePath = 'main/Data/dbWeatherData_WesternUS_gridMET_1979-2021.sqlite3')
   
   Site_id <- Sites$Site_id[i]
   Lat <- Sites$Latitude[i]
@@ -117,21 +117,91 @@ for (j in alljid) { # use while not for
   sw_in <- new("swInputData") # baseline data
   sw_in <- setVeg(sw_in, AllProdInfo, i)
   sw_in <- setSW(sw_in, Lat, Long, clim)
+  #sw_in <- set_soils(sw_in, 2, 35, 35)
   sw_in@site@SoilTemperatureFlag <- FALSE
+  swCarbon_Use_Bio(sw_in) <- FALSE
+  swCarbon_Use_WUE(sw_in) <- FALSE
+  swYears_EndYear(sw_in) <- currYear - 1
+  
+  # Soils info formatting ----------------------------------------------------
+  SoilsDF <- data.frame(depth_cm = c(1:250),
+                        Depth = c(rep('Shallow', 15),
+                                  rep('Intermediate', 50), #16 - 65
+                                  rep('Deep',185))) # 66 - 250
+  
+  Soils <- data.frame(sw_in@soils@Layers)[,c('depth_cm', 'sand_frac', 'clay_frac')]
+  Soils$width <- diff(c(0, Soils$depth_cm))
+  SoilsDF <- merge(Soils, SoilsDF, by = 'depth_cm')
+  SoilsDF$variable <- paste0('Lyr_',1:dim(SoilsDF)[1])
   
   ################### ----------------------------------------------------------
   # Part 3 - Run SOILWAT Historical!
   ################### ----------------------------------------------------------
   #if(!interactive()) comm.print(paste('Running Current Site', Site_id, Sys.time()))
   
-  #sw_out <- rSOILWAT2::sw_exec(inputData = sw_in, weatherList = wdata, quiet = FALSE)
+  sw_out <- rSOILWAT2::sw_exec(inputData = sw_in, weatherList = wdata, quiet = TRUE)
+  
+  ################ -------------------------------------------------------------
+  # FORMAT OUTPUTS    --- Get 18 month median, 10, and 90 for all !!! ---
+  ################ -------------------------------------------------------------
+  
+  HistDataAll <- getOutputs(sw_out, sw_in, SoilsDF, 
+                            TimePeriod = 'Historical',
+                            calc_EcoVars = FALSE)
+  
+  # 1 - Get rolling mean -------------------------------------------------------
+  HistDataAll1 <- setorder(as.data.frame(HistDataAll[[1]]), Year, Day)
+  HistDataRolling <- getRolling(HistDataAll1)
+  
+  # 2 - Get climatologies! Daily for 18 months 549  -----------------------------
+  
+  # ---- Need to account for the 30-year baseline of the calc ...
+  # ---- Each calc return 366 days. "get18MonthClimatologicalRecord" slices it all apart ...
+  
+  # previous 6 months
+  HistData_Norm_Stats1 <- getHistoricalClimatology(HistDataRolling, 1991, 2021, SoilsDF)
+  # this year
+  HistData_Norm_Stats2 <- getHistoricalClimatology(HistDataRolling, 1991, 2020, SoilsDF)
+  # next year
+  HistData_Norm_Stats3 <- getHistoricalClimatology(HistDataRolling, 1992, 2021, SoilsDF)
+  
+  # 3 - Aggregate these chunks! ------------------------------------------------
+  HistDataNormMean_18MNs <- get18MonthClimatologicalRecord(HistData_Norm_Stats1,
+                                                           HistData_Norm_Stats2,
+                                                           HistData_Norm_Stats3,
+                                                           currDate, currMonth,
+                                                           currYear, todayMonthDay)
+  
+  # 4 - Additional outputs for "future" results --------------------------------
+  # Questions where should I save these for easy loading when I need them .......
+  
+  HistData_MonthlyMeans_2 <- formatOutputs_Monthlys(HistDataAll1, SoilsDF, 
+                                                    'historical', 1991, 2020, 
+                                                    currDate, todayMonthDay,
+                                                    currYearClimatology = TRUE)
+  
+  HistData_MonthlyMeans_3 <- formatOutputs_Monthlys(HistDataAll1, SoilsDF, 
+                                                    'historical', 1992, 2021)
+  
+  # make one year record -
+  HistData_MonthlyMeans <- formatHistoricalMonthlys(HistData_MonthlyMeans_2,
+                                                   HistData_MonthlyMeans_3,
+                                                   currYear, todayMonthDay)
+  
+  # eco vars!!!! ------------------------------------------------------------------
+  # Hist_Shriver2018 <- data.table(Year = HistDataAll[[2]]$PlantedinYear,
+  #                                Prob = p_Shriver2018(HistDataAll[[2]]$Temp_mean, HistDataAll[[2]]$VWC_mean))
+  # 
+  # Hist_GISSM <- data.table(HistDataAll[[3]])
+  # 
+  # Hist_OConnor2020 <- HistDataAll[[4]]
+  
   
   ################### ----------------------------------------------------------------
   # Part 4 - Run SOILWAT with future anomaly data!!
   ################### ----------------------------------------------------------------
   if(!interactive()) comm.print(paste('Running Future Site', Site_id, Sys.time()))
-  #print(paste('Running Future', Sys.time()))
-  
+
   # 4.1 Determine Region from coordinates and shapefile ------------------------
   points <- data.frame(x = swSite_IntrinsicSiteParams(sw_in)[1], 
                        y = swSite_IntrinsicSiteParams(sw_in)[2])
@@ -148,23 +218,57 @@ for (j in alljid) { # use while not for
   PPTAnoms <- subset(PPTAnomsWhole, CD == CDRegion)
   PPTAnoms <- PPTAnoms[1:Nleads,]
 
-  SoilsDF <- data.table(depth_cm = c(1:250),
-                        Depth = c(rep('Shallow', 15),
-                                  rep('Intermediate', 50),
-                                  rep('Deep',185)))
-
-  Soils <- data.table((sw_in@soils@Layers))[,c('depth_cm', 'sand_frac', 'clay_frac')]
-  Soils$width <- diff(c(0, as.numeric(unlist(Soils[,'depth_cm']))))
-  SoilsDF <- merge(Soils, SoilsDF, by = 'depth_cm')
-  SoilsDF$variable <- paste0('Lyr_',1:dim(SoilsDF)[1])
-
   AnomalyData1 <- runFutureSWwithAnomalies(sw_in0 = sw_in, wdata, SoilsDF,
                                            TempAnoms, PPTAnoms,
-                                           Nleads, n = 10,
+                                           Nleads, n = 5,
                                            currDOY, currMonth, currYear, currDate)
   
+  # start here for work
   AnomalyData1 <- plyr::aaply(plyr::laply(AnomalyData1, as.matrix), c(2, 3), mean)
+  #if(verbose) print(paste('Formatting Outputs', Sys.time()))
+  #AllOut <- AnomalyData1[[1]]
+  #MonthlyAnoms <- AnomalyData1[[5]]
   
+  # Recent past (6 months prior to current): included in 'future' runs --------
+  AnomRunStats <- formatOutputsFuture(AllOut, SoilsDF, currDate)
+  AnomRunStats <- AnomRunStats[AnomRunStats$Date < lastWeatherDate, ]
+  
+  # Upcoming year (current date + 1 year)
+  AnomRunStats2 <- formatOutputs_Monthlys(AllOut, SoilsDF, 'future', currDate = currDate)
+  
+  # eco vars ------------------------------------------------------------------
+  # Future_Shriver2018 <- data.table(Year = AnomalyData1[[2]]$PlantedinYear, run = AnomalyData1[[2]]$run,
+  #                                  Prob =  p_Shriver2018(AnomalyData1[[2]]$Temp_mean, AnomalyData1[[2]]$VWC_mean))
+  # 
+  # Future_GISSM <- data.table(AnomalyData1[[3]])
+  # 
+  # Future_OConnor2020 <- data.table(AnomalyData1[[4]])
+  
+  ################### ----------------------------------------------------------------
+  # Part 5 - Calculate deltas, formout outputs
+  ################### ----------------------------------------------------------------
+  
+  # calculate deltas and approx and format
+  Vars <- c('avg_C', 'ppt', 'VWC.Shallow', 'VWC.Intermediate', 'VWC.Deep',
+            'SWP.Shallow', 'SWP.Intermediate', 'SWP.Deep')
+  
+  AllVarData <- data.frame(Date = as.Date((currDate-183):(currDate+365)))
+  
+  for(v in seq(Vars)){
+    OneVarData <- suppressMessages(calcDeltasApproxAndFormat(HistData_Norm_Stats1, HistData_MonthlyMeans,
+                                                             as.data.frame(HistDataNormMean_18MNs),
+                                                             AnomRunStats, AnomRunStats2,
+                                                             Vars[v], currDate, todayMonthDay, currYear,
+                                                             lastWeatherDate))
+    
+    AllVarData <- merge(AllVarData, OneVarData)
+  }
+  
+  # format ecovars for writing out -------------------------------------------
+  # Shriver_Stats <- formatShriver2018(Hist_Shriver2018, Future_Shriver2018, currYear)
+  # GISSM_Stats <- formatGISSM(Hist_GISSM, Future_GISSM)
+  # Oconnor_Stats <- formatOConnor2020(Hist_OConnor2020, Future_OConnor2020)
+  # 
   
   # Put data into netCDFs------------------------------------------------------
   wdata_2022 <- wdata[['2022']]

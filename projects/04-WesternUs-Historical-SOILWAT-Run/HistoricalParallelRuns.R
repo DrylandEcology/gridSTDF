@@ -108,17 +108,6 @@ for (i in alljid) { # use while not for
   swCarbon_Use_WUE(sw_in) <- FALSE
   swYears_EndYear(sw_in) <- currYear - 1
   
-  ################### ----------------------------------------------------------
-  # Part 3 - Run SOILWAT Historical!
-  ################### ----------------------------------------------------------
-  if(!interactive()) comm.print(paste('Running Current Site', Site_id, Sys.time()))
-  
-  sw_out <- rSOILWAT2::sw_exec(inputData = sw_in, weatherList = wdata, quiet = TRUE)
-  
-  
-  ################### ----------------------------------------------------------
-  # Part 4 - Gather Outputs
-  ################### ----------------------------------------------------------
   
   # Soils info formatting ----------------------------------------------------
   SoilsDF <- data.frame(depth_cm = c(1:250),
@@ -131,8 +120,21 @@ for (i in alljid) { # use while not for
   SoilsDF <- merge(Soils, SoilsDF, by = 'depth_cm')
   SoilsDF$variable <- paste0('Lyr_',1:dim(SoilsDF)[1])
   
+  ################### ----------------------------------------------------------
+  # Part 3 - Run SOILWAT Historical!
+  ################### ----------------------------------------------------------
+  if(!interactive()) comm.print(paste('Running Current Site', Site_id, Sys.time()))
+  
+  sw_out <- rSOILWAT2::sw_exec(inputData = sw_in, weatherList = wdata, quiet = TRUE)
+  
+  
+  ################### ----------------------------------------------------------
+  # Part 4 - Gather Outputs
+  ################### ----------------------------------------------------------
+
+  
   ################ -------------------------------------------------------------
-  # FORMAT OUTPUTS ------------- Get 18 month median, 10, and 90 for all !!! ---
+  #  ------------- Get 18 month median, 10, and 90 for all !!! ---
   ################ -------------------------------------------------------------
   
   HistDataAll <- getOutputs(sw_out, sw_in, SoilsDF, 
