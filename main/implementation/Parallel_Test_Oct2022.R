@@ -81,7 +81,7 @@ for (j in alljid) { # use while not for
   ################### ------------------------------------------------------------
 
   weatherDB <- rSOILWAT2::dbW_setConnection(
-    dbFilePath = 'mainData/dbWeatherData_WesternUS_gridMET_historical.sqlite3')
+    dbFilePath = 'main/Data/dbWeatherData_WesternUS_gridMET_historical.sqlite3')
   
   Site_id <- Sites$Site_id[i]
   Lat <- Sites$Latitude[i]
@@ -95,20 +95,21 @@ for (j in alljid) { # use while not for
   if(!interactive()) comm.print(paste('Site', Site_id, 'running'))
   
   wdata <- rSOILWAT2::dbW_getWeatherData(Site_id = Site_id)
-  years <- rSOILWAT2::get_years_from_weatherData(wdata)
-  ids <- rSOILWAT2:::select_years(years, 1990, 2020)
-  wdata <- wdata[ids]
+  #years <- rSOILWAT2::get_years_from_weatherData(wdata)
+  #ids <- rSOILWAT2:::select_years(years, 1990, 2021)
+  #wdata <- wdata[ids]
 
-  wdata_2021_plus <- getWeatherData(Lat, Long, currYear,
-                                    dir = 'Data/www.northwestknowledge.net/metdata/data/')
+  wdata_plus <- getWeatherData(Lat, Long, currYear,
+                                    dir = 'main/Data/www.northwestknowledge.net/metdata/data/')
 
-  lastWeatherDate <- wdata_2021_plus[[2]]
-  wdata_2021_plus <- wdata_2021_plus[[1]]
-  wdata_2021_plus <- rSOILWAT2::dbW_dataframe_to_weatherData(
-    wdata_2021_plus[,c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')], round = 4)
+  lastWeatherDate <- wdata_plus[[2]]
+  wdata_plus <- wdata_plus[[1]]
+  wdata_plus <- rSOILWAT2::dbW_dataframe_to_weatherData(
+    wdata_plus[,c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')], round = 4)
    
-  clim <- rSOILWAT2::calc_SiteClimate(weatherList = wdata, do_C4vars = TRUE)
-  wdata <- c(wdata, wdata_2021_plus)
+  clim <- rSOILWAT2::calc_SiteClimate(weatherList = wdata, year.start = 1991, 
+                                      year.end = 2020, do_C4vars = TRUE)
+  wdata <- c(wdata, wdata_plus)
   
   ################### ----------------------------------------------------------
   # Part 2 - Sets SW parameters besides weather
@@ -121,9 +122,9 @@ for (j in alljid) { # use while not for
   ################### ----------------------------------------------------------
   # Part 3 - Run SOILWAT Historical!
   ################### ----------------------------------------------------------
-  if(!interactive()) comm.print(paste('Running Current Site', Site_id, Sys.time()))
+  #if(!interactive()) comm.print(paste('Running Current Site', Site_id, Sys.time()))
   
-  sw_out <- rSOILWAT2::sw_exec(inputData = sw_in, weatherList = wdata, quiet = FALSE)
+  #sw_out <- rSOILWAT2::sw_exec(inputData = sw_in, weatherList = wdata, quiet = FALSE)
   
   ################### ----------------------------------------------------------------
   # Part 4 - Run SOILWAT with future anomaly data!!

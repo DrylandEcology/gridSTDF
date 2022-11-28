@@ -81,11 +81,12 @@ getHistoricalClimatology <- function(dataset, yearBegin, yearEnd, SoilsDF) {
   HistData_Norm_Stats <- dataset[dataset$Year %in% yearBegin:yearEnd, ] # historical normal
   HistData_Norm_Stats <- makeDateMonthDat(HistData_Norm_Stats, 'Day')     # Get date without the year
   HistData_Norm_Stats$Year <- HistData_Norm_Stats$Day <- NULL
+  ll <- length(names(HistData_Norm_Stats))
   HistData_Norm_Stats <- setnames(setDT(HistData_Norm_Stats)[ ,sapply(.SD, function(x) list(med=median(x),
                                                                                             x10=quantile(x, .1, na.rm = TRUE),
                                                                                             x90 = quantile(x, .9, na.rm = TRUE))),
                                                               .(Date)],
-                                  c('Date', sapply(names(HistData_Norm_Stats)[-c(11)], paste0, c(".med", ".10", ".90"))))# get all means and sds!!!
+                                  c('Date', sapply(names(HistData_Norm_Stats)[-c(ll)], paste0, c(".med", ".10", ".90"))))# get all means and sds!!!
   HistData_Norm_Stats <- getSWP(HistData_Norm_Stats, SoilsDF)
   HistData_Norm_Stats <- setorder(HistData_Norm_Stats, Date)
 
@@ -142,23 +143,20 @@ formatOutputs_Monthlys <- function(AllOut, SoilsDF, TP, yearBegin, yearEnd, curr
   if(TP == 'future') {
     # take a mean across all realizations and representations for most all vars
     AllOutMean <- setDT(AllOut)[, sapply(.SD, function(x) list(mean=mean(x))),
-                                .(run_year, Year, Date),
-                                .SDcols = c('avg_C', 'VWC.Deep', 'VWC.Intermediate',
-                                            'VWC.Shallow')]
+                                .(run_year, Year, Date)]
     # for precip - sum per realization/rep first .. then get mean of that value
     AllOutSum <- setDT(AllOut)[, .(ppt.sum = sum(ppt)), .(run, Year, Date)]
     AllOutSum$run_year <- sapply(strsplit(AllOutSum$run, '_'), '[', 2)
     AllOutSum <- setDT(AllOutSum)[, .(ppt.sum = mean(ppt.sum)), .(run_year,Year, Date)]
 
     AllOut <- merge(AllOutMean, AllOutSum)
-    AllOut$run_year <-  NULL
+    AllOut$run_year <- NULL
 
-  } else{
-    # take a mean across all vars
+  } else {
+    # take a mean of all vars (except ppt ..)
     AllOutMean <- setDT(AllOut)[, sapply(.SD, function(x) list(mean=mean(x))),
-                                .(Year, Date),
-                                .SDcols = c('avg_C', 'VWC.Deep', 'VWC.Intermediate',
-                                            'VWC.Shallow')]
+                                .(Year, Date)]
+
     # for ppt ... get values per each year
     AllOutSum <- setDT(AllOut)[, .(ppt.sum = sum(ppt)), .(Year, Date)]
 
@@ -166,7 +164,7 @@ formatOutputs_Monthlys <- function(AllOut, SoilsDF, TP, yearBegin, yearEnd, curr
 
   }
 
-  AllOut$Year <- NULL
+  AllOut$Year <- AllOutMean$ppt.mean <- NULL
 
   # Get median, 10th, and 90th for each month
   AnomRunStats <- setnames(setDT(AllOut)[, sapply(.SD, function(x) list(med=median(x),
@@ -205,9 +203,9 @@ get18MonthClimatologicalRecord <- function(HistData_Norm_Stats1,
                                            HistData_Norm_Stats3,
                                            currDate, currMonth, currYear,
                                            todayMonthDay) {
-  ##### ------------------------------------------------------------------------------
-  # Hist Norms --------------------------------------------------------------------------
-  ##### ------------------------------------------------------------------------------
+  ##### ------------------------------------------------------------------------
+  # Hist Norms -----------------------------------------------------------------
+  ##### ------------------------------------------------------------------------
 
   #  Get data for prior 6 months
   sixMonthsAgo <- format(currDate - 183,  format="%m-%d")
@@ -351,11 +349,20 @@ formatOutputsFuture <- function(AllOut, SoilsDF, currDate) {
 getRolling <- function(Data2){
   # get rolling sums and means for ppt and temps
 
-  Data2$ppt_rollsum <- rollapply(Data2$ppt,  width = 30, FUN = sum, fill = 'extend', align = 'center')# for historical data can just calc continuously 30 day sum
-  Data2$avg_C_rollmean <- runmean(Data2$avg_C,  k = 30, endrule = 'mean', align = 'center')#
-  Data2$VWC.Shallow_rollmean <- runmean(Data2$VWC.Shallow,  k = 30, endrule = 'mean', align = 'center')
-  Data2$VWC.Intermediate_rollmean <- runmean(Data2$VWC.Intermediate,  k = 30, endrule = 'mean', align = 'center')
-  Data2$VWC.Deep_rollmean <- runmean(Data2$VWC.Deep,  k = 30, endrule = 'mean', align = 'center')
+  Data2$ppt_rollsum <- zoo::rollapply(Data2$ppt,  width = 30, FUN = sum, fill = 'extend', align = 'center')# for historical data can just calc continuously 30 day sum
+  Data2$avg_C_rollmean <- caTools::runmean(Data2$avg_C,  k = 30, endrule = 'mean', align = 'center')#
+  Data2$VWC.Shallow_rollmean <- caTools::runmean(Data2$VWC.Shallow,  k = 30, endrule = 'mean', align = 'center')
+  
+  if("VWC.Intermediate" %in% names(Data2)) {
+    
+  Data2$VWC.Intermediate_rollmean <- caTools::runmean(Data2$VWC.Intermediate,  
+                                                      k = 30, endrule = 'mean', align = 'center')
+  }
+  
+  if("VWC.Deep" %in% names(Data2)) {
+    Data2$VWC.Deep_rollmean <- caTools::runmean(Data2$VWC.Deep,  k = 30,
+                                                endrule = 'mean', align = 'center')
+  }
 
   return(Data2)
 }

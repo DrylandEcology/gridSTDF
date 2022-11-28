@@ -1,6 +1,6 @@
  # rm(list = ls(all = TRUE))
- # library(RNetCDF)
- # source('functions/netcdf_functions.R')
+ library(RNetCDF)
+ source('functions/netcdf_functions.R')
 
 #devtools::install_github("r4ecology/rcdo", dependencies = TRUE, force = TRUE)
 # Clip file to our domain if you haven't already ----------------------------
@@ -105,6 +105,7 @@ for(nc in 1:nrow(attributes)){
     unlim = FALSE
   )
   
+  ## time bounds --------------------------------
   time_bounds <- if(nc_time$units == "days") {
     time_bounds_daily 
   } else if(nc_time$units == "months") {
@@ -113,7 +114,9 @@ for(nc in 1:nrow(attributes)){
     time_bounds_annually
   }
 
-  print(paste(nc, dim(time_bounds)))
+  ## data_dims ---------------------------------
+  data_dims_nc <- c(0, 739, 585, 0, nrow(time_bounds), 0)
+  names(data_dims_nc) <- c("ns", "nx", "ny", "nz", "nt", "nv")
   
   # global ----------------------------------------------------------------------
   nc_att_global <- list(
@@ -133,11 +136,9 @@ for(nc in 1:nrow(attributes)){
     nominal_resolution = "4km",
     Conventions = "CF-1.8")
   
-  
-  
   ## Write netCDF for gridded data
-  data_dims_nc <- c(0, 739,585,0,12,0)
-  names(data_dims_nc) <- c("ns", "nx", "ny", "nt", "nz", "nv")
+
+  
   assign(names[nc], create_netCDF(
     filename = file.path(Output_folder,
                          paste0(attributes$Name[nc], '_', format(Sys.Date(), "%m%Y"), '.nc')),
@@ -145,7 +146,7 @@ for(nc in 1:nrow(attributes)){
     xyspace = western_region.nc1[["xyspace"]],
     #data = western_region.nc1[["data"]],
     data_str = "xyt",
-    data_dims= ,
+    data_dims = data_dims_nc,
     var_attributes = nc_vars,
     xy_attributes = nc_att_xy,
     crs_attributes = nc_att_crs,
