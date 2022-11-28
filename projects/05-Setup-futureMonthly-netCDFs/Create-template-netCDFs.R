@@ -1,6 +1,6 @@
  # rm(list = ls(all = TRUE))
- library(RNetCDF)
- source('functions/netcdf_functions.R')
+ #library(RNetCDF)
+ #source('functions/netcdf_functions.R')
 
 #devtools::install_github("r4ecology/rcdo", dependencies = TRUE, force = TRUE)
 # Clip file to our domain if you haven't already ----------------------------
@@ -20,7 +20,7 @@
 # ------------------------------------------------------------------------------
 # Step 1 -----------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-Output_folder <- 'projects/04-Setup-All-netCDFs/Outputs/Test1_11222022/'
+Output_folder <- 'projects/05-Setup-futureMonthly-netCDFs/Outputs/Test1_11222022/'
 
 example1 <- 'projects/03-Make-Climatologies-netCDF/ta_yr_SOILWAT2_RangeDroughtExposure_historical_gn_19710101-20101231-clim.nc'
 
@@ -59,11 +59,11 @@ nc_att_xy <- western_region.nc1$xy_attributes
 
 
 # daily
-c1 <- as.character(seq(as.Date("1991/1/1"), as.Date("1991/12/31"), "days"))
-c2 <-  as.character(seq(as.Date("2020/1/1"), as.Date("2020/12/31"), "days"))
-c2 <- c2[-60]
+c1 <- as.character(seq(as.Date("1991/1/1"), as.Date("1992/07/02"), "days"))
+c2 <-  as.character(seq(as.Date("2020/1/1"), as.Date("2021/07/02"), "days"))
+#c2 <- c2[-60]
 time_bounds_daily = matrix(c(c1, c2), 
-                     nrow = length(1:365), ncol = 2)
+                     nrow = length(1:549), ncol = 2)
 
 # monthly
 c1 <- as.character(seq(as.Date("1991/1/15"), as.Date("1991/12/15"), "months"))
@@ -77,7 +77,7 @@ c2 <-  as.character(seq(as.Date("1991/12/31"), as.Date("2020/12/31"), "years"))
 time_bounds_annually = matrix(c(c1, c2), 
                              nrow = length(1:30), ncol = 2)
 
-attributes <- read.csv('projects/04-Setup-All-netCDFs/nc_atts-future.csv')
+attributes <- read.csv('projects/05-Setup-futureMonthly-netCDFs/nc_atts-all.csv')
 
 names <-  attributes$short_name
 

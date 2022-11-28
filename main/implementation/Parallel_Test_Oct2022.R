@@ -243,9 +243,9 @@ for (j in alljid) { # use while not for
   AnomRunStats2 <- formatOutputs_Monthlys(AnomalyData2, SoilsDF, 'future', currDate = currDate)
 
   
-  ################### ----------------------------------------------------------------
+  ################### ----------------------------------------------------------
   # Part 5 - Calculate deltas, formout outputs
-  ################### ----------------------------------------------------------------
+  ################### ----------------------------------------------------------
   
   # calculate deltas and approx and format
   Vars <- c('avg_C', 'ppt', 'VWC.Shallow', 'VWC.Intermediate', 'VWC.Deep',
