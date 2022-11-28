@@ -199,13 +199,13 @@ for (i in alljid) { # use while not for
   filestart = paste(Site_id, round(Lat, 5), round(Long, 5), sep = '_')
   
   write.csv(HistData_Norm_Stats1, 
-            file.path(Outpath, 'HistDaily1', paste(filestart, 'histNormDaily1.csv', sep = '_' )),
+            file.path(Outpath, 'DailyStats', paste(filestart, 'histNormDaily1.csv', sep = '_' )),
             row.names = FALSE)
   write.csv(HistData_Norm_Stats2,
-            file.path(Outpath, 'HistDaily2', paste(filestart, 'histNormDaily2.csv', sep = '_' )),
+            file.path(Outpath, 'DailyStats', paste(filestart, 'histNormDaily2.csv', sep = '_' )),
             row.names = FALSE)
   write.csv(HistData_Norm_Stats3,
-            file.path(Outpath, 'HistDaily3', paste(filestart, 'histNormDaily3.csv', sep = '_' )),
+            file.path(Outpath, 'DailyStats', paste(filestart, 'histNormDaily3.csv', sep = '_' )),
             row.names = FALSE)
   write.csv(HistData_MonthlyMeans_2,
             file.path(Outpath, 'MonthlyMeans', paste(filestart, 'histMonthlyMean1.csv', sep = '_' )),
