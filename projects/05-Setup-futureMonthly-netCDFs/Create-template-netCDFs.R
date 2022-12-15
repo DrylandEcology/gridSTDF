@@ -81,7 +81,8 @@ attributes <- read.csv('projects/05-Setup-futureMonthly-netCDFs/nc_atts-all.csv'
 
 names <-  attributes$short_name
 
-for(nc in 1:nrow(attributes)){
+for(nc in 1:48){
+  print(nc)
   
   # 2) - Change for each run -----------------------------------------------------
   # var_attributes ---------------------------------------------------------------

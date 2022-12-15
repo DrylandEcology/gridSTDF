@@ -586,7 +586,7 @@ create_netCDF <- function(
   if (is_gridded) {
     # Note: xvals are organized from west to east, yvals from south to north
     xy_grid <- try(
-      get_xyspace(xyspace, crs = crs_xyspace),
+      rSW2st::get_xyspace(xyspace, crs = crs_xyspace),
       silent = TRUE
     )
     
