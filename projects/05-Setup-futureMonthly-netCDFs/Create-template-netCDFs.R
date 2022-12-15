@@ -1,6 +1,6 @@
  # rm(list = ls(all = TRUE))
  #library(RNetCDF)
- #source('functions/netcdf_functions.R')
+ #source('functions/netcdf_functions2.R')
 
 #devtools::install_github("r4ecology/rcdo", dependencies = TRUE, force = TRUE)
 # Clip file to our domain if you haven't already ----------------------------
@@ -20,7 +20,7 @@
 # ------------------------------------------------------------------------------
 # Step 1 -----------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-Output_folder <- 'projects/05-Setup-futureMonthly-netCDFs/Outputs/Test1_11222022/'
+Output_folder <- 'projects/05-Setup-futureMonthly-netCDFs/Outputs/Test2_12152022/'
 
 example1 <- 'projects/03-Make-Climatologies-netCDF/ta_yr_SOILWAT2_RangeDroughtExposure_historical_gn_19710101-20101231-clim.nc'
 
