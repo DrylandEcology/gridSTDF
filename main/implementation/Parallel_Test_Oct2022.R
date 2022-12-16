@@ -15,7 +15,10 @@ suppressMessages(library(RNetCDF, quiet = TRUE))
 
 source('functions/weatherFunctions.R')
 source('functions/HelperFunctions.R')
-source('functions/Outputs.R')
+source('functions/getOutputs.R')
+source('functions/formatOutputs.R')
+source('functions/calcHistoricalClimatologies.R')
+
 source('main/implementation/SWfunc.R')
 source('functions/netcdf_functions2.R')
 
@@ -35,7 +38,7 @@ alljid <- get.jid(n = 1000, method = "block", all = FALSE)
 comm.print(alljid)
 
 #### ---------------------------- Outputs  -------------------------------- ####
-source('projects/04-Setup-All-netCDFs/Create-template-netCDFs.R') # obviously change this path
+source('projects/05-Setup-futureMonthly-netCDFs/Create-template-netCDFs.R') # obviously change this path
 
 #### --------------------   Set Inputs and Parameters   ------------------- ####
 
@@ -77,6 +80,7 @@ for (j in alljid) { # use while not for
   
   sites_for_now <- 10000:10050
   i <- sites_for_now[j]
+  
   ################### ------------------------------------------------------------
   # Part 1 - Getting and formatting historical weather data 
   ################### ------------------------------------------------------------
@@ -96,10 +100,6 @@ for (j in alljid) { # use while not for
   if(!interactive()) comm.print(paste('Site', Site_id, 'running'))
   
   wdata <- rSOILWAT2::dbW_getWeatherData(Site_id = Site_id)
-  #years <- rSOILWAT2::get_years_from_weatherData(wdata)
-  #ids <- rSOILWAT2:::select_years(years, 1990, 2021)
-  #wdata <- wdata[ids]
-
   wdata_plus <- getWeatherData(Lat, Long, currYear,
                                     dir = 'main/Data/www.northwestknowledge.net/metdata/data/')
 
@@ -152,7 +152,7 @@ for (j in alljid) { # use while not for
   
   # 1 - Get rolling mean -------------------------------------------------------
   HistDataAll1 <- setorder(as.data.frame(HistDataAll[[1]]), Year, Day)
-  HistDataRolling <- getRolling(HistDataAll1)
+  HistDataRolling <- getRolling(HistDataAll1, TimePeriod = 'Historical')
   
   # 2 - Get climatologies! Daily for 18 months 549  -----------------------------
   
@@ -175,13 +175,12 @@ for (j in alljid) { # use while not for
   
   # 4 - Additional outputs for "future" results --------------------------------
   # Questions where should I save these for easy loading when I need them .......
-  
-  HistData_MonthlyMeans_2 <- formatOutputs_Monthlys(HistDataAll1, SoilsDF, 
+  HistData_MonthlyMeans_2 <- formatOutputsMonthlys(HistDataAll1, SoilsDF, 
                                                     'historical', 1991, 2020, 
                                                     currDate, todayMonthDay,
                                                     currYearClimatology = TRUE)
   
-  HistData_MonthlyMeans_3 <- formatOutputs_Monthlys(HistDataAll1, SoilsDF, 
+  HistData_MonthlyMeans_3 <- formatOutputsMonthlys(HistDataAll1, SoilsDF, 
                                                     'historical', 1992, 2021)
   
   # make one year record -
@@ -240,7 +239,7 @@ for (j in alljid) { # use while not for
   
   # # 4 ---------- Upcoming year (current date + 1 year)
   AnomalyData2 <- data.frame(AnomalyData2)
-  AnomRunStats2 <- formatOutputs_Monthlys(AnomalyData2, SoilsDF, 'future', currDate = currDate)
+  AnomRunStats2 <- formatOutputsMonthlys(AnomalyData2, SoilsDF, 'future', currDate = currDate)
 
   
   ################### ----------------------------------------------------------
@@ -248,12 +247,15 @@ for (j in alljid) { # use while not for
   ################### ----------------------------------------------------------
   
   # calculate deltas and approx and format
-  Vars <- c('avg_C', 'ppt', 'VWC.Shallow', 'VWC.Intermediate', 'VWC.Deep',
-            'SWP.Shallow', 'SWP.Intermediate', 'SWP.Deep')
+  Vars <- names(HistDataAll1)[3:dim(HistDataAll1)[2]]
+  if(length(Vars) == 3) Vars <- c(Vars, "SWP.Shallow")
+  if(length(Vars) == 4) Vars <- c(Vars, "SWP.Shallow", "SWP.Intermediate")
+  if(length(Vars) == 5) Vars <- c(Vars, "SWP.Shallow", "SWP.Intermediate", "SWP.Deep")
   
-  AllVarData <- data.frame(Date = seq((currDate-183),(currDate+365), "days"))
+  AllVarData <- data.frame(Date = seq((currDate-183), (currDate+365), "days"))
   
   for(v in seq(Vars)){
+    print(v)
     OneVarData <- suppressMessages(calcDeltasApproxAndFormat(HistData_Norm_Stats1, HistData_MonthlyMeans,
                                                              as.data.frame(HistDataNormMean_18MNs),
                                                              AnomRunStats, AnomRunStats2,
@@ -262,8 +264,6 @@ for (j in alljid) { # use while not for
     
     AllVarData <- merge(AllVarData, OneVarData)
   }
-  
-  
   
   
   # eco vars ------------------------------------------------------------------
@@ -279,16 +279,15 @@ for (j in alljid) { # use while not for
   # Shriver_Stats <- formatShriver2018(Hist_Shriver2018, Future_Shriver2018, currYear)
   # GISSM_Stats <- formatGISSM(Hist_GISSM, Future_GISSM)
   # Oconnor_Stats <- formatOConnor2020(Hist_OConnor2020, Future_OConnor2020)
-  # 
   
   # Put data into netCDFs------------------------------------------------------
-  wdata_2022 <- wdata[['2022']]
-  wdata_2022_tmax <- as.vector(wdata_2022@data[,2])
+  #wdata_2022 <- wdata[['2022']]
+  #wdata_2022_tmax <- as.vector(wdata_2022@data[,2])
   
   ### write variable values to file
   
-  ncvar_put(tmmx_nc, "tmmx", wdata_2022_tmax, start = st, count = co)
-  nc_sync(tmmx_nc) 
+  #ncvar_put(tmmx_nc, "tmmx", wdata_2022_tmax, start = st, count = co)
+  #nc_sync(tmmx_nc) 
   # Another netCDF that tracks success and failure
   
 }
