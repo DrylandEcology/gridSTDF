@@ -46,6 +46,7 @@ if(!interactive()) comm.print('netCDFs created')
 weatherDB <- rSOILWAT2::dbW_setConnection(
   dbFilePath = 'main/Data/dbWeatherData_WesternUS_gridMET_1979-2021.sqlite3')
 Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
+Sites <- Sites[!is.na(Sites$region2),]
 
 # Date Info --------------------------------------------------------------------
 currDOY <- lubridate::yday(Sys.Date())
@@ -75,8 +76,8 @@ if(!interactive()) comm.print('begin simulations')
 # Run simulation --------------------------------------------------------------
 for (j in alljid) { # use while not for
   
-  sites_for_now <- 15000:15050
-  i <- sites_for_now[j]
+  #sites_for_now <- 15000:15050
+  i <- j
   
   ################### ------------------------------------------------------------
   # Part 1 - Getting and formatting historical weather data 
