@@ -93,7 +93,8 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
   
   # Convert moving left-aligned 3-month periods to NWS leads
   monthlyWdata <- merge(monthlyWdata, monthLeads[,1:2])
-  
+  if(!interactive()) comm.print('in weather function 1')
+
   # Transform PPT_in_rollingSum using powers (PO) from NWS long-long ppt forecasts
   monthlyWdata <- merge(monthlyWdata, PPTAnoms[,c('LEAD', 'PO')], by = 'LEAD')
   monthlyWdata$PPT_PO_rollSum <- monthlyWdata$PPT_in_rollSum ^ monthlyWdata$PO
@@ -131,7 +132,8 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
   
   # fwrite(PPTAnoms, 'ExampleData/PPTAnoms.csv')
   # fwrite(TempAnoms, 'ExampleData/TempAnoms.csv')
-  
+  if(!interactive()) comm.print('in weather function 2')
+
   # Step 2 - n samples, multivariate sampling for each lead -------------------------------------------------
   generatedAnomData <- generateAnomalyData(monthlyWdata, TempAnoms, PPTAnoms,
                                            leads = seq_len(Nleads), Nleads = Nleads,
@@ -200,7 +202,8 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
     #MonthlyAnoms <- rbind(MonthlyAnoms, yearlydat)
     #}
     #fwrite(MonthlyAnoms, 'ExampleData/MonthlyAnoms.csv')
-    
+    if(!interactive()) comm.print('in weather function')
+
     # Step 4 ----------------------------------------------------------------------------------------------
     # Create future weather / integrate anomaly data into historical weather ----------------------------------------------------------
     years <- 1991:2021
@@ -266,8 +269,9 @@ generateAnomalyData <- function(monthlyWdata, TempAnoms, PPTAnoms,
   set.seed(NULL)
 
   # one table
-  forecast_NWS <- merge(TempAnoms[,c('LEAD','ClimatologicalMEAN_Temp_C', 'ForecastedSD_Temp_C', 'Anom_C')],
-                       PPTAnoms[,c('LEAD','ClimatatologicalMEAN_PPT_PO', 'ForecastedSD', 'Anom_PO')])
+  forecast_NWS <- merge(TempAnoms[,.(LEAD, ClimatologicalMEAN_Temp_C, ForecastedSD_Temp_C, Anom_C)],
+                       PPTAnoms[,.(LEAD,ClimatatologicalMEAN_PPT_PO, ForecastedSD, Anom_PO)],
+                       by = "LEAD", allow.cartesian = TRUE)
 
   #------ Calculate anomalies from historical data corresponding to NWS deviations
   ids <- monthlyWdata[["LEAD"]]
@@ -293,11 +297,16 @@ generateAnomalyData <- function(monthlyWdata, TempAnoms, PPTAnoms,
   )
 
   for (k in seq_along(leads)) {
+      if(!interactive()) comm.print(k)
+
     # Put together covariances from historical meteo data and
     # variances from NWS forecasts
-    kcov <- cov_anomalies_leads[[k]]
-    kcov["dT_C", "dT_C"] <- t(forecast_NWS[k, "ForecastedSD_Temp_C"] ^ 2)
-    kcov["dPPT_PO", "dPPT_PO"] <- t(forecast_NWS[k, "ForecastedSD"] ^ 2)
+    kcov <- matrix(unlist(cov_anomalies_leads[k]), nrow = 2)
+    print('test')
+    print(kcov)
+    kcov[1] <- unlist(forecast_NWS[k, "ForecastedSD_Temp_C"] ^ 2)
+    kcov[4] <- unlist(forecast_NWS[k, "ForecastedSD"] ^ 2)
+    print(kcov)
 
     # Draw multivariate normal anomalies: Sigma may not be positive definite
     # write message that confirms that mvrnorm worked for each lead
