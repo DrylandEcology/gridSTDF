@@ -12,7 +12,6 @@ suppressMessages(library(lubridate, quietly = TRUE))
 suppressMessages(library(pbdMPI, quiet = TRUE))
 suppressMessages(library(RNetCDF, quiet = TRUE))
 
-
 source('functions/weatherFunctions.R')
 source('functions/HelperFunctions.R')
 source('functions/getOutputs.R')
@@ -38,7 +37,8 @@ alljid <- get.jid(n = 1000, method = "block", all = FALSE)
 comm.print(alljid)
 
 #### ---------------------------- Outputs  -------------------------------- ####
-source('projects/05-Setup-futureMonthly-netCDFs/Create-template-netCDFs.R') # obviously change this path
+#source('projects/05-Setup-futureMonthly-netCDFs/Create-template-netCDFs.R') # obviously change this path
+if(!interactive()) comm.print('netCDFs created')
 
 #### --------------------   Set Inputs and Parameters   ------------------- ####
 
@@ -74,11 +74,12 @@ monthLeads <- makeMonthLeadRelationshipTable(TempAnomsWhole[1:12,], currMonth)
 ################### ------------------------------------------------------------
 # Simulation begin in Parallel!! 
 ################### ------------------------------------------------------------
+if(!interactive()) comm.print('begin simulations')
 
 # Run simulation --------------------------------------------------------------
 for (j in alljid) { # use while not for
   
-  sites_for_now <- 10000:10050
+  sites_for_now <- 15000:15050
   i <- sites_for_now[j]
   
   ################### ------------------------------------------------------------
@@ -222,7 +223,8 @@ for (j in alljid) { # use while not for
                                            TempAnoms, PPTAnoms,
                                            Nleads, n = 5,
                                            currDOY, currMonth, currYear, currDate)
-  
+  if(!interactive()) comm.print('done future')
+
   ################ -------------------------------------------------------------
   # FORMAT OUTPUTS  --- Get 18 month median, 10, and 90 for all !!! ---
   ################ -------------------------------------------------------------
@@ -300,4 +302,5 @@ if(!interactive()) {
   #   #info.free()
   barrier()
   finalize()
+
 }
