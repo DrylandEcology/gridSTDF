@@ -2,7 +2,7 @@ rm(list = ls(all = TRUE))
 
 library(RNetCDF)
 
-file <- "Data/www.northwestknowledge.net/metdata/data/tmmx_2021.nc"
+file <- "main/Data/www.northwestknowledge.net/metdata/data/tmmx_2022.nc"
 
 # NetCDF -----------------------------------------------------------------------
 temp.nc <- open.nc(file)
@@ -23,7 +23,7 @@ image(lon, lat, data_day1)
 # WeatherDB  -------------------------------------------------------------------
 
 weatherDB <- rSOILWAT2::dbW_setConnection(
-  dbFilePath = 'Data/dbWeatherData_WesternUS_gridMET_historical.sqlite3')
+  dbFilePath = 'main/Data/dbWeatherData_WesternUS_gridMET_historical.sqlite3')
 Sites <- rSOILWAT2::dbW_getSiteTable()
 dim(Sites)
 
@@ -86,7 +86,7 @@ for(i in 1:nrow(Sites)) {
   
 }
 
-write.csv(Sites, "Data/WeatherDBSitesTable_WestIndex.csv", row.names = FALSE)
+write.csv(Sites, "main/Data/WeatherDBSitesTable_WestIndex.csv", row.names = FALSE)
 summary(Sites)
 
 

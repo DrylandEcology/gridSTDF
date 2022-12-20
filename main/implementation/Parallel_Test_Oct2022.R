@@ -45,7 +45,6 @@ if(!interactive()) comm.print('netCDFs created')
 # Weather and sites ------------------------------------------------------------
 weatherDB <- rSOILWAT2::dbW_setConnection(
   dbFilePath = 'main/Data/dbWeatherData_WesternUS_gridMET_1979-2021.sqlite3')
-#Sites <- rSOILWAT2::dbW_getSiteTable()
 Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
 
 # Date Info --------------------------------------------------------------------
@@ -54,9 +53,6 @@ currMonth <- lubridate::month(Sys.Date())
 currYear <- lubridate::year(Sys.Date())
 currDate <- Sys.Date()
 todayMonthDay <- format(Sys.Date() , format="%m-%d")
-
-# CD Region Shapefile ----------------------------------------------------------
-CD102 <- shapefile(x = 'main/CD102/CD102.shp')
 
 # NWS Anomalies ----------------------------------------------------------------
 TempAnomsWhole <- data.table::fread('main/CurrentAnomalyTempData.csv')
@@ -94,6 +90,7 @@ for (j in alljid) { # use while not for
   Long <- Sites$Longitude[i]
   LatIdx <- Sites$LatIndex[i]
   LonIdx <- Sites$LonIndex[i]
+  CDRegion <- Sites$region2[i]
   
   st <- c(LatIdx, LonIdx, 1)
   co <- c(1, 1, 365)
@@ -203,14 +200,7 @@ for (j in alljid) { # use while not for
   ################### ----------------------------------------------------------------
   if(!interactive()) comm.print(paste('Running Future Site', Site_id, Sys.time()))
 
-  # 4.1 Determine Region from coordinates and shapefile ------------------------
-  points <- data.frame(x = swSite_IntrinsicSiteParams(sw_in)[1], 
-                       y = swSite_IntrinsicSiteParams(sw_in)[2])
-  coordinates(points) <- ~ x + y
-  proj4string(points) <- CRS("+proj=longlat +datum=WGS84 +no_defs")
-  CDRegion <- as.numeric(over(points, CD102)$ID4)
-  
-  # subset anomaly data --------------------------------------------------------
+  # 4.1 Climate Info from NWS ------------------------
   Nleads <- 12
 
   TempAnoms <- subset(TempAnomsWhole, CD == CDRegion)
