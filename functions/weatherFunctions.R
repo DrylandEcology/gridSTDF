@@ -93,7 +93,6 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
   
   # Convert moving left-aligned 3-month periods to NWS leads
   monthlyWdata <- merge(monthlyWdata, monthLeads[,1:2])
-  if(!interactive()) comm.print('in weather function 1')
 
   # Transform PPT_in_rollingSum using powers (PO) from NWS long-long ppt forecasts
   monthlyWdata <- merge(monthlyWdata, PPTAnoms[,c('LEAD', 'PO')], by = 'LEAD')
@@ -132,7 +131,6 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
   
   # fwrite(PPTAnoms, 'ExampleData/PPTAnoms.csv')
   # fwrite(TempAnoms, 'ExampleData/TempAnoms.csv')
-  if(!interactive()) comm.print('in weather function 2')
 
   # Step 2 - n samples, multivariate sampling for each lead -------------------------------------------------
   generatedAnomData <- generateAnomalyData(monthlyWdata, TempAnoms, PPTAnoms,
@@ -172,7 +170,7 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
   #saveRDS(generatedAnomData,  'Git/shorttermdroughtforecaster/ExampleData/generatedAnomData_BiasCorrected')
   AllOut1 <- list()
   for(nn in 1:n){
-    print(nn)
+    #print(nn)
     
     # Step 3 Get monthly averages across leads --------------------------------------------------
     OneYearAnom <- generatedAnomData[ , nn, ]
@@ -202,7 +200,6 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
     #MonthlyAnoms <- rbind(MonthlyAnoms, yearlydat)
     #}
     #fwrite(MonthlyAnoms, 'ExampleData/MonthlyAnoms.csv')
-    if(!interactive()) comm.print('in weather function')
 
     # Step 4 ----------------------------------------------------------------------------------------------
     # Create future weather / integrate anomaly data into historical weather ----------------------------------------------------------
@@ -297,16 +294,12 @@ generateAnomalyData <- function(monthlyWdata, TempAnoms, PPTAnoms,
   )
 
   for (k in seq_along(leads)) {
-      if(!interactive()) comm.print(k)
 
     # Put together covariances from historical meteo data and
     # variances from NWS forecasts
     kcov <- matrix(unlist(cov_anomalies_leads[k]), nrow = 2)
-    print('test')
-    print(kcov)
     kcov[1] <- unlist(forecast_NWS[k, "ForecastedSD_Temp_C"] ^ 2)
     kcov[4] <- unlist(forecast_NWS[k, "ForecastedSD"] ^ 2)
-    print(kcov)
 
     # Draw multivariate normal anomalies: Sigma may not be positive definite
     # write message that confirms that mvrnorm worked for each lead
@@ -320,8 +313,7 @@ generateAnomalyData <- function(monthlyWdata, TempAnoms, PPTAnoms,
 
        error = function(e) {
          # Try & Make sigma positive definite
-         message(paste('Attempting to make lead', k, 'positive definite'))
-         print(kcov)
+         #ting to make lead', k, 'positive definite'))
 
          kcov2 <- Matrix::nearPD(
            x = kcov,
@@ -330,8 +322,8 @@ generateAnomalyData <- function(monthlyWdata, TempAnoms, PPTAnoms,
          )
         if (kcov2[["converged"]]) {
 
-          message(paste('kcov for lead', k, 'successfuly converged'))
-          print(kcov2$mat)
+          #message(paste('kcov for lead', k, 'successfuly converged'))
+          #print(kcov2$mat)
 
           tmp <- MASS::mvrnorm(
             n = n,
