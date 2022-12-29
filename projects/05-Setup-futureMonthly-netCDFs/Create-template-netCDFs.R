@@ -165,7 +165,7 @@ for(nc in 1:48){
     time_bounds = time_bounds, 
     type_timeaxis = "climatology",
     global_attributes = nc_att_global, 
-    isParallel = FALSE
+    isParallel = TRUE
   ))
   
 }
