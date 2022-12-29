@@ -33,7 +33,7 @@ comm.print(size)
 n.workers <- size - 1 # reserve one for other activities
 
 #296006 sites
-alljid <- get.jid(n = 1000, method = "block", all = FALSE) 
+alljid <- get.jid(n = 10000, method = "block", all = FALSE) 
 comm.print(alljid)
 
 #### ---------------------------- Outputs  -------------------------------- ####
@@ -248,7 +248,6 @@ for (j in alljid) { # use while not for
   AllVarData <- data.frame(Date = seq((currDate-183), (currDate+365), "days"))
   
   for(v in seq(Vars)){
-    print(v)
     OneVarData <- suppressMessages(calcDeltasApproxAndFormat(HistData_Norm_Stats1, HistData_MonthlyMeans,
                                                              as.data.frame(HistDataNormMean_18MNs),
                                                              AnomRunStats, AnomRunStats2,
@@ -273,15 +272,15 @@ for (j in alljid) { # use while not for
   # GISSM_Stats <- formatGISSM(Hist_GISSM, Future_GISSM)
   # Oconnor_Stats <- formatOConnor2020(Hist_OConnor2020, Future_OConnor2020)
   
-  # Put data into netCDFs------------------------------------------------------
-  #wdata_2022 <- wdata[['2022']]
-  #wdata_2022_tmax <- as.vector(wdata_2022@data[,2])
+  ################### ----------------------------------------------------------
+  # Part 6 - Insert into netCDFs!!!
+  ################### ----------------------------------------------------------
+
   
-  ### write variable values to file
   
-  #ncvar_put(tmmx_nc, "tmmx", wdata_2022_tmax, start = st, count = co)
-  #nc_sync(tmmx_nc) 
   # Another netCDF that tracks success and failure
+  
+  
   
 }
 
@@ -291,7 +290,8 @@ for (j in alljid) { # use while not for
 if(!interactive()) {
   
   #   #info.free()
+  comm.print('done')
+  rSOILWAT2::dbW_disconnectConnection()
   barrier()
   finalize()
-
 }

@@ -20,7 +20,7 @@
 # ------------------------------------------------------------------------------
 # Step 1 -----------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-Output_folder <- 'projects/05-Setup-futureMonthly-netCDFs/Outputs/Test2_12152022/'
+Output_folder <- 'projects/05-Setup-futureMonthly-netCDFs/Outputs/Test2_12292022/'
 
 example1 <- 'projects/03-Make-Climatologies-netCDF/ta_yr_SOILWAT2_RangeDroughtExposure_historical_gn_19710101-20101231-clim.nc'
 
@@ -58,12 +58,19 @@ nc_att_crs <- example1$crs_attributes
 nc_att_xy <- western_region.nc1$xy_attributes
 
 
-# daily
-c1 <- as.character(seq(as.Date("1991/1/1"), as.Date("1992/07/02"), "days"))
-c2 <-  as.character(seq(as.Date("2020/1/1"), as.Date("2021/07/02"), "days"))
+# daily historical (549!)
+c1 <- as.character(seq(as.Date("1991/1/1"), as.Date("1992/07/02"), "days")) # fix this!
+c2 <-  as.character(seq(as.Date("2020/1/1"), as.Date("2021/07/02"), "days")) # fis this!
 #c2 <- c2[-60]
-time_bounds_daily = matrix(c(c1, c2), 
+time_bounds_daily_h = matrix(c(c1, c2), 
                      nrow = length(1:549), ncol = 2)
+
+# daily predicted (351!)
+c1 <- as.character(seq(as.Date(Sys.Date() + 14), (Sys.Date() + 364), "days"))
+c2 <- c1
+#c2 <- c2[-60]
+time_bounds_daily_p = matrix(c(c1, c2), 
+                           nrow = length(1:351), ncol = 2)
 
 # monthly
 c1 <- as.character(seq(as.Date("1991/1/15"), as.Date("1991/12/15"), "months"))
@@ -107,9 +114,11 @@ for(nc in 1:48){
   )
   
   ## time bounds --------------------------------
-  time_bounds <- if(nc_time$units == "days") {
-    time_bounds_daily 
-  } else if(nc_time$units == "months") {
+  time_bounds <- if(nc_time$units == "days" && attributes$TP[nc] == 'P') {
+    time_bounds_daily_p
+  } else if(nc_time$units == "days" && attributes$TP[nc] == 'H') {
+    time_bounds_daily_h
+  }else if(nc_time$units == "months") {
     time_bounds_monthly
   } else if(nc_time$units == "years") {
     time_bounds_annually
