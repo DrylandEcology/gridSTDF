@@ -1195,7 +1195,7 @@ create_netCDF <- function(
       force_v4 = TRUE
     )
     
-    nc_var_par_access(nc, var_names[1])
+    pbdNCDF4::nc_var_par_access(nc, var_names[1])
     
   }
 
