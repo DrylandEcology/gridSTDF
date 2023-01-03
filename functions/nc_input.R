@@ -3,22 +3,26 @@
 
 #attributes <- data.table::fread('projects/05-Setup-futureMonthly-netCDFs/nc_atts-all.csv')
 
-netCDFnames <- c(attributes$short_name)
+netCDFnames <- c(attributes$short_name)[1:72]
 
-varName <- c(attributes$var_name)
+varName <- c(attributes$var_name)[1:72]
   
-valueName <- c(attributes$dataset_column_name)
+valueName <- c(attributes$dataset_column_name)[1:72]
+
+tdim <- c(attributes$time_values_max)[1:72]
 
 for(n in seq_along(netCDFnames)){
-  
+
+  # set count based on length of values
+  co <- c(1, 1, tdim[n])
+
   # format
-  #wdata_2022_tmax <- as.vector(wdata_2022@data[,2])
-  
+  vals <- as.vector(AllVarData[,valueName[n]])
+
   #write!
-  ncvar_put(netCDFnames[n], varName[n], valueName[n], 
+  ncvar_put(netCDFnames[n], varName[n], vals, 
             start = st, count = co)
   nc_sync(tmmx_nc) 
 }
-  #wdata_2022_tmax <- as.vector(wdata_2022@data[,2])
 
 
