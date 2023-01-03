@@ -34,7 +34,7 @@ if(!interactive()) {
   n.workers <- size - 1 # reserve one for other activities
   
   #296006 sites
-  alljid <- get.jid(n = 10000, method = "block", all = FALSE) 
+  alljid <- get.jid(n = 1000, method = "block", all = FALSE) 
   comm.print(alljid) 
 }
 
@@ -98,7 +98,7 @@ for (j in alljid) { # use while not for
   st <- c(LatIdx, LonIdx, 1)
   co <- c(1, 1, 365)
 
-  if(!interactive()) comm.print(paste('Site', Site_id, 'running'))
+  if(!interactive()) comm.print(paste(i, 'Site', Site_id, 'running'))
   
   wdata <- rSOILWAT2::dbW_getWeatherData(Site_id = Site_id)
   wdata_plus <- getWeatherData(Lat, Long, currYear,
@@ -201,7 +201,7 @@ for (j in alljid) { # use while not for
   ################### ----------------------------------------------------------------
   # Part 4 - Run SOILWAT with future anomaly data!!
   ################### ----------------------------------------------------------------
-  if(!interactive()) comm.print(paste('Running Future Site', Site_id, Sys.time()))
+  #if(!interactive()) comm.print(paste('Running Future Site', Site_id, Sys.time()))
 
   # 4.1 Climate Info from NWS ------------------------
   Nleads <- 12
