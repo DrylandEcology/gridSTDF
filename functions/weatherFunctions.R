@@ -2,10 +2,10 @@ getWeatherData <- function(lat, lng, currYear, dir) {
   
   # Make data.frame of just years and days -------------------------------------------
   wdata <- data.frame(Date = seq(from = as.Date('2022-01-01'), 
-                                 to = as.Date(paste0('2022','-12-31')), by="day"))
+                                 to = as.Date(paste0(currYear,'-12-31')), by="day"))
   wdata$Year <- year(wdata$Date)
   wdata$DOY <- yday(wdata$Date)
-  wdata$Tmax_C <- wdata$Tmin_C <- wdata$PPT_cm <- 1
+  wdata$Tmax_C <- wdata$Tmin_C <- wdata$PPT_cm <- 'NA'
   
   # Get info from netcdfs ....
   # https://www.northwestknowledge.net/metdata/data/
@@ -49,8 +49,9 @@ getWeatherData <- function(lat, lng, currYear, dir) {
   
   # if there isn't 365 days in each year ... na.locf for temp and put 0 for ppt?
   # fill in missing with weather generator when running SOILWAT?
-  wdata$Tmax_C <- zoo::na.locf(wdata$Tmax_C)
-  wdata$Tmin_C <- zoo::na.locf(wdata$Tmin_C)
+  wdata$Tmax_C <- zoo::na.locf(as.numeric(wdata$Tmax_C))
+  wdata$Tmin_C <- zoo::na.locf(as.numeric(wdata$Tmin_C))
+  wdata$PPT_cm <- as.numeric(wdata$PPT_cm)
   wdata[is.na(wdata$PPT_cm), 'PPT_cm'] <- 0
   
   # convert
