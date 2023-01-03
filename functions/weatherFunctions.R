@@ -1,8 +1,8 @@
 getWeatherData <- function(lat, lng, currYear, dir) {
   
   # Make data.frame of just years and days -------------------------------------------
-  wdata <- data.frame(Date = seq(from = as.Date('2022-01-01'), # fix so automatically the new year
-                                 to = as.Date(paste0(currYear,'-12-31')), by="day"))
+  wdata <- data.frame(Date = seq(from = as.Date('2022-01-01'), 
+                                 to = as.Date(paste0('2022','-12-31')), by="day"))
   wdata$Year <- year(wdata$Date)
   wdata$DOY <- yday(wdata$Date)
   wdata$Tmax_C <- wdata$Tmin_C <- wdata$PPT_cm <- 1
@@ -20,10 +20,10 @@ getWeatherData <- function(lat, lng, currYear, dir) {
     vals <- raster::extract(nc, matrix(c(as.numeric(lng), as.numeric(lat)), ncol = 2))[1,]
     
     # determine "data of last weather" here
-    if(year == currYear) {
-      lastWeatherDate <- as.Date(length(vals), origin = paste0(currYear,"-01-01"))
-    }
-    
+    #if(year == currYear) {
+      #lastWeatherDate <- as.Date(length(vals), origin = paste0(currYear,"-01-01"))
+    #}
+    lastWeatherDate <- as.Date('2022-12-31')
     wdata[wdata$Year == year, 'Tmax_C'][1:length(vals)] <- vals
   }
   

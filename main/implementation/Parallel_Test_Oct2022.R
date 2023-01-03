@@ -19,25 +19,27 @@ source('functions/formatOutputs.R')
 source('functions/calcHistoricalClimatologies.R')
 
 source('main/implementation/SWfunc.R')
-source('functions/netcdf_functions2.R')
+source('functions/netcdf_functions_HPC.R')
 
 ################### ------------------------------------------------------------
 # Part 0 - Setup
 ################### ------------------------------------------------------------
 
 #### ---------------------- Initialize MPI  ------------------------------- ####
-rank <- comm.rank() # processor's rank
-size <- comm.size() # total processors (i.e. equal to tasks in the SLURM scripts)
-comm.print(size)
-
-n.workers <- size - 1 # reserve one for other activities
-
-#296006 sites
-alljid <- get.jid(n = 10000, method = "block", all = FALSE) 
-comm.print(alljid)
+if(!interactive()) {
+  rank <- comm.rank() # processor's rank
+  size <- comm.size() # total processors (i.e. equal to tasks in the SLURM scripts)
+  comm.print(size)
+  
+  n.workers <- size - 1 # reserve one for other activities
+  
+  #296006 sites
+  alljid <- get.jid(n = 10000, method = "block", all = FALSE) 
+  comm.print(alljid) 
+}
 
 #### ---------------------------- Outputs  -------------------------------- ####
-#source('projects/05-Setup-futureMonthly-netCDFs/Create-template-netCDFs.R') # obviously change this path
+source('projects/05-Setup-futureMonthly-netCDFs/Create-template-netCDFs.R') # obviously change this path
 if(!interactive()) comm.print('netCDFs created')
 
 #### --------------------   Set Inputs and Parameters   ------------------- ####
