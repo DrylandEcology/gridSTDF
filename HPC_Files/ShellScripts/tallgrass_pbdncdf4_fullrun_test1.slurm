@@ -2,9 +2,9 @@
 #SBATCH --account=swbsc
 #SBATCH --partition=cpu
 #SBATCH --job-name=gridSTDF_Test
-#SBATCH --time=0-5:00:00   
-#SBATCH --nodes=3
-#SBATCH --ntasks=108
+#SBATCH --time=0-10:00:00   
+#SBATCH --nodes=5
+#SBATCH --ntasks=180
 #SBATCH --chdir=/caldera/projects/usgs/ecosystems/swbsc/DrylandEcohydrologyLab/gridSTDF_Projects/gridSTDF/
 #SBATCH --output=/caldera/projects/usgs/ecosystems/swbsc/DrylandEcohydrologyLab/gridSTDF_Projects/gridSTDF/HPC_Files/Outs/gridSTDF_%j.stdout
 
@@ -15,6 +15,7 @@ module load geos/3.8.1 gdal/3.0.4 proj/6.2.1
 
 srun date
 
+#srun Rscript projects/05-Setup-futureMonthly-netCDFs/Create-template-netCDFs.R
 srun Rscript main/implementation/Parallel_Test_Oct2022.R
 
 srun date

@@ -1,6 +1,8 @@
  # rm(list = ls(all = TRUE))
- #library(RNetCDF)
+ library(RNetCDF)
+ library(pbdNCDF4)
  #source('functions/netcdf_functions2.R')
+ source('functions/netcdf_functions_HPC.R')
 
 #devtools::install_github("r4ecology/rcdo", dependencies = TRUE, force = TRUE)
 # Clip file to our domain if you haven't already ----------------------------
@@ -20,7 +22,11 @@
 # ------------------------------------------------------------------------------
 # Step 1 -----------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-Output_folder <- 'projects/05-Setup-futureMonthly-netCDFs/Outputs/Test2_12292022/'
+Output_folder <- paste0('projects/05-Setup-futureMonthly-netCDFs/Outputs/Test_', format(Sys.Date(), "%Y%m%d"), '/')
+
+if (!file.exists(Output_folder)){
+    dir.create(file.path(mainDir, Output_folder))    
+}
 
 example1 <- 'projects/03-Make-Climatologies-netCDF/ta_yr_SOILWAT2_RangeDroughtExposure_historical_gn_19710101-20101231-clim.nc'
 
@@ -88,8 +94,8 @@ attributes <- read.csv('projects/05-Setup-futureMonthly-netCDFs/nc_atts-all.csv'
 
 names <-  attributes$short_name
 
-for(nc in 1:48){
-  print(nc)
+for(nc in 1:72){
+  comm.print(nc)
   
   # 2) - Change for each run -----------------------------------------------------
   # var_attributes ---------------------------------------------------------------
@@ -151,7 +157,7 @@ for(nc in 1:48){
   
   assign(names[nc], create_netCDF(
     filename = file.path(Output_folder,
-                         paste0(attributes$Name[nc], '_', format(Sys.Date(), "%m%Y"), '.nc')),
+                         paste0(attributes$Name[nc], '_', format(Sys.Date(), "%M%Y"), '.nc')),
     overwrite = TRUE,
     xyspace = western_region.nc1[["xyspace"]],
     #data = western_region.nc1[["data"]],

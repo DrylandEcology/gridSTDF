@@ -34,7 +34,7 @@ if(!interactive()) {
   n.workers <- size - 1 # reserve one for other activities
   
   #296006 sites
-  alljid <- get.jid(n = 1000, method = "block", all = FALSE) 
+  alljid <- get.jid(n = 10000, method = "block", all = FALSE) 
   comm.print(alljid) 
 }
 
@@ -95,8 +95,7 @@ for (j in alljid) { # use while not for
   LonIdx <- Sites$LonIndex[i]
   CDRegion <- Sites$region2[i]
   
-  st <- c(LatIdx, LonIdx, 1)
-  co <- c(1, 1, 365)
+  st <- c(LonIdx, LatIdx, 1)
 
   if(!interactive()) comm.print(paste(i, 'Site', Site_id, 'running'))
   
@@ -180,7 +179,6 @@ for (j in alljid) { # use while not for
                                                     'historical', 1991, 2020, 
                                                     currDate, todayMonthDay,
                                                     currYearClimatology = TRUE)
-  
   HistData_MonthlyMeans_3 <- formatOutputsMonthlys(HistDataAll1, SoilsDF, 
                                                     'historical', 1992, 2021)
   
@@ -188,7 +186,7 @@ for (j in alljid) { # use while not for
   HistData_MonthlyMeans <- formatHistoricalMonthlys(HistData_MonthlyMeans_2,
                                                    HistData_MonthlyMeans_3,
                                                    currYear, todayMonthDay)
-  
+
   # eco vars!!!! ------------------------------------------------------------------
   # Hist_Shriver2018 <- data.table(Year = HistDataAll[[2]]$PlantedinYear,
   #                                Prob = p_Shriver2018(HistDataAll[[2]]$Temp_mean, HistDataAll[[2]]$VWC_mean))
@@ -216,7 +214,7 @@ for (j in alljid) { # use while not for
                                            TempAnoms, PPTAnoms,
                                            Nleads, n = 5,
                                            currDOY, currMonth, currYear, currDate)
-  if(!interactive()) comm.print('done future')
+  #if(!interactive()) comm.print('done future')
 
   ################ -------------------------------------------------------------
   # FORMAT OUTPUTS  --- Get 18 month median, 10, and 90 for all !!! ---
@@ -277,12 +275,10 @@ for (j in alljid) { # use while not for
   ################### ----------------------------------------------------------
   # Part 6 - Insert into netCDFs!!!
   ################### ----------------------------------------------------------
-
-  
+  if(!interactive()) comm.print('Inserting into netCDFs')
+  source('functions/nc_input.R')
   
   # Another netCDF that tracks success and failure
-  
-  
   
 }
 

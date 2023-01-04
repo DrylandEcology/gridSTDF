@@ -11,8 +11,8 @@ index <- valueName %in% names(AllVarData)
 netCDFnames <- c(attributes$short_name)[1:72][index]
 
 varName <- c(attributes$var_name)[1:72][index]
-  
-valueName <- c(attributes$dataset_column_name)[1:72][index]
+
+valueName <- c(attributes$dataset_column_name)[index]
 
 tdim <- c(attributes$time_values_max)[1:72][index]
 
