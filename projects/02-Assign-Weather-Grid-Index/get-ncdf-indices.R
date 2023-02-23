@@ -37,25 +37,25 @@ findCoordIndex <- function(value, listOfCoords) {
   
 }
 
-findCoordIndex(value, lat)
-findCoordIndex(value, lon)
+#findCoordIndex(value, lat)
+#findCoordIndex(value, lon)
 
 # Loop and get ... -------------------------------------------------------------
 
 Sites$LatIndex <- NA
 Sites$LonIndex <- NA
 
-for(i in 1:nrow(Sites)) {
-  
-  if(i %in% seq(1, nrow(Sites), 1000)) print(i)
-  
-  Sites$LatIndex[i] <- findCoordIndex(Sites$Latitude[i], lat)
-  Sites$LonIndex[i] <- findCoordIndex(Sites$Longitude[i], lon)
-  
-}
-
-write.csv(Sites, "Data/WeatherDBSitesTable.csv", row.names = FALSE)
-summary(Sites)
+# for(i in 1:nrow(Sites)) {
+#   
+#   if(i %in% seq(1, nrow(Sites), 1000)) print(i)
+#   
+#   Sites$LatIndex[i] <- findCoordIndex(Sites$Latitude[i], lat)
+#   Sites$LonIndex[i] <- findCoordIndex(Sites$Longitude[i], lon)
+#   
+# }
+# 
+# write.csv(Sites, "main/Data/WeatherDBSitesTable.csv", row.names = FALSE)
+# summary(Sites)
 
 # Should I subset the netCDF to Western US and then loop and get index again? --
 lon_west <- lon[1:715]
