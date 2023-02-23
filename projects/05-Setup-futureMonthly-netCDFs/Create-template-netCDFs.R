@@ -25,7 +25,7 @@
 Output_folder <- paste0('projects/05-Setup-futureMonthly-netCDFs/Outputs/Test_', format(Sys.Date(), "%Y%m%d"), '/')
 
 if (!file.exists(Output_folder)){
-    dir.create(file.path(mainDir, Output_folder))    
+    dir.create(Output_folder)    
 }
 
 example1 <- 'projects/03-Make-Climatologies-netCDF/ta_yr_SOILWAT2_RangeDroughtExposure_historical_gn_19710101-20101231-clim.nc'
@@ -67,7 +67,7 @@ nc_att_xy <- western_region.nc1$xy_attributes
 # daily historical (549!)
 c1 <- as.character(seq(as.Date("1991/1/1"), as.Date("1992/07/02"), "days")) # fix this!
 c2 <-  as.character(seq(as.Date("2020/1/1"), as.Date("2021/07/02"), "days")) # fis this!
-#c2 <- c2[-60]
+#c2 <- c2[-60] 
 time_bounds_daily_h = matrix(c(c1, c2), 
                      nrow = length(1:549), ncol = 2)
 
@@ -77,12 +77,6 @@ c2 <- c1
 #c2 <- c2[-60]
 time_bounds_daily_p = matrix(c(c1, c2), 
                            nrow = length(1:351), ncol = 2)
-
-# monthly
-c1 <- as.character(seq(as.Date("1991/1/15"), as.Date("1991/12/15"), "months"))
-c2 <-  as.character(seq(as.Date("2020/1/15"), as.Date("2020/12/15"), "months"))
-time_bounds_monthly = matrix(c(c1, c2), 
-                           nrow = length(1:12), ncol = 2)
 
 # annually
 c1 <- as.character(seq(as.Date("1991/1/1"), as.Date("2020/1/1"), "years"))

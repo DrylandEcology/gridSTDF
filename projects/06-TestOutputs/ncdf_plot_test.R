@@ -11,20 +11,13 @@ library(terra)
 
 # RNetCDF ----------------------------------------------------------------------
 example1 <- 'projects/06-TestOutputs/swp-med_dy_gridSTDF_historical_19910101-20201231-10pct_002023.nc'
-<<<<<<< HEAD
-example1 <- 'projects/06-TestOutputs/vwc-med_dy_gridSTDF_median-prediction_002023.nc'
-example1 <- 'projects/03-Make-Climatologies-netCDF/ta_yr_SOILWAT2_RangeDroughtExposure_historical_gn_19710101-20101231.nc'
 
 # temp.nc1 <- terra::rast(example1)
 # plot(temp.nc1[[1]])
 # plot(temp.nc1[[2]])
-
-=======
 temp.nc1 <- terra::rast(example1)
 plot(temp.nc1[[1]])
 plot(temp.nc1[[2]])
-example1 <- 'gridSTDF/projects/05-Setup-futureMonthly-netCDFs/Outputs/Test_20230105/swp-med_dy_gridSTDF_historical_19910101-20201231-median_002023.nc'
->>>>>>> 89ff15634a33c122294ce5285c9de9a19da57d37
 temp.nc1 <- open.nc(example1)
 print.nc(temp.nc1)
 

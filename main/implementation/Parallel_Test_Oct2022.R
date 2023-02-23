@@ -32,10 +32,6 @@ if(!interactive()) {
   comm.print(size)
   
   n.workers <- size - 1 # reserve one for other activities
-  
-  #296006 sites
-  alljid <- get.jid(n = 10000, method = "block", all = FALSE) 
-  comm.print(alljid) 
 }
 
 #### ---------------------------- Outputs  -------------------------------- ####
@@ -49,6 +45,13 @@ weatherDB <- rSOILWAT2::dbW_setConnection(
   dbFilePath = 'main/Data/dbWeatherData_WesternUS_gridMET_1979-2021.sqlite3')
 Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
 Sites <- Sites[!is.na(Sites$region2),]
+
+if(!interactive()) {
+  sites <- dim(Sites)[1]
+  comm.print(sites)
+  alljid <- get.jid(n = sites, method = "block", all = FALSE) 
+  comm.print(alljid) 
+}
 
 # Date Info --------------------------------------------------------------------
 currDOY <- lubridate::yday(Sys.Date())
@@ -97,7 +100,7 @@ for (j in alljid) { # use while not for
   
   st <- c(LonIdx, LatIdx, 1)
 
-  if(!interactive()) comm.print(paste(i, 'Site', Site_id, 'running'))
+  if(!interactive()) comm.print(paste(i, ': Site', Site_id, 'running', Sys.time()))
   
   wdata <- rSOILWAT2::dbW_getWeatherData(Site_id = Site_id)
   wdata_plus <- getWeatherData(Lat, Long, currYear,
@@ -212,7 +215,7 @@ for (j in alljid) { # use while not for
 
   AnomalyData1 <- runFutureSWwithAnomalies(sw_in0 = sw_in, wdata, SoilsDF,
                                            TempAnoms, PPTAnoms,
-                                           Nleads, n = 5,
+                                           Nleads, n = 15,
                                            currDOY, currMonth, currYear, currDate)
   #if(!interactive()) comm.print('done future')
 
@@ -275,7 +278,7 @@ for (j in alljid) { # use while not for
   ################### ----------------------------------------------------------
   # Part 6 - Insert into netCDFs!!!
   ################### ----------------------------------------------------------
-  if(!interactive()) comm.print('Inserting into netCDFs')
+  if(!interactive()) comm.print('Inserting into netCDFs.', Sys.time())
   source('functions/nc_input.R')
   
   # Another netCDF that tracks success and failure
