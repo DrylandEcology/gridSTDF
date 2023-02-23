@@ -11,11 +11,10 @@ library(terra)
 
 # RNetCDF ----------------------------------------------------------------------
 example1 <- 'projects/06-TestOutputs/swp-med_dy_gridSTDF_historical_19910101-20201231-10pct_002023.nc'
-
 temp.nc1 <- terra::rast(example1)
 plot(temp.nc1[[1]])
 plot(temp.nc1[[2]])
-
+example1 <- 'gridSTDF/projects/05-Setup-futureMonthly-netCDFs/Outputs/Test_20230105/swp-med_dy_gridSTDF_historical_19910101-20201231-median_002023.nc'
 temp.nc1 <- open.nc(example1)
 
 # get
@@ -24,6 +23,8 @@ lon <- var.get.nc(temp.nc1,"lon")
 
 data1 <- var.get.nc(temp.nc1, "swp")
 data1_day1 <- data1[, , 1]
+min(data1_day1, na.rm = TRUE)
+
 image(data1_day1)
 
 

@@ -2,9 +2,9 @@
 #SBATCH --account=swbsc
 #SBATCH --partition=cpu
 #SBATCH --job-name=gridSTDF_Test
-#SBATCH --time=0-10:00:00   
-#SBATCH --nodes=5
-#SBATCH --ntasks=180
+#SBATCH --time=6-0:00:00   
+#SBATCH --nodes=10
+#SBATCH --ntasks=360
 #SBATCH --chdir=/caldera/projects/usgs/ecosystems/swbsc/DrylandEcohydrologyLab/gridSTDF_Projects/gridSTDF/
 #SBATCH --output=/caldera/projects/usgs/ecosystems/swbsc/DrylandEcohydrologyLab/gridSTDF_Projects/gridSTDF/HPC_Files/Outs/gridSTDF_%j.stdout
 
