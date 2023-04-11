@@ -38,13 +38,14 @@ if(!interactive()) {
 source('projects/05-Setup-futureMonthly-netCDFs/Create-template-netCDFs.R') # obviously change this path
 if(!interactive()) comm.print('netCDFs created')
 
-#### --------------------   Set Inputs and Parameters   ------------------- ####
+#### -------------------   Set Inputs and Parameters   ------------------ ####
 
 # Weather and sites ------------------------------------------------------------
 weatherDB <- rSOILWAT2::dbW_setConnection(
   dbFilePath = 'main/Data/dbWeatherData_WesternUS_gridMET_1979-2021.sqlite3')
+ 
 Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
-Sites <- Sites[!is.na(Sites$region2),]
+#Sites <- Sites[!is.na(Sites$region2),]
 
 if(!interactive()) {
   sites <- dim(Sites)[1]
@@ -64,7 +65,7 @@ todayMonthDay <- format(Sys.Date() , format="%m-%d")
 TempAnomsWhole <- data.table::fread('main/CurrentAnomalyTempData.csv')
 PPTAnomsWhole <- data.table::fread('main/CurrentAnomalyPPTData.csv')
 
-#Vegetation/Prod ----------------------------------------------------------------
+#Vegetation/Prod ---------------------------------------------------------------
 AllProdInfo <- data.table::fread('main/Data/SWRuns_InputData_prod_pnv_1991-2020_v11.csv')
 AllProdInfo <- AllProdInfo[-1,]
 

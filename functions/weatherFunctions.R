@@ -90,7 +90,7 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
                                               k = 3, fill = NA,
                                               partial = TRUE, align = "left")
   # Norm
-  monthlyWdata <- monthlyWdata[monthlyWdata$Year %in% 1981:2010, ]
+  monthlyWdata <- monthlyWdata[monthlyWdata$Year %in% 1991:2020, ]
   
   # Convert moving left-aligned 3-month periods to NWS leads
   monthlyWdata <- merge(monthlyWdata, monthLeads[,1:2])
