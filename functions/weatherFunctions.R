@@ -23,7 +23,7 @@ getWeatherData <- function(lat, lng, currYear, dir) {
     #if(year == currYear) {
       #lastWeatherDate <- as.Date(length(vals), origin = paste0(currYear,"-01-01"))
     #}
-    lastWeatherDate <- as.Date('2022-12-31')
+    lastWeatherDate <- as.Date(Sys.Date())
     wdata[wdata$Year == year, 'Tmax_C'][1:length(vals)] <- vals
   }
   
@@ -169,7 +169,8 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
     generatedAnomData [, , "PPT_CF"] * PPTAnoms$ClimatatologicalMEAN_PPT_cm
   
   #saveRDS(generatedAnomData,  'Git/shorttermdroughtforecaster/ExampleData/generatedAnomData_BiasCorrected')
-  AllOut1 <- list()
+  AllOut1 <- Shriver_Out <- GISSM_Out <- list()
+  
   for(nn in 1:n){
     #print(nn)
     
@@ -235,23 +236,26 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
       
       # # Grab Data I want for this run ----------------------------------------------------------
       Out1 <- getOutputs(sw_out, sw_in0, SoilsDF, 
-                         calc_EcoVars = FALSE, 
+                         calc_EcoVars = TRUE, 
                          TimePeriod = 'Future',
                           currYear, currDate, 
                          run_year = y, nn = nn)
       
-      names(Out1) <-   paste(nn, y, sep = '_')
-      AllOut1 <- append(AllOut1, Out1)
+      SWOuts <- list(Out1[[1]])
+      names(SWOuts) <- paste(nn, y, sep = '_')
+      AllOut1 <- append(AllOut1, SWOuts)
       
+      Fut_Shriver <- list(cbind(Out1[[2]], )
+      names(Fut_Shriver) <- paste(nn, y, sep = '_')
+      Shriver_Out <- append(Shriver_Out, Fut_Shriver)
       
-      #AllOut1 <- rbind(AllOut1, cbind(Out1[[1]], run = paste(nn, y, sep = '_')))
-      # Shriver_Out <- rbind(Shriver_Out, cbind(Out1[[2]], run = paste(nn, y, sep = '_')))
-      # GISSM_Out <- rbind(GISSM_Out, cbind(Out1[[3]], run = paste(nn, y, sep = '_')))
-      # OConnor_Out <- rbind(OConnor_Out, Out1[[4]])
+      Fut_GISSM <- list(Out1[[3]])
+      names(Fut_GISSM) <- paste(nn, y, sep = '_')
+      GISSM_Out <- append(GISSM_Out, Fut_GISSM)
     }
     
   } 
-  return(AllOut1)
+  return(list(AllOut1, Shriver_Out, GISSM_Out))
 }
 
   #return(Out1)
