@@ -9,3 +9,4 @@ HPC_Files/Outs/
 .csv
 .DS_Store
 *.nc*
+projects/06-TestOutputs/*.csv
