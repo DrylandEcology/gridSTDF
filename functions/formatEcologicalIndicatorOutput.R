@@ -42,6 +42,7 @@ formatGISSM <- function(Hist_GISSM, Future_GISSM) {
   return(bind(Hist_GISSM,Future_GISSM))
 }
 
+
 #' Organizes all OConnor2020 output for passing along API
 #'
 #' @param Hist_OConnor2020 a data.frame containing outputs for the OConnor2020
