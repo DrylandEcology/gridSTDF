@@ -4,7 +4,7 @@
 #attributes <- data.table::fread('projects/05-Setup-futureMonthly-netCDFs/nc_atts-all.csv')
 
 # check for different depths and names
-valueName <- c(attributes$dataset_column_name)[1:72]
+valueName <- c(attributes$dataset_column_name)[1:100]
 index <- valueName %in% names(AllVarData)
 
 
