@@ -1,8 +1,13 @@
- # rm(list = ls(all = TRUE))
+# Notes for me
+# Currently I took out leap years... is that the right strategy ...
+# Using days since 1970-01-01 for the time_Values. What about for the time bounds?
+
+
+# rm(list = ls(all = TRUE))
  library(RNetCDF)
  library(pbdNCDF4)
  #source('functions/netcdf_functions2.R')
- source('functions/netcdf_functions_HPC.R')
+ #source('functions/netcdf_functions_HPC.R')
 
 #devtools::install_github("r4ecology/rcdo", dependencies = TRUE, force = TRUE)
 # Clip file to our domain if you haven't already ----------------------------
@@ -18,7 +23,14 @@
 #         out_file = 'projects/03-Make-Climatologies-netCDF/west.western_region.nc1' ,
 #         overwrite = TRUE,
 #         cdo_output = TRUE)
+ 
+ 
+#time_value -> days since XYZ (units)
+# climatology bounds not time bounds for those historical ones
+ # try and trick here "plotting date"
 
+ # For february 29th take average of two surrounding days
+ 
 # ------------------------------------------------------------------------------
 # Step 1 -----------------------------------------------------------------------
 # ------------------------------------------------------------------------------
@@ -66,83 +78,80 @@ nc_att_xy <- western_region.nc1$xy_attributes
 
 # 2) determine time information ------------------------------------------------
 
-# historical dailys are 549 days. 183 days prior
+# historical dailys are 548 days. 183 days prior
 # reflects the historical climatology calculations
-historical_daily_start <- format(currDate - 183, format="%m-%d")
-historical_daily_end <- format(currDate +  365, format="%m-%d")
+start <- currDate - 183
+end <- currDate +  365
+  
+historical_daily_start <- format(start, format="%m-%d")
+historical_daily_end <- format(end, format="%m-%d")
 
-c1 <- as.character(seq(as.Date(paste('1991-',historical_daily_start)), 
+c1 <- as.character(seq(as.Date(paste('1991-', historical_daily_start)), 
                        as.Date(paste('1993-',historical_daily_end)),
                        "days"))
-c1 <- gsub('1992', '1991', c1)
-c1 <- gsub('1993', '1992', c1)
-c1 <- c1[!c1 %in% ("1991-02-29")]
+c1 <- c1[!c1 %in% ("1992-02-29")]
 
 c2 <- as.character(seq(as.Date(paste('2020-',historical_daily_start)), 
                        as.Date(paste('2022-',historical_daily_end)),
                        "days")) 
-c2 <- gsub('2021', '2023', c2)
-c2 <- gsub('2022|2020', '2021', c2)
-c2 <- gsub('2023', '2020', c2)
 
-actual <- seq(as.Date(currDate - 183), as.Date(currDate +  365), "days")
-is_leap <- which(grepl('2024-02-29', actual))
-
-if(is_leap) {
-  c1 <- c(c1[1:(is_leap-1)], '1992-02-29', c1[(is_leap):length(c1)])
-  c2 <- c(c2[1:(is_leap-1)], '2021-02-29', c2[(is_leap):length(c2)])
-  
-  time_bounds_daily_h = matrix(c(c1, c2), 
-                               nrow = length(1:549), ncol = 2)
-  
-} else {
-  
-  time_bounds_daily_h = matrix(c(c1, c2), 
+time_bounds_daily_h = matrix(c(c1, c2), 
                                nrow = length(1:548), ncol = 2)
-}
+
+time_values_daily_h <- as.character(seq(start, end, "days"))
+time_values_daily_h <- time_values_daily_h[!time_values_daily_h %in% ("2024-02-29")]
+time_values_daily_h <- as.integer(as.Date(c1))
+
 
 # daily predicted (351!) -------------------------------------------------------
 predicted_daily_start <- currDate + 14
-predicted_daily_end <- currDate + 364
+predicted_daily_end <- currDate + 365
 
 c1 <- as.character(seq(predicted_daily_start, predicted_daily_end, "days"))
+c1 <- c1[!c1 %in% ("2024-02-29")]
 c2 <- c1
-#c2 <- c2[-60]
-time_bounds_daily_p = matrix(c(c1, c2), 
+
+time_bounds_daily_p <- matrix(c(c1, c2), 
                              nrow = length(1:351), ncol = 2)
+
+time_values_daily_p <- as.integer(as.Date(c1))
 
 # recent past ------------------------------------------------------------------
 recentpast_daily_start <- currDate - 180
 recentpast_daily_end <- currDate - 1
 
 c1 <- as.character(seq(recentpast_daily_start, recentpast_daily_end, "days"))
+c1 <- c1[!c1 %in% ("2024-02-29")]
 c2 <- c1
-#c2 <- c2[-60]
 time_bounds_daily_rp = matrix(c(c1, c2), 
                              nrow = length(1:180), ncol = 2)
 
+time_values_daily_rp <- as.integer(as.Date(c1))
 
 # historical annually (for some ecological indicators) --------------------------
-
 c1 <- as.character(seq(as.Date("1991/1/1"), as.Date(paste0(currYear,"/1/1")), "years"))
 c2 <-  as.character(seq(as.Date("1991/12/31"), as.Date(paste0(currYear,"/12/31")), "years"))
+
 time_bounds_annually_h = matrix(c(c1, c2), 
                              nrow = length(1:length(c2)), ncol = 2)
 
+time_values_annually_h <- as.numeric(year(c1))
 
 # annual predictions for ecological indicators ---------------------------------
-c1 <- as.character(seq(as.Date("1991/1/1"), as.Date("2020/1/1"), "years"))
-c2 <-  as.character(seq(as.Date("1991/12/31"), as.Date("2020/12/31"), "years"))
+c1 <- as.character(c(rep(as.Date(paste0(currYear,"/1/1")), 30), rep(as.Date(paste0(currYear + 1,"/1/1")), 30)))
+c2 <- as.character(c(rep(as.Date(paste0(currYear,"/12/1")), 30), rep(as.Date(paste0(currYear + 1,"/12/1")), 30)))
+
 time_bounds_annually_p = matrix(c(c1, c2), 
                                 nrow = length(1:length(c2)), ncol = 2)
 
+time_values_annually_p <- as.numeric(year(c1))
 
 # 3) read in other information ------------------------------------------------
 
 attributes <- read.csv('projects/05-Setup-futureMonthly-netCDFs/nc_atts-all.csv')
 names <-  attributes$short_name
 
-for(nc in 1:102){
+for(nc in 1:100){
   #comm.print(nc)
   print(nc)
   
@@ -169,16 +178,29 @@ for(nc in 1:102){
   )
   
   ## time bounds --------------------------------
-  time_bounds <- if(nc_time$units == "days" && attributes$TP[nc] == 'P') {
+  time_bounds <- if(nc_time$units == "days since 1970-01-01" && attributes$TP[nc] == 'P') {
     time_bounds_daily_p
-  } else if(nc_time$units == "days" && attributes$TP[nc] == 'H') {
+  } else if(nc_time$units == "days since 1970-01-01" && attributes$TP[nc] == 'H') {
     time_bounds_daily_h
-  } else if(nc_time$units == "days" && attributes$TP[nc] == 'RP') {
+  } else if(nc_time$units == "days since 1970-01-01" && attributes$TP[nc] == 'RP') {
     time_bounds_daily_rp
-  } else if(nc_time$units == "years"  && attributes$TP[nc] == 'EH') {
+  } else if(nc_time$units == "year"  && attributes$TP[nc] == 'EH') {
     time_bounds_annually_h
-  } else if(nc_time$units == "years"  && attributes$TP[nc] == 'EP') {
+  } else if(nc_time$units == "year"  && attributes$TP[nc] == 'EP') {
     time_bounds_annually_p
+  }
+  
+  ## time values --------------------------------
+  time_values <- if(nc_time$units == "days since 1970-01-01" && attributes$TP[nc] == 'P') {
+    time_values_daily_p
+  } else if(nc_time$units == "days since 1970-01-01" && attributes$TP[nc] == 'H') {
+    time_values_daily_h
+  } else if(nc_time$units == "days since 1970-01-01" && attributes$TP[nc] == 'RP') {
+    time_values_daily_rp
+  } else if(nc_time$units == "year"  && attributes$TP[nc] == 'EH') {
+    time_values_annually_h
+  } else if(nc_time$units == "year"  && attributes$TP[nc] == 'EP') {
+    time_values_annually_p
   }
 
   ## data_dims ---------------------------------
@@ -216,10 +238,10 @@ for(nc in 1:102){
     var_attributes = nc_vars,
     xy_attributes = nc_att_xy,
     crs_attributes = nc_att_crs,
-    time_values =1:length(time_bounds[,1]),
+    time_values = time_values,
     time_attributes = nc_time,
     time_bounds = time_bounds, 
-    type_timeaxis = "climatology",
+    type_timeaxis = attributes$type_timeaxis[nc],
     global_attributes = nc_att_global, 
     #isParallel = TRUE
   ))
