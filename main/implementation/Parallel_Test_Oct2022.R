@@ -269,21 +269,21 @@ for (j in alljid) { # use while not for
   }
   
   
-  # eco vars ------------------------------------------------------------------
-  Future_Shriver2018 <-  bind_rows(AnomalyData1[[2]], .id = "name") %>%
-      mutate(run = as.integer(sub("^([0-9]+)_.*", "\\1", name)))
+  # Eco vars ------------------------------------------------------------------
+  # # Shriver Sagebrush
+  Future_Shriver2018 <- bind_rows(AnomalyData1[[2]], .id = "run")
              
-  Future_Shriver2018 <-  data.table(Year = Future_Shriver2018$PlantedinYear,
-                                   run =Future_Shriver2018$run,
+  Future_Shriver2018 <- data.table(Year = Future_Shriver2018$PlantedinYear,
+                                   run = Future_Shriver2018$run,
                                    Prob =  Future_Shriver2018$Temp_mean, Future_Shriver2018$VWC_mean)
-
-  Future_GISSM <- data.table(AnomalyData1[[3]])
-  # 
-  #Future_OConnor2020 <- data.table(AnomalyData1[[4]])
   
-  # format ecovars for writing out -------------------------------------------
-  # Shriver_Stats <- formatShriver2018(Hist_Shriver2018, Future_Shriver2018, currYear)
-  # GISSM_Stats <- formatGISSM(Hist_GISSM, Future_GISSM)
+  Shriver_Stats <- formatShriver2018(Hist_Shriver2018, Future_Shriver2018, currYear)
+
+  # GISSM Sagebrush
+  Future_GISSM <- bind_rows(AnomalyData1[[3]], .id = "run")
+  GISSM_Stats <- formatGISSM(Hist_GISSM, Future_GISSM)
+
+  
   # Oconnor_Stats <- formatOConnor2020(Hist_OConnor2020, Future_OConnor2020)
   
   ################### ----------------------------------------------------------
