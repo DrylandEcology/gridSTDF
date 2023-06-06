@@ -21,6 +21,13 @@ source('functions/calcHistoricalClimatologies.R')
 source('main/implementation/SWfunc.R')
 source('functions/netcdf_functions_HPC.R')
 
+file_list <- list.files(path = "./functions/", full.names = TRUE)
+
+# Iterate over the file list and source each file
+for (file in file_list) {
+  source(file)
+}
+
 ################### ------------------------------------------------------------
 # Part 0 - Setup
 ################### ------------------------------------------------------------
@@ -34,17 +41,13 @@ if(!interactive()) {
   n.workers <- size - 1 # reserve one for other activities
 }
 
-#### ---------------------------- Outputs  -------------------------------- ####
-source('projects/05-Setup-futureMonthly-netCDFs/Create-template-netCDFs.R') # obviously change this path
-if(!interactive()) comm.print('netCDFs created')
-
-#### -------------------   Set Inputs and Parameters   ------------------ ####
+#### -------------------   Set Inputs and Parameters   ------------------   ####
 
 # Weather and sites ------------------------------------------------------------
 weatherDB <- rSOILWAT2::dbW_setConnection(
   dbFilePath = 'main/Data/dbWeatherData_WesternUS_gridMET_1979-2021.sqlite3')
  
-Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
+Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex2.csv"))
 #Sites <- Sites[!is.na(Sites$region2),]
 
 if(!interactive()) {
@@ -61,6 +64,7 @@ currYear <- lubridate::year(Sys.Date())
 currDate <- Sys.Date()
 todayMonthDay <- format(Sys.Date() , format="%m-%d")
 
+
 # NWS Anomalies ----------------------------------------------------------------
 TempAnomsWhole <- data.table::fread('main/CurrentAnomalyTempData.csv')
 PPTAnomsWhole <- data.table::fread('main/CurrentAnomalyPPTData.csv')
@@ -73,6 +77,10 @@ AllProdInfo <- AllProdInfo[-1,]
 # Establish current month and how the 'LEAD's relate to months
 # A LEAD of 1 relates to the forecast beginning where the currmonth + 1
 monthLeads <- makeMonthLeadRelationshipTable(TempAnomsWhole[1:12,], currMonth)
+
+#### ---------------------------- Outputs  -------------------------------- ####
+source('projects/05-Setup-futureMonthly-netCDFs/Create-template-netCDFs.R') # obviously change this path
+if(!interactive()) comm.print('netCDFs created')
 
 ################### ------------------------------------------------------------
 # Simulation begin in Parallel!! 
@@ -152,7 +160,7 @@ for (j in alljid) { # use while not for
   
   HistDataAll <- getOutputs(sw_out, sw_in, SoilsDF, 
                             TimePeriod = 'Historical',
-                            calc_EcoVars = FALSE)
+                            calc_EcoVars = TRUE)
   
   # 1 - Get rolling mean -------------------------------------------------------
   HistDataAll1 <- setorder(as.data.frame(HistDataAll[[1]]), Year, Day)
@@ -192,11 +200,11 @@ for (j in alljid) { # use while not for
                                                    currYear, todayMonthDay)
 
   # eco vars!!!! ------------------------------------------------------------------
-  # Hist_Shriver2018 <- data.table(Year = HistDataAll[[2]]$PlantedinYear,
-  #                                Prob = p_Shriver2018(HistDataAll[[2]]$Temp_mean, HistDataAll[[2]]$VWC_mean))
-  # 
-  # Hist_GISSM <- data.table(HistDataAll[[3]])
-  # 
+  Hist_Shriver2018 <- data.table(Year = HistDataAll[[2]]$PlantedinYear,
+                                 Prob = p_Shriver2018(HistDataAll[[2]]$Temp_mean, HistDataAll[[2]]$VWC_mean))
+
+  Hist_GISSM <-  HistDataAll[[3]]
+   
   # Hist_OConnor2020 <- HistDataAll[[4]]
   
   
@@ -216,7 +224,7 @@ for (j in alljid) { # use while not for
 
   AnomalyData1 <- runFutureSWwithAnomalies(sw_in0 = sw_in, wdata, SoilsDF,
                                            TempAnoms, PPTAnoms,
-                                           Nleads, n = 15,
+                                           Nleads, n = 5,
                                            currDOY, currMonth, currYear, currDate)
   #if(!interactive()) comm.print('done future')
 
@@ -228,7 +236,7 @@ for (j in alljid) { # use while not for
   # AnomalyData3 <- plyr::aaply(plyr::laply(AnomalyData2, as.matrix), c(2,3), mean)
 
   # 2 - Get rolling means and then the quantiles of the rolling mean across sims --
-  AnomalyData2 <- do.call(rbind, AnomalyData1)
+  AnomalyData2 <- do.call(rbind, AnomalyData1[[1]])
   AnomRunStats <- formatOutputsFuture(AnomalyData2, SoilsDF, currDate)
   
   # 3 ------- Subset the Recent Past (6 months prior to current) from future ---
@@ -238,7 +246,6 @@ for (j in alljid) { # use while not for
   AnomalyData2 <- data.frame(AnomalyData2)
   AnomRunStats2 <- formatOutputsMonthlys(AnomalyData2, SoilsDF, 'future', currDate = currDate)
 
-  
   ################### ----------------------------------------------------------
   # Part 5 - Calculate deltas, formout outputs
   ################### ----------------------------------------------------------
@@ -263,13 +270,16 @@ for (j in alljid) { # use while not for
   
   
   # eco vars ------------------------------------------------------------------
-  # Future_Shriver2018 <- data.table(Year = AnomalyData1[[2]]$PlantedinYear, 
-  #                                  run = AnomalyData1[[2]]$run,
-  #                                  Prob =  p_Shriver2018(AnomalyData1[[2]]$Temp_mean, AnomalyData1[[2]]$VWC_mean))
+  Future_Shriver2018 <-  bind_rows(AnomalyData1[[2]], .id = "name") %>%
+      mutate(run = as.integer(sub("^([0-9]+)_.*", "\\1", name)))
+             
+  Future_Shriver2018 <-  data.table(Year = Future_Shriver2018$PlantedinYear,
+                                   run =Future_Shriver2018$run,
+                                   Prob =  Future_Shriver2018$Temp_mean, Future_Shriver2018$VWC_mean)
+
+  Future_GISSM <- data.table(AnomalyData1[[3]])
   # 
-  # Future_GISSM <- data.table(AnomalyData1[[3]])
-  # 
-  # Future_OConnor2020 <- data.table(AnomalyData1[[4]])
+  #Future_OConnor2020 <- data.table(AnomalyData1[[4]])
   
   # format ecovars for writing out -------------------------------------------
   # Shriver_Stats <- formatShriver2018(Hist_Shriver2018, Future_Shriver2018, currYear)
