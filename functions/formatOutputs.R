@@ -204,7 +204,7 @@ calcDeltasApproxAndFormat <- function(HistData1, HistDataMonthly,
   # Step 1 - Join up recent past and historical climatologies
   # -----------------------------------------------------------------------------
   #### this includes calculating deltas for this past 6 months
-  indx <- grep( paste0(Var, '_roll'), names(HistData1))
+  indx <- grep( paste0(Var, '.roll'), names(HistData1))
   Hist <- as.data.frame(HistData1)[,c(1, indx)]
   names(Hist)[2:4] <- paste0('Hist.', names(Hist)[2:4])
   
@@ -213,7 +213,7 @@ calcDeltasApproxAndFormat <- function(HistData1, HistDataMonthly,
   Hist$Date <- as.Date(paste(Hist$Year, Hist$Date, sep='-'), format = "%Y-%m-%d")
   Hist$Year <- NULL
   
-  indx <- grep( paste0(Var, '_roll'), names(FutureData1))
+  indx <- grep( paste0(Var, '.roll'), names(FutureData1))
   indx2 <- grep( paste0(Var, '.mean.med'), names(FutureData1))
   Fut <-  as.data.frame(FutureData1)[,c(1, indx2, indx)]
   indx <- grep('.10|.90', names(Fut), invert = TRUE)
@@ -229,7 +229,7 @@ calcDeltasApproxAndFormat <- function(HistData1, HistDataMonthly,
   } else {
     indx <- grep('rollmean.med', names(PastDailys))
   }
-  PastDailys[,paste0('RecentPast.',Var,'.Diffs.Med')] <- PastDailys[, indx[2]] - PastDailys[,indx[1]]
+  PastDailys[,paste0('RecentPast.',Var,'.diffs.med')] <- PastDailys[, indx[2]] - PastDailys[,indx[1]]
   
   # -----------------------------------------------------------------------------
   # Step 2 - Join Monthly Means  to calc diffs (no approx yet just monthlys) between future and historical climatologies
@@ -253,9 +253,9 @@ calcDeltasApproxAndFormat <- function(HistData1, HistDataMonthly,
     indxHist <- grep(paste0('Hist.',Var, '.mean.med'), names(FutMonths))
   }
   indxFuts <- grep('Fut', names(FutMonths))
-  FutMonths[,paste0('NearFut.',Var,'.Diffs.Med')] <- FutMonths[, indxFuts[1]] - FutMonths[,indxHist]
-  FutMonths[,paste0('NearFut.',Var,'.Diffs.10')] <- FutMonths[, indxFuts[2]] - FutMonths[,indxHist]
-  FutMonths[,paste0('NearFut.',Var,'.Diffs.90')] <- FutMonths[, indxFuts[3]] - FutMonths[,indxHist]
+  FutMonths[,paste0('NearFut.',Var,'.diffs.med')] <- FutMonths[, indxFuts[1]] - FutMonths[,indxHist]
+  FutMonths[,paste0('NearFut.',Var,'.diffs.10')] <- FutMonths[, indxFuts[2]] - FutMonths[,indxHist]
+  FutMonths[,paste0('NearFut.',Var,'.diffs.90')] <- FutMonths[, indxFuts[3]] - FutMonths[,indxHist]
   
   # -----------------------------------------------------------------------------
   # Step 3 - APPROX
@@ -314,13 +314,13 @@ calcDeltasApproxAndFormat <- function(HistData1, HistDataMonthly,
   # avg_C_rollmean.90 - gray boundary
   # Hist.avg_C_roll.10.diff - gray boundary, bottom panel
   # Hist.avg_C_roll.90.diff - gray boundary, bottom panel
-  indx <- grep(paste0(Var, '_roll'), names(HistDataNormMean_18MNs))
+  indx <- grep(paste0(Var, '.roll'), names(HistDataNormMean_18MNs))
   Hist18MNs <- HistDataNormMean_18MNs[, c(1,indx)]
   indx1 <- grep('.med', names(Hist18MNs), fixed = TRUE)
   indx2 <- grep('.10', names(Hist18MNs))
   indx3 <- grep('.90', names(Hist18MNs))
-  Hist18MNs[,paste0(Var,'_roll.10.diff')] <- Hist18MNs[, indx2] - Hist18MNs[,indx1]
-  Hist18MNs[,paste0(Var,'_roll.90.diff')] <- Hist18MNs[, indx3] - Hist18MNs[,indx1]
+  Hist18MNs[,paste0(Var,'.roll.10.diff')] <- Hist18MNs[, indx2] - Hist18MNs[,indx1]
+  Hist18MNs[,paste0(Var,'.roll.90.diff')] <- Hist18MNs[, indx3] - Hist18MNs[,indx1]
   
   # Join
   AllDailys <- data.frame(Date = seq(as.Date(currDate - 183),as.Date(currDate + 365), "days"))

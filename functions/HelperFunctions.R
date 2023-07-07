@@ -105,3 +105,16 @@ makeMonthLeadRelationshipTable <- function(TempAnoms, currMonth) {
 }
 
 std <- function(x) sd(x)/sqrt(length(x))
+
+is_leap <- function(currDate = Sys.Date()){
+  
+  start <- currDate - 183
+  end <- currDate +  365
+  
+  if(any(grep('02-29', seq(start, end, "days")))){
+    return(TRUE)
+  } else {
+    return(FALSE)
+  }
+  
+}

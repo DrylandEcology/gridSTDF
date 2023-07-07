@@ -12,14 +12,6 @@ suppressMessages(library(lubridate, quietly = TRUE))
 suppressMessages(library(pbdMPI, quiet = TRUE))
 suppressMessages(library(RNetCDF, quiet = TRUE))
 
-source('functions/weatherFunctions.R')
-source('functions/HelperFunctions.R')
-source('functions/getOutputs.R')
-source('functions/formatOutputs.R')
-source('functions/calcHistoricalClimatologies.R')
-
-source('main/implementation/SWfunc.R')
-source('functions/netcdf_functions_HPC.R')
 
 file_list <- list.files(path = "./functions/", full.names = TRUE)
 
@@ -47,7 +39,7 @@ if(!interactive()) {
 weatherDB <- rSOILWAT2::dbW_setConnection(
   dbFilePath = 'main/Data/dbWeatherData_WesternUS_gridMET_1979-2021.sqlite3')
  
-Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex2.csv"))
+Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
 #Sites <- Sites[!is.na(Sites$region2),]
 
 if(!interactive()) {
@@ -63,7 +55,6 @@ currMonth <- lubridate::month(Sys.Date())
 currYear <- lubridate::year(Sys.Date())
 currDate <- Sys.Date()
 todayMonthDay <- format(Sys.Date() , format="%m-%d")
-
 
 # NWS Anomalies ----------------------------------------------------------------
 TempAnomsWhole <- data.table::fread('main/CurrentAnomalyTempData.csv')
@@ -271,18 +262,17 @@ for (j in alljid) { # use while not for
   
   # Eco vars ------------------------------------------------------------------
   # # Shriver Sagebrush
-  Future_Shriver2018 <- bind_rows(AnomalyData1[[2]], .id = "run")
+  Future_Shriver2018 <- dplyr::bind_rows(AnomalyData1[[2]], .id = "run")
              
   Future_Shriver2018 <- data.table(Year = Future_Shriver2018$PlantedinYear,
                                    run = Future_Shriver2018$run,
-                                   Prob =  Future_Shriver2018$Temp_mean, Future_Shriver2018$VWC_mean)
+                                   Prob =  p_Shriver2018(Future_Shriver2018$Temp_mean, Future_Shriver2018$VWC_mean))
   
   Shriver_Stats <- formatShriver2018(Hist_Shriver2018, Future_Shriver2018, currYear)
 
   # GISSM Sagebrush
-  Future_GISSM <- bind_rows(AnomalyData1[[3]], .id = "run")
-  GISSM_Stats <- formatGISSM(Hist_GISSM, Future_GISSM)
-
+  Future_GISSM <- dplyr::bind_rows(AnomalyData1[[3]], .id = "run")
+  Future_GISSM <- formatfutureGISSM(Future_GISSM)
   
   # Oconnor_Stats <- formatOConnor2020(Hist_OConnor2020, Future_OConnor2020)
   

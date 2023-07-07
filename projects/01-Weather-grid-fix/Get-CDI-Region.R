@@ -83,11 +83,6 @@ x2 <- as.data.frame(Missing2[,c('Longitude', 'Latitude', 'geometry' ,'region2')]
 
 x3 <- rbind(x, x2)
 
-# Save to site file
-Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
+write.csv(x3, 'projects/01-Weather-grid-fix/CD_region_grid.csv', row.names = FALSE)
 
-Sites <- merge(Sites, as.data.frame(x3[,c('Longitude', 'Latitude', 'region2')]))
 
-write.csv(Sites, "main/Data/WeatherDBSitesTable_WestIndex2.csv", row.names = FALSE)
-
- summary(Sites)

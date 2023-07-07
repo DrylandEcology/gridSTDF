@@ -245,7 +245,7 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
       names(SWOuts) <- paste(nn, y, sep = '_')
       AllOut1 <- append(AllOut1, SWOuts)
       
-      Fut_Shriver <- list(cbind(Out1[[2]], )
+      Fut_Shriver <- list(Out1[[2]])
       names(Fut_Shriver) <- paste(nn, y, sep = '_')
       Shriver_Out <- append(Shriver_Out, Fut_Shriver)
       
