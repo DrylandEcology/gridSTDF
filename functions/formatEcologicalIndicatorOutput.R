@@ -42,6 +42,23 @@ formatGISSM <- function(Hist_GISSM, Future_GISSM) {
   return(bind(Hist_GISSM,Future_GISSM))
 }
 
+#' Organizes future GISSM output 
+#'
+#' @param Future_GISSM a data.frame containing outputs from the GISSM
+#'  model for the future period.
+#'
+#' @return data.frame
+
+formatfutureGISSM <- function(Future_GISSM) {
+  
+  Future_GISSM$run_year <- sapply(strsplit(Future_GISSM$run, '_'), '[', 2)
+  Future_GISSM$run_sim <- sapply(strsplit(Future_GISSM$run, '_'), '[', 1)
+  Future_GISSM <- Future_GISSM[, .(Prob = mean(SeedlingSurvival_1stSeason)), .(run_sim, ryear)]
+
+  Future_GISSM <- Future_GISSM[order(Future_GISSM$ryear),]
+  return(Future_GISSM)
+}
+
 
 #' Organizes all OConnor2020 output for passing along API
 #'

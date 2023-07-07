@@ -34,6 +34,8 @@
 # ------------------------------------------------------------------------------
 # Step 1 -----------------------------------------------------------------------
 # ------------------------------------------------------------------------------
+reps = 5
+ 
 Output_folder <- paste0('projects/05-Setup-futureMonthly-netCDFs/Outputs/Test_', format(currDate, "%Y%m%d"), '/')
 
 if (!file.exists(Output_folder)){
@@ -78,41 +80,77 @@ nc_att_xy <- western_region.nc1$xy_attributes
 
 # 2) determine time information ------------------------------------------------
 
-# historical dailys are 548 days. 183 days prior
-# reflects the historical climatology calculations
+# Create a vector of dates from 180 days before today to 365 days in the future - This is the climatology of the record we are accounting for
 start <- currDate - 183
 end <- currDate +  365
+is_leap <- is_leap()
+
+time_values_daily_h <- seq(start, end, by = "days")
+
+# Generate vector of dates with the same month and day but different years (beginning and end of climatology)
+today_julian <- as.numeric(currDate - ymd(paste(year(currDate), '01', '01', sep = "-"))) + 1
+
+lastYear <- year(currDate) - 1
+currYear <- year(currDate)
+nextYear <- year(currDate) + 1
+
+c1 <- c2 <- time_values_daily_h
+
+if(today_julian <= 183) {
   
-historical_daily_start <- format(start, format="%m-%d")
-historical_daily_end <- format(end, format="%m-%d")
+  year(c1[year(c1) == lastYear]) <- 1991
+  year(c1[year(c1) == currYear]) <- 1992
+  year(c1[year(c1) == nextYear]) <- 1993
 
-c1 <- as.character(seq(as.Date(paste('1991-', historical_daily_start)), 
-                       as.Date(paste('1993-',historical_daily_end)),
-                       "days"))
-c1 <- c1[!c1 %in% ("1992-02-29")]
+  year(c2[year(c2) == lastYear]) <- 2020
+  year(c2[year(c2) == currYear]) <- 2021
+  year(c2[year(c2) == nextYear]) <- 2022
 
-c2 <- as.character(seq(as.Date(paste('2020-',historical_daily_start)), 
-                       as.Date(paste('2022-',historical_daily_end)),
-                       "days")) 
+} else {
 
-time_bounds_daily_h = matrix(c(c1, c2), 
-                               nrow = length(1:548), ncol = 2)
+  year(c1[year(c1) == currYear]) <- 1991
+  year(c1[year(c1) == nextYear]) <- 1992
+  
+  year(c2[year(c2) == currYear]) <- 2020
+  year(c2[year(c2) == nextYear]) <- 2021
+  
+}
 
-time_values_daily_h <- as.character(seq(start, end, "days"))
-time_values_daily_h <- time_values_daily_h[!time_values_daily_h %in% ("2024-02-29")]
-time_values_daily_h <- as.integer(as.Date(c1))
+# if there is a leap year ... 
+## When creating the climatology bounds with "real dates" we expect at least one NA (because, for example, '1991-02-29' does not exist)
+## Since we are using the date format of  days since 1970-01-01 (instead of real dates), remove the NA and add another day to the end
+
+if(any(is.na(c1))) {
+
+  c1 <- c1[!is.na(c1)] # remove NA
+  c1[(length(c1) + 1)] <- c1[length(c1)] + 1 # add one more date to the end
+  
+}
+
+if(any(is.na(c2))) {
+  
+  c2 <- c2[!is.na(c2)] # remove NA
+  c2[(length(c2) + 1)] <- c2[length(c2)] + 1 # add one more date to the end
+  
+}
+
+time_bounds_daily_h = matrix(c(as.integer(c1), as.integer(c2)), 
+                               nrow = length(1:549), ncol = 2)
 
 
-# daily predicted (351!) -------------------------------------------------------
+time_values_daily_h <- as.integer(time_values_daily_h)
+
+
+# daily predicted (352!) -------------------------------------------------------
 predicted_daily_start <- currDate + 14
 predicted_daily_end <- currDate + 365
 
-c1 <- as.character(seq(predicted_daily_start, predicted_daily_end, "days"))
-c1 <- c1[!c1 %in% ("2024-02-29")]
+c1 <- as.integer(seq(predicted_daily_start, predicted_daily_end, "days"))
+#c1 <- c1[!c1 %in% ("2024-02-29")]
 c2 <- c1
 
 time_bounds_daily_p <- matrix(c(c1, c2), 
-                             nrow = length(1:351), ncol = 2)
+                             nrow = length(1:352), ncol = 2)
 
 time_values_daily_p <- as.integer(as.Date(c1))
 
@@ -120,8 +158,8 @@ time_values_daily_p <- as.integer(as.Date(c1))
 recentpast_daily_start <- currDate - 180
 recentpast_daily_end <- currDate - 1
 
-c1 <- as.character(seq(recentpast_daily_start, recentpast_daily_end, "days"))
-c1 <- c1[!c1 %in% ("2024-02-29")]
+c1 <- as.integer(seq(recentpast_daily_start, recentpast_daily_end, "days"))
+#c1 <- c1[!c1 %in% ("2024-02-29")]
 c2 <- c1
 time_bounds_daily_rp = matrix(c(c1, c2), 
                              nrow = length(1:180), ncol = 2)
@@ -129,8 +167,8 @@ time_bounds_daily_rp = matrix(c(c1, c2),
 time_values_daily_rp <- as.integer(as.Date(c1))
 
 # historical annually (for some ecological indicators) --------------------------
-c1 <- as.character(seq(as.Date("1991/1/1"), as.Date(paste0(currYear,"/1/1")), "years"))
-c2 <-  as.character(seq(as.Date("1991/12/31"), as.Date(paste0(currYear,"/12/31")), "years"))
+c1 <- seq(as.Date("1991/1/1"), as.Date(paste0(lastYear,"/1/1")), "years")
+c2 <- seq(as.Date("1991/12/31"), as.Date(paste0(lastYear,"/12/31")), "years")
 
 time_bounds_annually_h = matrix(c(c1, c2), 
                              nrow = length(1:length(c2)), ncol = 2)
@@ -138,15 +176,17 @@ time_bounds_annually_h = matrix(c(c1, c2),
 time_values_annually_h <- as.numeric(year(c1))
 
 # annual predictions for ecological indicators ---------------------------------
-c1 <- as.character(c(rep(as.Date(paste0(currYear,"/1/1")), 30), rep(as.Date(paste0(currYear + 1,"/1/1")), 30)))
-c2 <- as.character(c(rep(as.Date(paste0(currYear,"/12/1")), 30), rep(as.Date(paste0(currYear + 1,"/12/1")), 30)))
+c1 <- c(rep(as.Date(paste0(currYear,"/1/1")), reps), rep(as.Date(paste0(currYear + 1,"/1/1")), reps))
+c2 <- c(rep(as.Date(paste0(currYear,"/12/1")), reps), rep(as.Date(paste0(currYear + 1,"/12/1")), reps))
 
 time_bounds_annually_p = matrix(c(c1, c2), 
                                 nrow = length(1:length(c2)), ncol = 2)
 
 time_values_annually_p <- as.numeric(year(c1))
 
+# -----------------------------------------------------------------------------
 # 3) read in other information ------------------------------------------------
+# -----------------------------------------------------------------------------
 
 attributes <- read.csv('projects/05-Setup-futureMonthly-netCDFs/nc_atts-all.csv')
 names <-  attributes$short_name
