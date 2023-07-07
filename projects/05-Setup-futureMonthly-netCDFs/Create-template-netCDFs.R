@@ -152,7 +152,7 @@ c2 <- c1
 time_bounds_daily_p <- matrix(c(c1, c2), 
                              nrow = length(1:352), ncol = 2)
 
-time_values_daily_p <- as.integer(as.Date(c1))
+time_values_daily_p <- c1
 
 # recent past ------------------------------------------------------------------
 recentpast_daily_start <- currDate - 180
@@ -164,7 +164,7 @@ c2 <- c1
 time_bounds_daily_rp = matrix(c(c1, c2), 
                              nrow = length(1:180), ncol = 2)
 
-time_values_daily_rp <- as.integer(as.Date(c1))
+time_values_daily_rp <- c1
 
 # historical annually (for some ecological indicators) --------------------------
 c1 <- seq(as.Date("1991/1/1"), as.Date(paste0(lastYear,"/1/1")), "years")
