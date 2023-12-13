@@ -34,8 +34,6 @@
 # ------------------------------------------------------------------------------
 # Step 1 -----------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-reps = 5
- 
 Output_folder <- paste0('projects/05-Setup-futureMonthly-netCDFs/Outputs/Test_', format(currDate, "%Y%m%d"), '/')
 
 if (!file.exists(Output_folder)){
@@ -176,8 +174,8 @@ time_bounds_annually_h = matrix(c(c1, c2),
 time_values_annually_h <- as.numeric(year(c1))
 
 # annual predictions for ecological indicators ---------------------------------
-c1 <- c(rep(as.Date(paste0(currYear,"/1/1")), reps), rep(as.Date(paste0(currYear + 1,"/1/1")), reps))
-c2 <- c(rep(as.Date(paste0(currYear,"/12/1")), reps), rep(as.Date(paste0(currYear + 1,"/12/1")), reps))
+c1 <- c(rep(as.Date(paste0(currYear,"/1/1")), nRuns), rep(as.Date(paste0(currYear + 1,"/1/1")), nRuns))
+c2 <- c(rep(as.Date(paste0(currYear,"/12/1")), nRuns), rep(as.Date(paste0(currYear + 1,"/12/1")), nRuns))
 
 time_bounds_annually_p = matrix(c(c1, c2), 
                                 nrow = length(1:length(c2)), ncol = 2)

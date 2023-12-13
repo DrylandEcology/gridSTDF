@@ -15,9 +15,11 @@ suppressMessages(library(pbdNCDF4, quiet = TRUE))
 suppressMessages(library(RNetCDF, quiet = TRUE))
 suppressMessages(library(ncdf4, quiet = TRUE))
 
-
+# variables --------------------------------------------------------------------
 isParallel <- TRUE # set to FALSE if you dont want to use pbdMPI to execute runs in parallel 
+nRuns = 5 #is 30 for point based netCDF ...
 
+# Begin ------------------------------------------------------------------------
 file_list <- list.files(path = "./functions/", full.names = TRUE)
 
 # Iterate over the file list and source each file. TO DO: package all these functions
@@ -80,12 +82,12 @@ monthLeads <- makeMonthLeadRelationshipTable(TempAnomsWhole[1:12,], currMonth)
 
 #### ---------------------------- Outputs  -------------------------------- ####
 source('./main/implementation/01.1_create-netcdfs.R') # TO DO: Make this a function / obviously change this path
-if(!interactive()) comm.print('netCDFs created')
+if(!interactive() & isParallel) comm.print('netCDFs created')
 
 ################### ------------------------------------------------------------
 # Simulation begins 
 ################### ------------------------------------------------------------
-if(!interactive()) comm.print('begin simulations')
+if(!interactive() & isParallel) comm.print('begin simulations')
 
 # Run simulation --------------------------------------------------------------
 
@@ -223,7 +225,7 @@ for (j in alljid) { # TO DO: use while not for
 
   AnomalyData1 <- runFutureSWwithAnomalies(sw_in0 = sw_in, wdata, SoilsDF,
                                            TempAnoms, PPTAnoms,
-                                           Nleads, n = 5,
+                                           Nleads, n = nRuns,
                                            currDOY, currMonth, currYear, currDate)
   #if(!interactive()) comm.print('done future')
 
@@ -246,7 +248,7 @@ for (j in alljid) { # TO DO: use while not for
   AnomRunStats2 <- formatOutputsMonthlys(AnomalyData2, SoilsDF, 'future', currDate = currDate)
 
   ################### ----------------------------------------------------------
-  # Part 5 - Calculate deltas, formout outputs
+  # Part 5 - Calculate deltas, format outputs
   ################### ----------------------------------------------------------
   
   # calculate deltas and approx and format
@@ -267,8 +269,10 @@ for (j in alljid) { # TO DO: use while not for
     AllVarData <- merge(AllVarData, OneVarData)
   }
   
+  ################### ----------------------------------------------------------
+  # Part 5.2 - Ecovar formatting
+  ################### ----------------------------------------------------------
   
-  # Eco vars ------------------------------------------------------------------
   # # Shriver Sagebrush
   Future_Shriver2018 <- dplyr::bind_rows(AnomalyData1[[2]], .id = "run")
              
@@ -282,23 +286,26 @@ for (j in alljid) { # TO DO: use while not for
   Future_GISSM <- dplyr::bind_rows(AnomalyData1[[3]], .id = "run")
   Future_GISSM <- formatfutureGISSM(Future_GISSM)
   
-  # Oconnor_Stats <- formatOConnor2020(Hist_OConnor2020, Future_OConnor2020)
+  # TO DO: Need to discuss with group what this output is looks like as netCDf/map
+  # Oconnor_Stats <- formatOConnor2020(Hist_OConnor2020, Future_OConnor2020) 
   
   ################### ----------------------------------------------------------
   # Part 6 - Insert into netCDFs!!!
   ################### ----------------------------------------------------------
-  # TO DO: Another netCDF that tracks success and failure
 
-  if(!interactive()) comm.print('Inserting into netCDFs.', Sys.time())
-  source('functions/nc_input.R') # TO DO: Make this into a function not a script
+  # TO DO: Another netCDF that tracks success and failure
   
+  if(!interactive() & isParallel) comm.print('Inserting into netCDFs.', Sys.time())
+  
+  # TO DO: Make this into a function not a script
+  source('./main/implementation/01.2_input-values-into-ncdfs.R') 
   
 }
 
 
 # Shut down MPI ---------------------------------------------------------------
 
-if(!interactive()) {
+if(!interactive() & isParallel) {
   
   #   #info.free()
   comm.print('done')
