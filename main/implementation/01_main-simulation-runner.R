@@ -10,13 +10,19 @@ suppressMessages(library(data.table, quietly = TRUE))
 suppressMessages(library(lubridate, quietly = TRUE))
 
 suppressMessages(library(pbdMPI, quiet = TRUE))
-suppressMessages(library(RNetCDF, quiet = TRUE))
 
+suppressMessages(library(pbdNCDF4, quiet = TRUE))
+suppressMessages(library(RNetCDF, quiet = TRUE))
+suppressMessages(library(ncdf4, quiet = TRUE))
+
+
+isParallel <- TRUE # set to FALSE if you dont want to use pbdMPI to execute runs in parallel 
 
 file_list <- list.files(path = "./functions/", full.names = TRUE)
 
-# Iterate over the file list and source each file
+# Iterate over the file list and source each file. TO DO: package all these functions
 for (file in file_list) {
+  print(file)
   source(file)
 }
 
@@ -25,7 +31,8 @@ for (file in file_list) {
 ################### ------------------------------------------------------------
 
 #### ---------------------- Initialize MPI  ------------------------------- ####
-if(!interactive()) {
+if(isParallel) {
+  
   rank <- comm.rank() # processor's rank
   size <- comm.size() # total processors (i.e. equal to tasks in the SLURM scripts)
   comm.print(size)
@@ -42,11 +49,13 @@ weatherDB <- rSOILWAT2::dbW_setConnection(
 Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
 #Sites <- Sites[!is.na(Sites$region2),]
 
-if(!interactive()) {
-  sites <- dim(Sites)[1]
-  comm.print(sites)
+sites <- dim(Sites)[1]
+
+if(isParallel) {
   alljid <- get.jid(n = sites, method = "block", all = FALSE) 
   comm.print(alljid) 
+} else {
+  alljid <- sites
 }
 
 # Date Info --------------------------------------------------------------------
@@ -70,18 +79,17 @@ AllProdInfo <- AllProdInfo[-1,]
 monthLeads <- makeMonthLeadRelationshipTable(TempAnomsWhole[1:12,], currMonth)
 
 #### ---------------------------- Outputs  -------------------------------- ####
-source('projects/05-Setup-futureMonthly-netCDFs/Create-template-netCDFs.R') # obviously change this path
+source('./main/implementation/01.1_create-netcdfs.R') # TO DO: Make this a function / obviously change this path
 if(!interactive()) comm.print('netCDFs created')
 
 ################### ------------------------------------------------------------
-# Simulation begin in Parallel!! 
+# Simulation begins 
 ################### ------------------------------------------------------------
 if(!interactive()) comm.print('begin simulations')
 
 # Run simulation --------------------------------------------------------------
-for (j in alljid) { # use while not for
-  
-  #sites_for_now <- 15000:15050
+
+for (j in alljid) { # TO DO: use while not for
   i <- j
   
   ################### ------------------------------------------------------------
@@ -100,7 +108,7 @@ for (j in alljid) { # use while not for
   
   st <- c(LonIdx, LatIdx, 1)
 
-  if(!interactive()) comm.print(paste(i, ': Site', Site_id, 'running', Sys.time()))
+  if(!interactive() & isParallel) comm.print(paste(i, ': Site', Site_id, 'running', Sys.time()))
   
   wdata <- rSOILWAT2::dbW_getWeatherData(Site_id = Site_id)
   wdata_plus <- getWeatherData(Lat, Long, currYear,
@@ -279,10 +287,11 @@ for (j in alljid) { # use while not for
   ################### ----------------------------------------------------------
   # Part 6 - Insert into netCDFs!!!
   ################### ----------------------------------------------------------
+  # TO DO: Another netCDF that tracks success and failure
+
   if(!interactive()) comm.print('Inserting into netCDFs.', Sys.time())
-  source('functions/nc_input.R')
+  source('functions/nc_input.R') # TO DO: Make this into a function not a script
   
-  # Another netCDF that tracks success and failure
   
 }
 

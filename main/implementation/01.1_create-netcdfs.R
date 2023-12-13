@@ -283,7 +283,7 @@ for(nc in 1:100){
     time_bounds = time_bounds, 
     type_timeaxis = attributes$type_timeaxis[nc],
     global_attributes = nc_att_global, 
-    #isParallel = TRUE
+    isParallel = isParallel # set in main runner file
   ))
   
 }

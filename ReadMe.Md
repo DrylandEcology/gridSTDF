@@ -16,4 +16,6 @@ scp /Users/candrews/Documents/Git/gridSTDF/Data/dbWeatherData_WesternUS_gridMET_
 
 ## Other
 
-## Download local postgres
+## Scripts running on USGS HPC
+ssh yourusername@tallgrass.cr.usgs.gov
+cd caldera/projects/usgs/ecosystems/swbsc/DrylandEcohydrologyLab/gridSTDF_Projects/gridSTDF/main

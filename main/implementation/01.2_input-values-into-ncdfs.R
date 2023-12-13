@@ -1,4 +1,4 @@
-# in the future - make this into a fucntion
+# in the future - make this into a function
 # in theory the nc_info should already be open
 
 #attributes <- data.table::fread('projects/05-Setup-futureMonthly-netCDFs/nc_atts-all.csv')
@@ -37,9 +37,6 @@ for(n in seq_along(netCDFnames)){
 netCDFnames <- c(attributes$short_name)[97:100]
 varName <- c(attributes$var_name)[97:100]
 
-
-
-
 Shriver_Hist <- c(Shriver_Stats[TP == 'Historical', 'Prob'])
 pbdNCDF4::ncvar_put(get(netCDFnames[n]), varName[n], Shriver_Hist, 
                     start = st, count = co)
@@ -63,7 +60,3 @@ pbdNCDF4::ncvar_put(get(netCDFnames[n]), varName[n], GISSM_Fut,
                     start = st, count = co)
 
 nc_sync(get(netCDFnames[n])) 
-
-
-
-
