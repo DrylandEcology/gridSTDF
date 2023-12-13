@@ -34,7 +34,7 @@
 # ------------------------------------------------------------------------------
 # Step 1 -----------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-Output_folder <- paste0('projects/05-Setup-futureMonthly-netCDFs/Outputs/Test_', format(currDate, "%Y%m%d"), '/')
+Output_folder <- paste0('./outputs/', format(currDate, "%Y%m%d"), '/')
 
 if (!file.exists(Output_folder)){
     dir.create(Output_folder)    
@@ -186,7 +186,7 @@ time_values_annually_p <- as.numeric(year(c1))
 # 3) read in other information ------------------------------------------------
 # -----------------------------------------------------------------------------
 
-attributes <- read.csv('projects/05-Setup-futureMonthly-netCDFs/nc_atts-all.csv')
+attributes <- read.csv('./main/implementation/nc_atts-all.csv')
 names <-  attributes$short_name
 
 for(nc in 1:100){
@@ -286,6 +286,6 @@ for(nc in 1:100){
   
 }
 
-comm.print("creation done")
+if(!interactive() & isParallel) comm.print("creation done")
 
 

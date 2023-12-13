@@ -50,6 +50,6 @@ for(n in seq_along(netCDFnames)){
 }
 
 # ecological variables ----------------------------------------------------------
-netCDFnames <- c(attributes$short_name)[97:100]
-varName <- c(attributes$var_name)[97:100]
+#netCDFnames <- c(attributes$short_name)[97:100]
+#varName <- c(attributes$var_name)[97:100]
 
