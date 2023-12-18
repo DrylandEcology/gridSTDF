@@ -4,6 +4,7 @@ wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P /caldera/pr
 wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P /caldera/projects/usgs/ecosystems/swbsc/DrylandEcohydrologyLab/gridSTDF_Projects/gridSTDF/main/Data -A "tmmn_2023.nc"
 wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P /caldera/projects/usgs/ecosystems/swbsc/DrylandEcohydrologyLab/gridSTDF_Projects/gridSTDF/main/Data -A "pr_2023.nc"
 
+Rscript "/caldera/projects/usgs/ecosystems/swbsc/DrylandEcohydrologyLab/gridSTDF_Projects/gridSTDF/main/getDataOffline.R"
 
 #wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P /Users/candrews/Documents/Git/gridSTDF/main/Data -A "pr_2023.nc"
 #wget -r -l1 -np "https://www.northwestknowledge.net/metdata/data" -P /Users/candrews/Documents/Git/gridSTDF/main/Data -A "tmmn_2023.nc"
