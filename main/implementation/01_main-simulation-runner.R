@@ -17,7 +17,7 @@ suppressMessages(library(ncdf4, quiet = TRUE))
 
 # variables --------------------------------------------------------------------
 isParallel <- TRUE # set to FALSE if you dont want to use pbdMPI to execute runs in parallel 
-nRuns = 5 #is 30 for point based netCDF ...
+nRuns = 5 #is 30 for point based netCDF, but changed to 5 here for testing purposes 
 
 # Begin ------------------------------------------------------------------------
 file_list <- list.files(path = "./functions/", full.names = TRUE)
@@ -48,6 +48,7 @@ if(isParallel) {
 weatherDB <- rSOILWAT2::dbW_setConnection(
   dbFilePath = 'main/Data/dbWeatherData_WesternUS_gridMET_1979-2021.sqlite3')
  
+# this stuff is on the HPC... # Alice will download to her local computer later
 Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
 #Sites <- Sites[!is.na(Sites$region2),]
 
@@ -72,15 +73,19 @@ TempAnomsWhole <- data.table::fread('main/CurrentAnomalyTempData.csv')
 PPTAnomsWhole <- data.table::fread('main/CurrentAnomalyPPTData.csv')
 
 #Vegetation/Prod ---------------------------------------------------------------
-AllProdInfo <- data.table::fread('main/Data/SWRuns_InputData_prod_pnv_1991-2020_v11.csv')
+# data from previous work that Daniel did...? 
+AllProdInfo <- data.table::fread('./main/main/Data/SWRuns_InputData_prod_pnv_1991-2020_v11.csv')
 AllProdInfo <- AllProdInfo[-1,]
 
 # Establish date and time info --------------------------------------
 # Establish current month and how the 'LEAD's relate to months
 # A LEAD of 1 relates to the forecast beginning where the currmonth + 1
 monthLeads <- makeMonthLeadRelationshipTable(TempAnomsWhole[1:12,], currMonth)
+# column headers "lead1, lead2, lead3" don't correspond to the "name" of a lead, 
+#but rather to the three leads that you'll need to get data from to average for a given month 
 
 #### ---------------------------- Outputs  -------------------------------- ####
+# creates empty netCDFs to be filled with the simulation runs 
 source('./main/implementation/01.1_create-netcdfs.R') # TO DO: Make this a function / obviously change this path
 if(!interactive() & isParallel) comm.print('netCDFs created')
 
@@ -91,13 +96,13 @@ if(!interactive() & isParallel) comm.print('begin simulations')
 
 # Run simulation --------------------------------------------------------------
 
-for (j in alljid) { # TO DO: use while not for
+for (j in alljid) { # TO DO: use "while" not "for"
   i <- j
   
   ################### ------------------------------------------------------------
   # Part 1 - Getting and formatting historical weather data 
   ################### ------------------------------------------------------------
-
+## should double check... do we need to have a copy of the database on each core? 
   weatherDB <- rSOILWAT2::dbW_setConnection(
     dbFilePath = 'main/Data/dbWeatherData_WesternUS_gridMET_1979-2021.sqlite3')
   
@@ -128,16 +133,18 @@ for (j in alljid) { # TO DO: use while not for
   ################### ----------------------------------------------------------
   # Part 2 - Sets SW parameters besides weather
   ################### ----------------------------------------------------------
+  #setting soilWat specific options
   sw_in <- new("swInputData") # baseline data
   sw_in <- setVeg(sw_in, AllProdInfo, i)
   sw_in <- setSW(sw_in, Lat, Long, clim)
   #sw_in <- set_soils(sw_in, 2, 35, 35)
-  sw_in@site@SoilTemperatureFlag <- FALSE
-  swCarbon_Use_Bio(sw_in) <- FALSE
-  swCarbon_Use_WUE(sw_in) <- FALSE
-  swYears_EndYear(sw_in) <- currYear - 1
+  sw_in@site@SoilTemperatureFlag <- FALSE # turns off the soil temp option 
+  swCarbon_Use_Bio(sw_in) <- FALSE # turns off carbon
+  swCarbon_Use_WUE(sw_in) <- FALSE # turns off Water use efficiency 
+  swYears_EndYear(sw_in) <- currYear - 1 # the setting for the historical simulation 
   
   # Soils info formatting ----------------------------------------------------
+  # waiting on the proper soils data, this is sort of a placeholder
   SoilsDF <- data.frame(depth_cm = c(1:250),
                         Depth = c(rep('Shallow', 15),
                                   rep('Intermediate', 50), #16 - 65
@@ -152,7 +159,9 @@ for (j in alljid) { # TO DO: use while not for
   # Part 3 - Run SOILWAT Historical!
   ################### ----------------------------------------------------------
   #if(!interactive()) comm.print(paste('Running Current Site', Site_id, Sys.time()))
-  
+  # runs SOILWAT2 for the historical data, and aggregates the results 
+  # Note: hypothetically, we could run the historical period once, and then each 
+  # month would run this part for the most recent month of historical data before running the anomaly data
   sw_out <- rSOILWAT2::sw_exec(inputData = sw_in, weatherList = wdata, quiet = TRUE)
   
   ################ -------------------------------------------------------------
@@ -215,7 +224,10 @@ for (j in alljid) { # TO DO: use while not for
   #if(!interactive()) comm.print(paste('Running Future Site', Site_id, Sys.time()))
 
   # 4.1 Climate Info from NWS ------------------------
-  Nleads <- 12
+  Nleads <- 12 # is an option to have it 13, but is much easier to do 12 months 
+  # rather than a year and 1 month (plus the 13th month would be a bad forecast anyway)
+  
+  # in the TempAnom and PPTAnoms data, the Month listed as "current month" is included in the first lead 
 
   TempAnoms <- subset(TempAnomsWhole, CD == CDRegion)
   TempAnoms <- TempAnoms[1:Nleads]
@@ -223,6 +235,7 @@ for (j in alljid) { # TO DO: use while not for
   PPTAnoms <- subset(PPTAnomsWhole, CD == CDRegion)
   PPTAnoms <- PPTAnoms[1:Nleads,]
 
+  # function in "weatherFunctions.R"
   AnomalyData1 <- runFutureSWwithAnomalies(sw_in0 = sw_in, wdata, SoilsDF,
                                            TempAnoms, PPTAnoms,
                                            Nleads, n = nRuns,
