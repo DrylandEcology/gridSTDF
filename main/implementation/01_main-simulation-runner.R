@@ -9,15 +9,15 @@ suppressMessages(library(raster, quietly = TRUE))
 suppressMessages(library(data.table, quietly = TRUE))
 suppressMessages(library(lubridate, quietly = TRUE))
 
-suppressMessages(library(pbdMPI, quiet = TRUE))
+#suppressMessages(library(pbdMPI, quiet = TRUE))
 
-suppressMessages(library(pbdNCDF4, quiet = TRUE))
+#suppressMessages(library(pbdNCDF4, quiet = TRUE))
 suppressMessages(library(RNetCDF, quiet = TRUE))
 suppressMessages(library(ncdf4, quiet = TRUE))
 
 # variables --------------------------------------------------------------------
-isParallel <- TRUE # set to FALSE if you dont want to use pbdMPI to execute runs in parallel 
-nRuns = 5 #is 30 for point based netCDF, but changed to 5 here for testing purposes 
+isParallel <- FALSE # set to FALSE if you dont want to use pbdMPI to execute runs in parallel 
+nRuns = 5 #is 30 for point based netCDF, but changed to 5 here for testing purposes (this is the number of simulations for each grid?? I think? )
 
 # Begin ------------------------------------------------------------------------
 file_list <- list.files(path = "./functions/", full.names = TRUE)
@@ -74,8 +74,8 @@ PPTAnomsWhole <- data.table::fread('main/CurrentAnomalyPPTData.csv')
 
 #Vegetation/Prod ---------------------------------------------------------------
 # data from previous work that Daniel did...? 
-AllProdInfo <- data.table::fread('./main/main/Data/SWRuns_InputData_prod_pnv_1991-2020_v11.csv')
-AllProdInfo <- AllProdInfo[-1,]
+AllProdInfo <- data.table::fread('./main/Data/SWRuns_InputData_prod_pnv_1991-2020_v11.csv')
+d <- AllProdInfo[-1,]
 
 # Establish date and time info --------------------------------------
 # Establish current month and how the 'LEAD's relate to months
@@ -88,6 +88,8 @@ monthLeads <- makeMonthLeadRelationshipTable(TempAnomsWhole[1:12,], currMonth)
 # creates empty netCDFs to be filled with the simulation runs 
 source('./main/implementation/01.1_create-netcdfs.R') # TO DO: Make this a function / obviously change this path
 if(!interactive() & isParallel) comm.print('netCDFs created')
+
+## this isn't running... I think there is a netCDF example file that is located on the HPC??
 
 ################### ------------------------------------------------------------
 # Simulation begins 
@@ -123,8 +125,8 @@ for (j in alljid) { # TO DO: use "while" not "for"
 
   lastWeatherDate <- wdata_plus[[2]]
   wdata_plus <- wdata_plus[[1]]
-  wdata_plus <- rSOILWAT2::dbW_dataframe_to_weatherData(
-    wdata_plus[,c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')], round = 4)
+  wdata_plus <- rSOILWAT2::dbW_weatherData_round(rSOILWAT2::dbW_dataframe_to_weatherData(
+    wdata_plus[,c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')]), digits= 4)
    
   clim <- rSOILWAT2::calc_SiteClimate(weatherList = wdata, year.start = 1991, 
                                       year.end = 2020, do_C4vars = TRUE)
@@ -155,6 +157,17 @@ for (j in alljid) { # TO DO: use "while" not "for"
   SoilsDF <- merge(Soils, SoilsDF, by = 'depth_cm')
   SoilsDF$variable <- paste0('Lyr_',1:dim(SoilsDF)[1])
   
+  ##AES made these changes... not sure if they're okay? 
+  # set "version" in sw_in?? AES did this... not sure if it is ok?
+  sw_in@version <- "7.2.0"
+  # set SWRC (soil water retention curve) for this run to default version?? AES 
+  sw_in@site@swrc_flags <- c("swrc_name" = "Campbell1974", "ptf_name" = "Cosby1984AndOthers")
+  sw_in@prod@veg_method <- as.integer(0)
+  sw_in@estab@useEstab <- FALSE
+  swSWC_use(sw_in) <- FALSE
+  swSWC_Method(sw_in) <- as.integer(2)
+  swSite_SoilDensityInputType(sw_in) <- as.integer(1)
+   #sw_in@site@SoilDensityInputType <- test@site@SoilDensityInputType
   ################### ----------------------------------------------------------
   # Part 3 - Run SOILWAT Historical!
   ################### ----------------------------------------------------------
@@ -162,8 +175,9 @@ for (j in alljid) { # TO DO: use "while" not "for"
   # runs SOILWAT2 for the historical data, and aggregates the results 
   # Note: hypothetically, we could run the historical period once, and then each 
   # month would run this part for the most recent month of historical data before running the anomaly data
-  sw_out <- rSOILWAT2::sw_exec(inputData = sw_in, weatherList = wdata, quiet = TRUE)
-  
+  sw_example <- rSOILWAT2::sw_exampleData
+  sw_out <- rSOILWAT2::sw_exec(inputData = sw_example, weatherList = wdata)
+
   ################ -------------------------------------------------------------
   # FORMAT OUTPUTS    --- Get 18 month median, 10, and 90 for all !!! ---
   ################ -------------------------------------------------------------

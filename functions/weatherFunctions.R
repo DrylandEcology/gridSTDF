@@ -46,7 +46,7 @@ getWeatherData <- function(lat, lng, currYear, dir) {
     wdata[wdata$Year == year, 'PPT_cm'][1:length(vals)] <- vals
   }
   
-  # if there isn't 365 days in each year ... na.locf for temp and put 0 for ppt?
+  # if there aren't 365 days in each year ... na.locf for temp and put 0 for ppt?
   # fill in missing with weather generator when running SOILWAT?
   wdata$Tmax_C <- zoo::na.locf(as.numeric(wdata$Tmax_C))
   wdata$Tmin_C <- zoo::na.locf(as.numeric(wdata$Tmin_C))
