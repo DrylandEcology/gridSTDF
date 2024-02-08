@@ -4,13 +4,12 @@
 
 
 # rm(list = ls(all = TRUE))
- library(RNetCDF)
- library(pbdNCDF4)
+ library(RNetCDF) # this package has parallel capabilities now, so replace pdbNCDF4??
+ #library(ncdf4)
  #source('functions/netcdf_functions2.R')
  #source('functions/netcdf_functions_HPC.R')
 
 #devtools::install_github("r4ecology/rcdo", dependencies = TRUE, force = TRUE)
-# Clip file to our domain if you haven't already ----------------------------
 #library(rcdo)
 # source('projects/03-Make-Climatologies-netCDF/nc_clip_edit.R')
 # 
@@ -34,7 +33,7 @@
 # ------------------------------------------------------------------------------
 # Step 1 -----------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-Output_folder <- paste0('./outputs/', format(currDate, "%Y%m%d"), '/')
+Output_folder <- paste0('./outputs/', format(currDate, "%Y%m%d"))
 
 if (!file.exists(Output_folder)){
     dir.create(Output_folder)    
@@ -100,17 +99,17 @@ if(today_julian <= 183) {
   year(c1[year(c1) == currYear]) <- 1992
   year(c1[year(c1) == nextYear]) <- 1993
 
-  year(c2[year(c2) == lastYear]) <- 2020
-  year(c2[year(c2) == currYear]) <- 2021
-  year(c2[year(c2) == nextYear]) <- 2022
+  year(c2[year(c2) == lastYear]) <- 2023
+  year(c2[year(c2) == currYear]) <- 2024
+  year(c2[year(c2) == nextYear]) <- 2025
 
 } else {
 
   year(c1[year(c1) == currYear]) <- 1991
   year(c1[year(c1) == nextYear]) <- 1992
   
-  year(c2[year(c2) == currYear]) <- 2020
-  year(c2[year(c2) == nextYear]) <- 2021
+  year(c2[year(c2) == currYear]) <- 2023
+  year(c2[year(c2) == nextYear]) <- 2024
   
 }
 
@@ -202,7 +201,7 @@ for(nc in 1:100){
     description = attributes$var_description[nc],
     comment = attributes$var_comment[nc],
     cell_methods = attributes$var_cell_methods[nc],
-    prec = "float")
+    prec = "NC_FLOAT")
   
   nc_vars <- nc_var1
   
@@ -250,7 +249,7 @@ for(nc in 1:100){
     title = "Short-term drought forecasts based on NWS long-leads for the western U.S.",
     created_date = paste0( format(currDate, "%Y-%m-%d")),
     version = paste0("v.", format(currDate, "%b%Y")),
-    created_by = paste(version$version.string, '; R packages: pbdncdf4', packageVersion("pbdNCDF4")),
+    created_by = paste(version$version.string, '; R packages: pbdncdf4', packageVersion("ncdf4")),
     source = paste("SOILWAT2 (v6.6.0);  rSOILWAT2", "; gridSTDF"),
     further_info_url = "https://github.com/DrylandEcology/",
     institution = "Southwest Biological Science Center, U.S. Geological Survey",
@@ -264,8 +263,24 @@ for(nc in 1:100){
     Conventions = "CF-1.8")
   
   ## Write netCDF for gridded data
-
-  assign(names[nc], create_netCDF(
+  assign("tempNCDF", RNetCDF::create.nc(
+    filename = file.path(Output_folder,
+                         paste0(attributes$Name[nc], '_', format(currDate, "%m%Y"), '.nc')),
+    clobber = TRUE,
+    format = "netcdf4"))
+  
+  # define dimensions
+  RNetCDF::dim.def.nc(tempNCDF, names(data_dims_nc)[1], dimlength = data_dims_nc[1])
+  RNetCDF::dim.def.nc(tempNCDF, names(data_dims_nc)[2], dimlength = data_dims_nc[2])
+  RNetCDF::dim.def.nc(tempNCDF, names(data_dims_nc)[3], dimlength = data_dims_nc[3])
+  RNetCDF::dim.def.nc(tempNCDF, names(data_dims_nc)[4], dimlength = data_dims_nc[4])
+  RNetCDF::dim.def.nc(tempNCDF, names(data_dims_nc)[5], dimlength = data_dims_nc[5])
+  RNetCDF::dim.def.nc(tempNCDF, names(data_dims_nc)[6], dimlength = data_dims_nc[6])
+  # define variables specific to this "nc" (data type)
+  RNetCDF::var.def.nc(tempNCDF, varname = nc_vars$name, vartype = nc_vars$prec , dimensions = "ns")
+  RNetCDF::var.put.nc
+  
+  assign(names[nc], rSW2st::create_netCDF(
     filename = file.path(Output_folder,
                          paste0(attributes$Name[nc], '_', format(currDate, "%m%Y"), '.nc')),
     overwrite = TRUE,
@@ -281,11 +296,13 @@ for(nc in 1:100){
     time_bounds = time_bounds, 
     type_timeaxis = attributes$type_timeaxis[nc],
     global_attributes = nc_att_global, 
-    isParallel = isParallel # set in main runner file
+    #isParallel = isParallel # set in main runner file
   ))
   
 }
 
 if(!interactive() & isParallel) comm.print("creation done")
 
+
+testTest <- open.nc(con = "./outputs/20240207/tmean_dy_gridSTDF_recentpast_022024.nc")
 
