@@ -1,4 +1,5 @@
 rm(list=ls(all=TRUE))
+
 suppressMessages(library(rSOILWAT2, quiet = TRUE))
 
 suppressMessages(library(rSW2data, quiet = TRUE))

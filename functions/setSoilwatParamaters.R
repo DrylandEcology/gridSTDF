@@ -173,8 +173,10 @@ setSW <- function(sw_in, Lat, Long, calc_SiteClimate) {
   v2 <- paste0("transp", v1, "_frac")
   soil_new[, v2] <- veg_roots[, v1]
 
+  # set site swrcp to FALSE?
+  rSOILWAT2::swSite_hasSWRCp(sw_in) <- FALSE #AES added... I think works? 
   rSOILWAT2::swSoils_Layers(sw_in) <- data.matrix(soil_new)
-
+  
   #Prepare transpiration regions based on soil layers ---------------------------
   #Adjust to your specific soil depths,
   #e.g., if extracted from NRCS SDA without updating soil layers
