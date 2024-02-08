@@ -12,7 +12,7 @@ suppressMessages(library(lubridate, quietly = TRUE))
 
 #suppressMessages(library(pbdMPI, quiet = TRUE))
 
-#suppressMessages(library(pbdNCDF4, quiet = TRUE))
+suppressMessages(library(pbdNCDF4, quiet = TRUE))
 suppressMessages(library(RNetCDF, quiet = TRUE))
 suppressMessages(library(ncdf4, quiet = TRUE))
 
@@ -89,8 +89,6 @@ monthLeads <- makeMonthLeadRelationshipTable(TempAnomsWhole[1:12,], currMonth)
 # creates empty netCDFs to be filled with the simulation runs 
 source('./main/implementation/01.1_create-netcdfs.R') # TO DO: Make this a function / obviously change this path
 if(!interactive() & isParallel) comm.print('netCDFs created')
-
-## this isn't running... I think there is a netCDF example file that is located on the HPC??
 
 ################### ------------------------------------------------------------
 # Simulation begins 
@@ -251,7 +249,7 @@ for (j in alljid) { # TO DO: use "while" not "for"
   PPTAnoms <- PPTAnoms[1:Nleads,]
 
   # function in "weatherFunctions.R"
-  AnomalyData1 <- runFutureSWwithAnomalies(sw_in0 = sw_in, wdata, SoilsDF,
+  AnomalyData1 <- runFutureSWwithAnomalies(sw_in0 = sw_example, wdata, SoilsDF, ##AES changed sw_in0 to sw_example, but should be sw_in!!
                                            TempAnoms, PPTAnoms,
                                            Nleads, n = nRuns,
                                            currDOY, currMonth, currYear, currDate)
