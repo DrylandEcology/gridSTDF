@@ -4,8 +4,9 @@
 
 
 # rm(list = ls(all = TRUE))
- library(RNetCDF) # this package has parallel capabilities now, so replace pdbNCDF4??
- #library(ncdf4)
+ #library(RNetCDF) # this package has parallel capabilities now, so replace pdbNCDF4??
+ library(ncdf4)
+ library(pbdNCDF4)
  #source('functions/netcdf_functions2.R')
  #source('functions/netcdf_functions_HPC.R')
 
@@ -262,30 +263,13 @@ for(nc in 1:100){
     nominal_resolution = "4km",
     Conventions = "CF-1.8")
   
-  ## Write netCDF for gridded data
-  assign("tempNCDF", RNetCDF::create.nc(
-    filename = file.path(Output_folder,
-                         paste0(attributes$Name[nc], '_', format(currDate, "%m%Y"), '.nc')),
-    clobber = TRUE,
-    format = "netcdf4"))
-  
-  # define dimensions
-  RNetCDF::dim.def.nc(tempNCDF, names(data_dims_nc)[1], dimlength = data_dims_nc[1])
-  RNetCDF::dim.def.nc(tempNCDF, names(data_dims_nc)[2], dimlength = data_dims_nc[2])
-  RNetCDF::dim.def.nc(tempNCDF, names(data_dims_nc)[3], dimlength = data_dims_nc[3])
-  RNetCDF::dim.def.nc(tempNCDF, names(data_dims_nc)[4], dimlength = data_dims_nc[4])
-  RNetCDF::dim.def.nc(tempNCDF, names(data_dims_nc)[5], dimlength = data_dims_nc[5])
-  RNetCDF::dim.def.nc(tempNCDF, names(data_dims_nc)[6], dimlength = data_dims_nc[6])
-  # define variables specific to this "nc" (data type)
-  RNetCDF::var.def.nc(tempNCDF, varname = nc_vars$name, vartype = nc_vars$prec , dimensions = "ns")
-  RNetCDF::var.put.nc
   
   assign(names[nc], rSW2st::create_netCDF(
     filename = file.path(Output_folder,
                          paste0(attributes$Name[nc], '_', format(currDate, "%m%Y"), '.nc')),
     overwrite = TRUE,
     xyspace = western_region.nc1[["xyspace"]],
-    #data = western_region.nc1[["data"]],
+    data = western_region.nc1[["data"]],
     data_str = "xyt",
     data_dims = data_dims_nc,
     var_attributes = nc_vars,
@@ -296,7 +280,7 @@ for(nc in 1:100){
     time_bounds = time_bounds, 
     type_timeaxis = attributes$type_timeaxis[nc],
     global_attributes = nc_att_global, 
-    #isParallel = isParallel # set in main runner file
+    isParallel = isParallel # set in main runner file
   ))
   
 }
