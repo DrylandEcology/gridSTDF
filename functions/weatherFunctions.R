@@ -66,9 +66,19 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
                                      currDOY, currMonth, currYear, currDate){
   
   # Prepare historical data ----------------------------------------------------
-  wdata_dt <- rSOILWAT2::dbW_weatherData_to_dataframe(wdata)
+  # customize the rSOILWAT2::dbW_weatherData_to_dataframe function to our needs
+   dbW_weatherData_to_dataframe_OURS <- function (weatherData, valNA = NULL) {
+    do.call(rbind, lapply(weatherData, FUN = function(x) {
+      tmp <- set_missing_weather(x@data, valNA = valNA)
+      tmp2 <- tmp[,c("DOY", "Tmax_C", "Tmin_C", "PPT_cm")]
+      Year <- rep(x@year, times = nrow(tmp2))
+      cbind(Year, tmp2)
+    }))
+  }
+  wdata_dt <- dbW_weatherData_to_dataframe_OURS(wdata)
   Month <- lubridate::month(strptime(paste0(as.character(wdata_dt[,'Year']), as.character(wdata_dt[,'DOY'])),format="%Y %j"))
   wdata_dt <- cbind(wdata_dt, Month)
+
   
   ## Calculate mean daily temperature (SOILWAT requires daily values, you can't give it monthly)
   wdata_dt <- cbind(wdata_dt, 'Tmean_C' = rowMeans(wdata_dt[,c('Tmax_C', 'Tmin_C')]))

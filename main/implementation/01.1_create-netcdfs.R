@@ -9,7 +9,16 @@
  library(pbdNCDF4)
  #source('functions/netcdf_functions2.R')
  #source('functions/netcdf_functions_HPC.R')
-
+# source functions
+ # Begin ------------------------------------------------------------------------
+ file_list <- list.files(path = "./functions/", full.names = TRUE)
+ 
+ # Iterate over the file list and source each file. TO DO: package all these functions
+ for (file in file_list) {
+   print(file)
+   source(file)
+ }
+ 
 #devtools::install_github("r4ecology/rcdo", dependencies = TRUE, force = TRUE)
 #library(rcdo)
 # source('projects/03-Make-Climatologies-netCDF/nc_clip_edit.R')
@@ -264,7 +273,7 @@ for(nc in 1:100){
     Conventions = "CF-1.8")
   
   
-  assign(names[nc], rSW2st::create_netCDF(
+  assign(names[nc], create_netCDF(
     filename = file.path(Output_folder,
                          paste0(attributes$Name[nc], '_', format(currDate, "%m%Y"), '.nc')),
     overwrite = TRUE,
@@ -286,7 +295,4 @@ for(nc in 1:100){
 }
 
 if(!interactive() & isParallel) comm.print("creation done")
-
-
-testTest <- open.nc(con = "./outputs/20240207/tmean_dy_gridSTDF_recentpast_022024.nc")
 
