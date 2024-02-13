@@ -245,7 +245,7 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
       weathAnomOneSim <- makeWeathOneSim(y, year1, thisYearObservedWData, weathAnomAll,
                                          currDOY, currYear)
       # run SOILWAT2 for future years ----------------------------------------------------------
-      weathAnomOneSim <- dbW_dataframe_to_weatherData(weathAnomOneSim, round = 4)
+      weathAnomOneSim <- dbW_weatherData_round(dbW_dataframe_to_weatherData(weathAnomOneSim), digits =  4)
       
       swYears_EndYear(sw_in0) <- currYear + 1
       swYears_StartYear(sw_in0) <- currYear - 1

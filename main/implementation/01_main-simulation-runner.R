@@ -174,7 +174,7 @@ for (j in alljid) { # TO DO: use "while" not "for"
   # runs SOILWAT2 for the historical data, and aggregates the results 
   # Note: hypothetically, we could run the historical period once, and then each 
   # month would run this part for the most recent month of historical data before running the anomaly data
-  # sw_example <- rSOILWAT2::sw_exampleData
+  #sw_example <- rSOILWAT2::sw_exampleData
   sw_out <- rSOILWAT2::sw_exec(inputData = sw_example, weatherList = wdata)
 
   ################ -------------------------------------------------------------
