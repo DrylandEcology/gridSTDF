@@ -86,7 +86,7 @@ setSW <- function(sw_in, Lat, Long, calc_SiteClimate) {
   ## Soils  --------------------------------------------------------------------
 
     soils_fixed <- data.frame(
-      depth = c(5, 10, 15, 20, 30, 40, 60, 80, 100, 150),# changed to 10 layers according to set_soils() patch that Daniel shared? c(5, 10, 20, 50),
+      depth =c(5, 10, 20, 50),
       bulkd = 1.3,
       gravel = 0.1,
       evco = NA,
