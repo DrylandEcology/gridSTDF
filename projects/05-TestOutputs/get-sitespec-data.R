@@ -1,7 +1,7 @@
-module load netcdf-c/4.9.0
-module load R/4.2.0
-module load geos/3.8.1 gdal/3.0.4 proj/6.2.1 
-R
+#module load netcdf-c/4.9.0
+#module load R/4.2.0
+#module load geos/3.8.1 gdal/3.0.4 proj/6.2.1 
+#R
 library(stars)
 library(RNetCDF)
 library(ncmeta)

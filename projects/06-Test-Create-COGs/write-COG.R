@@ -1,5 +1,5 @@
 rm(list=ls(all = TRUE))
-library(rgdal)
+#library(rgdal)
 library(terra)
 
 #  -of COG -co BLOCKSIZE=512 -co RESAMPLING=BILINEAR -co COMPRESS=DEFLATE -co NUM-THREADS=25 -co BIGTIFF=YES
