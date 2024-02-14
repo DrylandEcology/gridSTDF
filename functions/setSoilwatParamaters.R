@@ -45,7 +45,7 @@ setSW <- function(sw_in, Lat, Long, calc_SiteClimate) {
   #print(paste('Setting SW parameters', Sys.time()))
     
   rSOILWAT2::swYears_StartYear(sw_in) <- 0
-  rSOILWAT2::swYears_EndYear(sw_in) <- 2022
+  rSOILWAT2::swYears_EndYear(sw_in) <- year(Sys.time()) #AES changed to be current year?? 
   rSOILWAT2::swYears_StartYear(sw_in) <- 1991
   
   # Specify geographic location of site
@@ -84,47 +84,48 @@ setSW <- function(sw_in, Lat, Long, calc_SiteClimate) {
   rSOILWAT2::swCloud_SkyCover(sw_in) <- sc
   
   ## Soils  --------------------------------------------------------------------
-  soils_fixed <- data.frame(
-    depth = c(5, 10, 20, 50),
-    bulkd = 1.3,
-    gravel = 0.1,
-    evco = NA,
-    trco_grass = NA,
-    trco_shrub = NA,
-    trco_tree = NA,
-    trco_forb = NA,
-    sand = 0.65,
-    clay = 0.05,
-    impermeability = NA,
-    soil_temp = NA
-  )
-  
-  soil_new <- data.frame(rSOILWAT2::swSoils_Layers(sw_in)[0, ])
-  soil_new[seq_len(nrow(soils_fixed)), ] <- soils_fixed
-  soil_new[, "impermeability_frac"] <- 0
-  
-  ##  Potential bare-soil evaporation rates --------------------------------------
-  if (requireNamespace("rSW2data")) {
-    soil_new[, "EvapBareSoil_frac"] <- rSW2data::calc_BareSoilEvapCoefs(
+
+    soils_fixed <- data.frame(
+      depth = c(5, 10, 15, 20, 30, 40, 60, 80, 100, 150),# changed to 10 layers according to set_soils() patch that Daniel shared? c(5, 10, 20, 50),
+      bulkd = 1.3,
+      gravel = 0.1,
+      evco = NA,
+      trco_grass = NA,
+      trco_shrub = NA,
+      trco_tree = NA,
+      trco_forb = NA,
+      sand = 0.65,
+      clay = 0.05,
+      impermeability = NA,
+      soil_temp = NA
+    )
+    
+    soil_new <- data.frame(rSOILWAT2::swSoils_Layers(sw_in)[0, ])
+    soil_new[seq_len(nrow(soils_fixed)), ] <- soils_fixed
+    soil_new[, "impermeability_frac"] <- 0
+    
+    ##  Potential bare-soil evaporation rates --------------------------------------
+    if (requireNamespace("rSW2data")) {
+      soil_new[, "EvapBareSoil_frac"] <- rSW2data::calc_BareSoilEvapCoefs(
+        layers_depth = soil_new[, "depth_cm"],
+        sand = soil_new[, "sand_frac"],
+        clay = soil_new[, "clay_frac"]
+      )[1, ]
+    }
+    
+    ## 
+    ### Soil temperature parameters and initial profile values ---------------------
+    soil_new[, "soilTemp_c"] <- rSW2data::init_soiltemperature(
       layers_depth = soil_new[, "depth_cm"],
-      sand = soil_new[, "sand_frac"],
-      clay = soil_new[, "clay_frac"]
-    )[1, ]
-  }
-  
-  ## 
-  ### Soil temperature parameters and initial profile values ---------------------
-  soil_new[, "soilTemp_c"] <- rSW2data::init_soiltemperature(
-    layers_depth = soil_new[, "depth_cm"],
-    # Estimated soil surface temperature on Jan 1
-    # (potentially underneath snow pack)
-    Tsoil_upper = max(-1, mean(clim[["meanMonthlyTempC"]][c(1, 12)])),
-    # Constant soil temperature (Celsius) at the lower boundary (max depth)
-    # approximated by mean annual air temperature
-    Tsoil_const = mean(clim[["meanMonthlyTempC"]]),
-    depth_Tsoil_const = 990
-  )
-  
+      # Estimated soil surface temperature on Jan 1
+      # (potentially underneath snow pack)
+      Tsoil_upper = max(-1, mean(clim[["meanMonthlyTempC"]][c(1, 12)])),
+      # Constant soil temperature (Celsius) at the lower boundary (max depth)
+      # approximated by mean annual air temperature
+      Tsoil_const = mean(clim[["meanMonthlyTempC"]]),
+      depth_Tsoil_const = 990
+    )
+ 
   ## Vegetation inputs
 
   ##Rooting profiles of vegetation types
