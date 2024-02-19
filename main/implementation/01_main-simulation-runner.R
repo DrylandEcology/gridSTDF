@@ -146,27 +146,17 @@ for (j in alljid) { # TO DO: use "while" not "for"
   
   # Soils info formatting ----------------------------------------------------
   # waiting on the proper soils data, this is sort of a placeholder
+    
   SoilsDF <- data.frame(depth_cm = c(1:250),
                         Depth = c(rep('Shallow', 15),
                                   rep('Intermediate', 50), #16 - 65
                                   rep('Deep',185))) # 66 - 250
-  
+
   Soils <- data.frame(sw_in@soils@Layers)[,c('depth_cm', 'sand_frac', 'clay_frac')]
   Soils$width <- diff(c(0, Soils$depth_cm))
   SoilsDF <- merge(Soils, SoilsDF, by = 'depth_cm')
   SoilsDF$variable <- paste0('Lyr_',1:dim(SoilsDF)[1])
   
-  ##AES made these changes... not sure if they're okay? 
-  # set "version" in sw_in?? AES did this... not sure if it is ok?
-  sw_in@version <- "7.2.0"
-  # set SWRC (soil water retention curve) for this run to default version?? AES 
-  sw_in@site@swrc_flags <- c("swrc_name" = "Campbell1974", "ptf_name" = "Cosby1984AndOthers")
-  sw_in@prod@veg_method <- as.integer(0)
-  sw_in@estab@useEstab <- FALSE
-  swSWC_use(sw_in) <- FALSE
-  swSWC_Method(sw_in) <- as.integer(2)
-  swSite_SoilDensityInputType(sw_in) <- as.integer(1)
-   #sw_in@site@SoilDensityInputType <- test@site@SoilDensityInputType
   ################### ----------------------------------------------------------
   # Part 3 - Run SOILWAT Historical!
   ################### ----------------------------------------------------------
@@ -175,7 +165,7 @@ for (j in alljid) { # TO DO: use "while" not "for"
   # Note: hypothetically, we could run the historical period once, and then each 
   # month would run this part for the most recent month of historical data before running the anomaly data
   #sw_example <- rSOILWAT2::sw_exampleData
-  sw_out <- rSOILWAT2::sw_exec(inputData = sw_example, weatherList = wdata)
+  sw_out <- rSOILWAT2::sw_exec(inputData = sw_in, weatherList = wdata)
 
   ################ -------------------------------------------------------------
   # FORMAT OUTPUTS    --- Get 18 month median, 10, and 90 for all !!! ---
