@@ -3,7 +3,7 @@
 ##SBATCH --job-name=pbdNCDF4_test
 #SBATCH --output=pbdNCDF4_test-%j.out
 #SBATCH --error=pbdNCDF4_test-%j.err
-#SBATCH --account=swsbc
+#SBATCH --account=swbsc
 #SBATCH -p cpu
 #SBATCH -N 1
 #SBATCH -n 10
