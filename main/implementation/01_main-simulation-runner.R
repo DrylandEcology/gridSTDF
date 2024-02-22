@@ -204,7 +204,7 @@ for (j in alljid) { # TO DO: use "while" not "for"
                                                            currYear, todayMonthDay)
   
   # 4 - Additional outputs for "future" results --------------------------------
-  # Questions where should I save these for easy loading when I need them .......
+  # Question -- where should I save these for easy loading when I need them .......
   HistData_MonthlyMeans_2 <- formatOutputsMonthlys(HistDataAll1, SoilsDF, 
                                                     'historical', 1991, 2020, 
                                                     currDate, todayMonthDay,
@@ -244,10 +244,11 @@ for (j in alljid) { # TO DO: use "while" not "for"
   PPTAnoms <- PPTAnoms[1:Nleads,]
 
   # function in "weatherFunctions.R"
-  AnomalyData1 <- runFutureSWwithAnomalies(sw_in0 = sw_in, wdata, SoilsDF, ##AES changed sw_in0 to sw_example, but should be sw_in!!
+  AnomalyData1 <- runFutureSWwithAnomalies(sw_in0 = sw_in, wdata, SoilsDF, 
                                            TempAnoms, PPTAnoms,
                                            Nleads, n = nRuns,
                                            currDOY, currMonth, currYear, currDate)
+    #AES this object is a list, not sure why there are three list elements?? 
   #if(!interactive()) comm.print('done future')
 
   ################ -------------------------------------------------------------
