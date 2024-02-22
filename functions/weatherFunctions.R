@@ -80,10 +80,9 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
   wdata_dt <- cbind(wdata_dt, Month)
 
   
-  ## Calculate mean daily temperature (SOILWAT requires daily values, you can't give it monthly)
-  wdata_dt <- cbind(wdata_dt, 'Tmean_C' = rowMeans(wdata_dt[,c('Tmax_C', 'Tmin_C')]))
-  
+  ## Data are Calculated for mean daily temperature (SOILWAT requires daily values, you can't give it monthly)
   # Aggregate to monthly values
+  wdata_dt <- cbind(wdata_dt, 'Tmean_C' = rowMeans(wdata_dt[,c('Tmax_C', 'Tmin_C')]))
   wdata_dt <- setDT(as.data.frame(wdata_dt))
   monthlyWdata <- wdata_dt[,.(Tmean_C = mean(Tmean_C), 
                               PPT_cm = sum(PPT_cm)), .(Month, Year)]
@@ -99,7 +98,7 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
   monthlyWdata$PPT_in_rollSum <- zoo::rollsum(x = monthlyWdata[,c("PPT_in")],
                                               k = 3, fill = NA,
                                               partial = TRUE, align = "left")
-  # Norm
+  # get data just for the period of the Normal
   monthlyWdata <- monthlyWdata[monthlyWdata$Year %in% 1991:2020, ]
   
   # Convert moving left-aligned 3-month periods to NWS leads
@@ -112,7 +111,8 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
   
   # Begin generating futures! ----------------------------------------------------------------------
   # Step 1 - generate an anomaly for each lead -------------------------------------------------
-   # essentially getting the forecasted mean temp and precip for each lead, and comparing it to the historical normals to get the anomalies 
+   # essentially getting the forecasted mean temp and precip for each lead, and 
+  #comparing it to the historical normals to get the anomalies 
   # converting temp to celsius
   
   # for temp, you subtract values to get the anomalies
@@ -151,8 +151,9 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
   # Step 2 - n samples, multivariate sampling for each lead -------------------------------------------------
   generatedAnomData <- generateAnomalyData(monthlyWdata, TempAnoms, PPTAnoms,
                                            leads = seq_len(Nleads), Nleads = Nleads,
-                                           n = 30)
+                                           n = n)
   #saveRDS(generatedAnomData,  'ExampleData/generatedAnomData')
+  ## in generatedAnomData, the rows are for each lead (12 rows), and the columns (30) are each for a different multivariate sample
   
   # Step 2.1 - Correction factor to the correction factor based on mean -------------------------------
   
@@ -186,6 +187,7 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
   #saveRDS(generatedAnomData,  'Git/shorttermdroughtforecaster/ExampleData/generatedAnomData_BiasCorrected')
   AllOut1 <- Shriver_Out <- GISSM_Out <- list()
   
+  ##AES this loop could be an place to speed things up? 
   for(nn in 1:n){
     #print(nn)
     
@@ -197,6 +199,7 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
     yearlydat <- matrix(nrow = 12, ncol = 3)
     colnames(yearlydat) <- c('tempAnom', 'pptAnom_cm', 'pptAnom_CF')
     yearlydat <- cbind(yearlydat, 'Month' = 1:12)
+    
     
     for(m in seq(12)){ # for each month, m, in a year, nn
       
@@ -245,7 +248,7 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
       weathAnomOneSim <- makeWeathOneSim(y, year1, thisYearObservedWData, weathAnomAll,
                                          currDOY, currYear)
       # run SOILWAT2 for future years ----------------------------------------------------------
-      weathAnomOneSim <- dbW_weatherData_round(dbW_dataframe_to_weatherData(weathAnomOneSim), digits =  4)
+      weathAnomOneSim <- dbW_dataframe_to_weatherData(weathAnomOneSim)
       
       swYears_EndYear(sw_in0) <- currYear + 1
       swYears_StartYear(sw_in0) <- currYear - 1
@@ -301,7 +304,8 @@ generateAnomalyData <- function(monthlyWdata, TempAnoms, PPTAnoms,
     dPPT_PO = monthlyWdata[["PPT_PO_rollSum"]] - forecast_NWS[["ClimatatologicalMEAN_PPT_PO"]][ids]
   )
 
-  # the covariances for each lead used in multivariate sampling are generated from historical anomalies data for a site (don't have temp anomaly and precip anomaly covariances from the NWS forecasts)
+  # the covariances for each lead used in multivariate sampling are generated 
+  # from historical anomalies data for a site (don't have temp anomaly and precip anomaly covariances from the NWS forecasts)
   # Within-lead covariances among dT and dPPT from historical data
   cov_anomalies_leads <- by(
     data =  meteo_anomalies_leads[c("dT_C", "dPPT_PO")], # why covariance on the difference?

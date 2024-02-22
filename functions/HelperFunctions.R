@@ -23,9 +23,9 @@ makeWeathOneSim <- function(y, year1, thisYearObservedWData, weathAnomAll,
   # fill in with this years' observed data
   # should have the correct number of days always since they are good representation of the same year
   year2[1:(currDOY-1), c('Tmax_C', 'Tmin_C', 'PPT_cm')] <- thisYearObservedWData[1:(currDOY-1), c('Tmax_C', 'Tmin_C', 'PPT_cm')]
-
+# issue w/ 2024 b/c it is a leap year... #AES will need to fix this? 
   if(any(is.na(year2))) {
-    print('NAs present in year2 data')
+    warning('NAs present in year2 data')
     year2$Tmax_C <- zoo::na.fill( year2$Tmax_C, "extend")
     year2$Tmin_C <- zoo::na.fill( year2$Tmin_C, "extend")
     year2$PPT_cm <- zoo::na.fill( year2$PPT_cm, "extend")
