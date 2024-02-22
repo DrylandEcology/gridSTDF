@@ -152,7 +152,7 @@ getSWP <- function(DF, Soils) {
 
     SWPDF <-  DF[, .SD, .SDcols = names(DF) %like% Depths[i]]
 
-    SWPDF <- SWPDF[, lapply(.SD, rSOILWAT2::VWCtoSWP,
+    SWPDF <- SWPDF[, lapply(.SD, rSOILWAT2::swrc_vwc_to_swp,
                             sand = SoilsDF_Avg[Depth == Depths[i], sand],
                             clay = SoilsDF_Avg[Depth == Depths[i], clay])]
 
