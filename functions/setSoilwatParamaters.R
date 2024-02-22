@@ -1,6 +1,6 @@
 setVeg <- function(sw_in, AllProdInfo, i) {
 
-  OneSiteProdInfo <- AllProdInfo[i,]
+  OneSiteProdInfo <- AllProdInfo[1+i,] # the first row is a flag
   
   # ### Fractional land cover (vegetation composition)
   Rel_Abundance_L1 <- OneSiteProdInfo[,2:6]
@@ -18,7 +18,7 @@ setVeg <- function(sw_in, AllProdInfo, i) {
   rSOILWAT2::swProd_Composition(sw_in) <- as.numeric(Rel_Abundance_L1)[ids]
   
   # # Assign monthly biomass values to rSOILWAT2 input object
-  # # Note: monthly biomass values of forbs, trees, etc. need to be estimated
+  # # Note: monthly biomass values of forbs, trees, etc. need to be estimated ##AES is a to-do
   v2 <- c("Litter", "Biomass", "Live_pct")
    
   grassProdCols <- grep('Grass_Litter|Grass_Biomass|Grass_Fra', names(OneSiteProdInfo))
@@ -59,7 +59,7 @@ setSW <- function(sw_in, Lat, Long, calc_SiteClimate) {
   
   # # CO2 ------------------------------------------------------------------------
   # Name of the CO2 concentration scenario
-  co2_nametag <- "RCP85"
+  co2_nametag <- "CMIP6_historical|CMIP6_SSP585" #"RCP85" 
   
   # Obtain yearly values from look-up table
   co2_data <- rSOILWAT2::lookup_annual_CO2a(
@@ -74,7 +74,7 @@ setSW <- function(sw_in, Lat, Long, calc_SiteClimate) {
   
   ## Climate inputs for Penman's potential evapotranspiration -----------------
   
-  rH <- rep(50, 12) # relative humidity [%]
+  rH <- rep(50, 12) # relative humidity [%] #AES values that we can change, should be reflective of location--get daily values from gridMet
   ws <- rep(2, 12) # wind speed [m/s]
   sc <- rep(30, 12) # sky cover [%]
   
@@ -84,7 +84,7 @@ setSW <- function(sw_in, Lat, Long, calc_SiteClimate) {
   rSOILWAT2::swCloud_SkyCover(sw_in) <- sc
   
   ## Soils  --------------------------------------------------------------------
-
+  #AES another place to update... soils are hard-coded now, but should be getting info at the grid level
     soils_fixed <- data.frame(
       depth =c(5, 10, 20, 50),
       bulkd = 1.3,
@@ -105,6 +105,7 @@ setSW <- function(sw_in, Lat, Long, calc_SiteClimate) {
     soil_new[, "impermeability_frac"] <- 0
     
     ##  Potential bare-soil evaporation rates --------------------------------------
+    # not sure what this is for? because we don't actually have the data? 
     if (requireNamespace("rSW2data")) {
       soil_new[, "EvapBareSoil_frac"] <- rSW2data::calc_BareSoilEvapCoefs(
         layers_depth = soil_new[, "depth_cm"],
@@ -174,8 +175,6 @@ setSW <- function(sw_in, Lat, Long, calc_SiteClimate) {
   v2 <- paste0("transp", v1, "_frac")
   soil_new[, v2] <- veg_roots[, v1]
 
-  # set site swrcp to FALSE?
-  rSOILWAT2::swSite_hasSWRCp(sw_in) <- FALSE #AES added... I think works? 
   rSOILWAT2::swSoils_Layers(sw_in) <- data.matrix(soil_new)
   
   #Prepare transpiration regions based on soil layers ---------------------------
@@ -184,7 +183,7 @@ setSW <- function(sw_in, Lat, Long, calc_SiteClimate) {
   #tr_example <- c(1, 1, 2, 3, 3)
 
   #Values corresponding to `CONUSSOIL_BSE_EVERY10cm` of "rSFSW2":
-  tr_lyrs_10cm <- c(1, 1, 1, 2, 2, 2, 2, 3, 3, 3)
+  tr_lyrs_10cm <- c(1, 1, 1, 2, 2, 2, 2, 3, 3, 3) #AES values for a profile w/ a layer every 10cm--want to update to match the soil profile used here
 
   tr <- rSOILWAT2::prepare_TranspirationRegions(tr_lyrs = tr_lyrs_10cm)
   rSOILWAT2::swSite_TranspirationRegions(sw_in) <- data.matrix(tr)

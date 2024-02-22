@@ -124,8 +124,8 @@ for (j in alljid) { # TO DO: use "while" not "for"
 
   lastWeatherDate <- wdata_plus[[2]]
   wdata_plus <- wdata_plus[[1]]
-  wdata_plus <- rSOILWAT2::dbW_weatherData_round(rSOILWAT2::dbW_dataframe_to_weatherData(
-    wdata_plus[,c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')]), digits= 4)
+  wdata_plus <-rSOILWAT2::dbW_dataframe_to_weatherData(
+    wdata_plus[,c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')])
    
   clim <- rSOILWAT2::calc_SiteClimate(weatherList = wdata, year.start = 1991, 
                                       year.end = 2020, do_C4vars = TRUE)
@@ -135,12 +135,13 @@ for (j in alljid) { # TO DO: use "while" not "for"
   # Part 2 - Sets SW parameters besides weather
   ################### ----------------------------------------------------------
   #setting soilWat specific options
-  sw_in <- new("swInputData") # baseline data
+  #sw_in <- new("swInputData") # baseline data # new() creates an empty object of this class, but everything needs to be addedd manually... which may be cumbersome
+  sw_in <- swInputData()
   sw_in <- setVeg(sw_in, AllProdInfo, i)
   sw_in <- setSW(sw_in, Lat, Long, clim)
-  #sw_in <- set_soils(sw_in, 2, 35, 35)
-  sw_in@site@SoilTemperatureFlag <- FALSE # turns off the soil temp option 
-  swCarbon_Use_Bio(sw_in) <- FALSE # turns off carbon
+  #sw_in <- set_soils(sw_in, 2, 35, 35) #AES is done elsewhere in the setSW() function
+  sw_in@site@SoilTemperatureFlag <- TRUE # turns off the soil temp option #AES follow-up with Caitlin why it was turned off? 
+  swCarbon_Use_Bio(sw_in) <- FALSE # turns off carbon #turns off CO2 fertilization effects... something we could potentially change
   swCarbon_Use_WUE(sw_in) <- FALSE # turns off Water use efficiency 
   swYears_EndYear(sw_in) <- currYear - 1 # the setting for the historical simulation 
   
@@ -165,8 +166,12 @@ for (j in alljid) { # TO DO: use "while" not "for"
   # Note: hypothetically, we could run the historical period once, and then each 
   # month would run this part for the most recent month of historical data before running the anomaly data
   #sw_example <- rSOILWAT2::sw_exampleData
+  #AES below is a hack to deal with artificial hard-coded soils data -- are netCDFs that contain soils data that Daniel can share... will just be a question of changing the input code to draw from those files, rather than be hard-coded (these files aren't finalized, but are in the same format )
+  rSOILWAT2::swSite_SWClimits(sw_in)[1] <- 100 #SW calculates with negative bars internally, so 10 is -1 mega pascal
   sw_out <- rSOILWAT2::sw_exec(inputData = sw_in, weatherList = wdata)
-
+  #getting a warning (2/20), saying that the half-wilting point that SW calculated is lower than the minimum values that is input somewhere else -- probably because we're hard-coding soils  
+  
+  
   ################ -------------------------------------------------------------
   # FORMAT OUTPUTS    --- Get 18 month median, 10, and 90 for all !!! ---
   ################ -------------------------------------------------------------
