@@ -319,7 +319,7 @@ for (j in alljid) { # TO DO: use "while" not "for"
   
   if(!interactive() & isParallel) comm.print('Inserting into netCDFs.', Sys.time())
   
-  # TO DO: Make this into a function not a script
+  #TO DO: Make this into a function not a script #AES
   source('./main/implementation/01.2_input-values-into-ncdfs.R') 
   
 }

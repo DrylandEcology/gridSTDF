@@ -7,7 +7,7 @@
 valueName <- c(attributes$dataset_column_name)[1:100]
 #index <- valueName %in% names(AllVarData)
 
-netCDFnames <- c(attributes$short_name)[1:100]
+netCDFnames <- c(attributes$short_name)[1:100] 
 
 varName <- c(attributes$var_name)[1:100]
 

@@ -1184,7 +1184,7 @@ create_netCDF <- function(
   dir.create(dirname(filename), recursive = TRUE, showWarnings = FALSE)
   
   if (!isParallel) {
-    nc <- pbdNCDF4::nc_create(
+    nc <- ncdf4::nc_create(
       filename = filename,
       vars = c(nc_dimvars, list(crsdef), var_defs),
       force_v4 = TRUE
