@@ -1204,8 +1204,7 @@ create_netCDF <- function(
 
 # testing -----------------------------------------------------------------
  ncvar_put_MINE <- function (nc, varid = NA, vals = NULL, start = NA, count = NA, 
-            verbose = FALSE) 
-  {
+            verbose = FALSE) {
     if (class(nc) != "ncdf4") 
       stop(paste("Error: first argument to ncvar_put must be an object of type ncdf,", 
                  "as returned by a call to nc_open(...,write=TRUE) or nc_create"))
@@ -1249,8 +1248,8 @@ create_netCDF <- function(
                  sm, "'; can only handle double or integer", sep = ""))
     if (!nc$writable) 
       stop(paste("trying to write to file", nc$filename, "but it was not opened with write=TRUE"))
-    varsize <- pbdNCDF4:::ncvar_size(ncid2use, varid2use)
-    ndims <- pbdNCDF4:::ncvar_ndims(ncid2use, varid2use)
+    varsize <- ncdf4:::ncvar_size(ncid2use, varid2use)
+    ndims <- ncdf4:::ncvar_ndims(ncid2use, varid2use)
     is_scalar = FALSE #(varsize == 1) && (ndims == 0)
     if (verbose) {
       print(paste("ncvar_put: varsize="))
@@ -1262,8 +1261,7 @@ create_netCDF <- function(
       if (is_scalar) 
         start <- 1
       else start <- rep(1, ndims)
-    }
-    else {
+    }else {
       if (length(start) != ndims) 
         stop(paste("'start' should specify", ndims, "dims but actually specifies", 
                    length(start)))
@@ -1274,8 +1272,7 @@ create_netCDF <- function(
     }
     if ((length(count) == 1) && is.na(count)) {
       count <- varsize - start + 1
-    }
-    else {
+    } else {
       if (length(count) != ndims) 
         stop(paste("'count' should specify", ndims, "dims but actually specifies", 
                    length(count)))
@@ -1293,7 +1290,7 @@ create_netCDF <- function(
       mv <- default_missval_ncdf4()
     else mv <- nc$var[[varidx2use]]$missval
     vals <- ifelse(is.na(vals), mv, vals)
-    precint <- pbdNCDF4:::ncvar_type(ncid2use, varid2use)
+    precint <- ncdf4:::ncvar_type(ncid2use, varid2use)
     if (verbose) 
       print(paste("Putting var of type", precint, " (1=short, 2=int, 3=float, 4=double, 5=char, 6=byte, 7=ubyte, 8=ushort, 9=uint, 10=int64, 11=uint64, 12=string)"))
     n2write <- prod(count)
@@ -1363,7 +1360,8 @@ create_netCDF <- function(
   if (is_gridded) {
     #--- Write xy-bounds
     #pbdNCDF4::ncvar_put(
-    ncvar_put_MINE(
+    #ncvar_put_MINE(
+      ncdf4::ncvar_put(
       nc,
       varid = bnds_name[1],
       vals = x_bounds,
@@ -1372,7 +1370,7 @@ create_netCDF <- function(
     )
     
     #pbdNCDF4::ncvar_put(
-    ncvar_put_MINE(
+    ncdf4::ncvar_put(
       nc,
       varid = bnds_name[2],
       vals = y_bounds,
@@ -1382,7 +1380,7 @@ create_netCDF <- function(
     
   } else {
     #--- Write xy-coordinates to associated variables
-    pbdNCDF4::ncvar_put(
+    ncdf4::ncvar_put(
       nc,
       varid = xy_attributes[["name"]][1],
       vals = xvals,
@@ -1390,7 +1388,7 @@ create_netCDF <- function(
       count = n_sites
     )
     
-    pbdNCDF4::ncvar_put(
+    ncdf4::ncvar_put(
       nc,
       varid = xy_attributes[["name"]][2],
       vals = yvals,
@@ -1400,7 +1398,7 @@ create_netCDF <- function(
   }
   
   if (has_Z_verticalAxis != "none") {
-    pbdNCDF4::ncvar_put(
+    ncdf4::ncvar_put(
       nc,
       varid = "vertical_bnds",
       vals = t(vertical_bounds),
@@ -1411,7 +1409,7 @@ create_netCDF <- function(
   
   if (has_T_timeAxis != "none") {
     #pbdNCDF4::ncvar_put(
-    ncvar_put_MINE(
+    ncvar_put(
       nc,
       varid = varid_timebnds,
       vals = t(time_bounds),
@@ -1427,7 +1425,7 @@ create_netCDF <- function(
   #--- add standard_name attribute of x/y variables
   if ("standard_name" %in% names(xy_attributes)) {
     for (k in seq_len(2)) {
-      pbdNCDF4::ncatt_put(
+     ncdf4::ncatt_put(
         nc,
         varid = xy_attributes[["name"]][k],
         attname = "standard_name",
@@ -1438,18 +1436,18 @@ create_netCDF <- function(
   
   #--- add dimension attributes
   if (is_gridded) {
-    pbdNCDF4::ncatt_put(nc, xy_attributes[["name"]][1], "axis", "X")
-    pbdNCDF4::ncatt_put(nc, xy_attributes[["name"]][1], "bounds", bnds_name[1])
-    pbdNCDF4::ncatt_put(nc, xy_attributes[["name"]][2], "axis", "Y")
-    pbdNCDF4::ncatt_put(nc, xy_attributes[["name"]][2], "bounds", bnds_name[2])
+    ncdf4::ncatt_put(nc, xy_attributes[["name"]][1], "axis", "X")
+    ncdf4::ncatt_put(nc, xy_attributes[["name"]][1], "bounds", bnds_name[1])
+    ncdf4::ncatt_put(nc, xy_attributes[["name"]][2], "axis", "Y")
+    ncdf4::ncatt_put(nc, xy_attributes[["name"]][2], "bounds", bnds_name[2])
   }
   
   if (has_Z_verticalAxis != "none") {
-    pbdNCDF4::ncatt_put(nc, "vertical", "axis", "Z")
-    pbdNCDF4::ncatt_put(nc, "vertical", "bounds", "vertical_bnds")
+    ncdf4::ncatt_put(nc, "vertical", "axis", "Z")
+    ncdf4::ncatt_put(nc, "vertical", "bounds", "vertical_bnds")
     
     for (natt in ns_att_vert) {
-      pbdNCDF4::ncatt_put(
+      ncdf4::ncatt_put(
         nc,
         varid = "vertical",
         attname = natt,
@@ -1459,11 +1457,11 @@ create_netCDF <- function(
   }
   
   if (has_T_timeAxis != "none") {
-    pbdNCDF4::ncatt_put(nc, "time", "axis", "T")
-    pbdNCDF4::ncatt_put(nc, "time", att_timebnds, varid_timebnds)
+    ncdf4::ncatt_put(nc, "time", "axis", "T")
+    ncdf4::ncatt_put(nc, "time", att_timebnds, varid_timebnds)
     
     for (natt in ns_att_time) {
-      pbdNCDF4::ncatt_put(
+      ncdf4::ncatt_put(
         nc,
         varid = "time",
         attname = natt,
@@ -1476,7 +1474,7 @@ create_netCDF <- function(
   #--- add variable attributes
   for (k in seq_len(n_vars)) {
     for (natt in ns_att_vars) {
-      pbdNCDF4::ncatt_put(
+      ncdf4::ncatt_put(
         nc,
         varid = var_names[k],
         attname = natt,
@@ -1487,7 +1485,7 @@ create_netCDF <- function(
   
   #--- add coordinate system attributes
   for (natt in ns_att_crs) {
-    pbdNCDF4::ncatt_put(
+    ncdf4::ncatt_put(
       nc,
       varid = "crs",
       attname = natt,
@@ -1495,32 +1493,32 @@ create_netCDF <- function(
     )
   }
   
-  pbdNCDF4::ncatt_put(nc, "crs", attname = "crs_wkt", attval = crs_wkt$Wkt)
+  ncdf4::ncatt_put(nc, "crs", attname = "crs_wkt", attval = crs_wkt$Wkt)
   
   
   #--- add global attributes
-  pbdNCDF4::ncatt_put(nc, varid = 0, attname = "Conventions", attval = "CF-1.8")
+  ncdf4::ncatt_put(nc, varid = 0, attname = "Conventions", attval = "CF-1.8")
   
   tmp_version_netcdf <- try(
     system2("nc-config", "--version", stdout = TRUE, stderr = TRUE),
     silent = TRUE
   )
   
-  pbdNCDF4::ncatt_put(
+  ncdf4::ncatt_put(
     nc,
     varid = 0,
     attname = "created_by",
     attval = paste0(
       R.version[["version.string"]],
       ", R package ",
-      "pbdNCDF4 v", getNamespaceVersion("pbdNCDF4"),
+      "ncdf4 v", getNamespaceVersion("ncdf4"),
       if (!inherits(tmp_version_netcdf, "try-error")) {
         paste0(", and ", tmp_version_netcdf)
       }
     )
   )
   
-  pbdNCDF4::ncatt_put(
+  ncdf4::ncatt_put(
     nc,
     varid = 0,
     attname = "creation_date",
@@ -1545,7 +1543,7 @@ create_netCDF <- function(
     }
     
     for (natt in ns_att_glob) {
-      pbdNCDF4::ncatt_put(
+      ncdf4::ncatt_put(
         nc,
         varid = 0,
         attname = natt,
@@ -1555,8 +1553,8 @@ create_netCDF <- function(
   }
   
   if (has_T_timeAxis == "none") {
-    pbdNCDF4::ncatt_put(nc, varid = 0, attname = "time_label", attval = "None")
-    pbdNCDF4::ncatt_put(
+    ncdf4::ncatt_put(nc, varid = 0, attname = "time_label", attval = "None")
+    ncdf4::ncatt_put(
       nc,
       varid = 0,
       attname = "time_title",
