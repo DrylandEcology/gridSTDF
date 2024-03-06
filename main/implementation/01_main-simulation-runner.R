@@ -87,7 +87,7 @@ monthLeads <- makeMonthLeadRelationshipTable(TempAnomsWhole[1:12,], currMonth)
 
 #### ---------------------------- Outputs  -------------------------------- ####
 # creates empty netCDFs to be filled with the simulation runs 
-source('./main/implementation/01.1_create-netcdfs.R') # TO DO: Make this a function / obviously change this path
+suppressWarnings(source('./main/implementation/01.1_create-netcdfs.R')) # TO DO: Make this a function / obviously change this path
 if(!interactive() & isParallel) comm.print('netCDFs created')
 
 ################### ------------------------------------------------------------
@@ -119,8 +119,8 @@ for (j in alljid) { # TO DO: use "while" not "for"
   if(!interactive() & isParallel) comm.print(paste(i, ': Site', Site_id, 'running', Sys.time()))
   
   wdata <- rSOILWAT2::dbW_getWeatherData(Site_id = Site_id)
-  wdata_plus <- getWeatherData(Lat, Long, currYear,
-                                    dir = 'main/Data/www.northwestknowledge.net/metdata/data/')
+  wdata_plus <- suppressWarnings(getWeatherData(Lat, Long, currYear,
+                                    dir = 'main/Data/www.northwestknowledge.net/metdata/data/'))
 
   lastWeatherDate <- wdata_plus[[2]]
   wdata_plus <- wdata_plus[[1]]
@@ -248,8 +248,7 @@ for (j in alljid) { # TO DO: use "while" not "for"
                                            TempAnoms, PPTAnoms,
                                            Nleads, n = nRuns,
                                            currDOY, currMonth, currYear, currDate)
-    #AES this object is a list, not sure why there are three list elements?? 
-  #if(!interactive()) comm.print('done future')
+    
 
   ################ -------------------------------------------------------------
   # FORMAT OUTPUTS  --- Get 18 month median, 10, and 90 for all !!! ---
@@ -319,7 +318,7 @@ for (j in alljid) { # TO DO: use "while" not "for"
   
   if(!interactive() & isParallel) comm.print('Inserting into netCDFs.', Sys.time())
   
-  #TO DO: Make this into a function not a script #AES
+  #TO DO: Make this into a function not a script #AES not working as of 3/4/24
   source('./main/implementation/01.2_input-values-into-ncdfs.R') 
   
 }

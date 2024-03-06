@@ -37,7 +37,7 @@ for(n in seq_along(netCDFnames)){
   if(tdim[n] < 549) vals <- vals[!is.na(vals)]
 
   #write!
-  if(isParallel) {
+  if (isParallel) {
     pbdNCDF4::ncvar_put(get(netCDFnames[n]), varName[n], vals, 
                         start = st, count = co)
     pbdNCDF4::nc_sync(get(netCDFnames[n])) 

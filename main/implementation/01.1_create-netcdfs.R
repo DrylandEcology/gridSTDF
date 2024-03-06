@@ -6,12 +6,12 @@
 # rm(list = ls(all = TRUE))
  #library(RNetCDF) # this package has parallel capabilities now, so replace pdbNCDF4??
  library(ncdf4)
- library(pbdNCDF4)
+ #library(pbdNCDF4)
  #source('functions/netcdf_functions2.R')
  #source('functions/netcdf_functions_HPC.R')
 # source functions
  # Begin ------------------------------------------------------------------------
- file_list <- list.files(path = "./functions/", full.names = TRUE)
+ #file_list <- list.files(path = "./functions/", full.names = TRUE)
  
  # Iterate over the file list and source each file. TO DO: package all these functions
  for (file in file_list) {
@@ -141,7 +141,7 @@ if(any(is.na(c2))) {
   
 }
 
-time_bounds_daily_h = matrix(c(as.integer(c1), as.integer(c2)), 
+time_bounds_daily_h <- matrix(c(as.integer(c1), as.integer(c2)), 
                                nrow = length(1:549), ncol = 2)
 
 
