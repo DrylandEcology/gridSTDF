@@ -86,7 +86,7 @@ setSW <- function(sw_in, Lat, Long, calc_SiteClimate) {
   ## Soils  --------------------------------------------------------------------
   #AES another place to update... soils are hard-coded now, but should be getting info at the grid level
     soils_fixed <- data.frame(
-      depth =c(5, 10, 20, 50),
+      depth =c(5, 15, 30, 70), # AES updated se we have a deep layer... 
       bulkd = 1.3,
       gravel = 0.1,
       evco = NA,
