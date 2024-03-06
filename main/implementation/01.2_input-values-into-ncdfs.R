@@ -12,7 +12,7 @@ netCDFnames <- c(attributes$short_name)[1:100]
 varName <- c(attributes$var_name)[1:100]
 
 valueName <- c(attributes$dataset_column_name)
-
+valueName_short <- c(attributes$short_name)
 tdim <- c(attributes$time_values_max)[1:100]
 
 
@@ -23,13 +23,6 @@ for(n in seq_along(netCDFnames)){
 
   # set count based on length of values
   co <- c(1, 1, tdim[n])
-
-  ##AES not really sure why ecological predictions are included here? 
-  # format
-  # Shriver_Hist <- c(Shriver_Stats[TP == 'Historical', 'Prob'])
-  # Shriver_Fut <- c(Shriver_Stats[TP != 'Historical', 'Prob'])
-  # GISSM_Hist <- c(NA, Hist_GISSM$SeedlingSurvival_1stSeason)
-  # GISSM_Fut <- Future_GISSM$Prob
   
   #AES get values for last 180 days? 
   # get the date for 180 previous from today
@@ -39,12 +32,21 @@ for(n in seq_along(netCDFnames)){
     vals <- as.vector(AllVarData[ ,valueName[n]]) 
   } else if (tdim[n] == 352) {
     vals <- as.vector(AllVarData[(nrow(AllVarData)-351):nrow(AllVarData),valueName[n]])
-  } else {
-    vals <- as.vector(AllVarData[ ,valueName[n]])
-    vals <- vals[!is.na(vals)]
-  }
-  #vals <- c(vals, Shriver_Hist,Shriver_Fut, GISSM_Hist, GISSM_Fut) #add ecovars
+  } 
   
+  if (valueName_short[n] == "shriver_historical") vals <- c(Shriver_Stats[TP == 'Historical', 'Prob'])[["Prob"]]
+  if (valueName_short[n] == "shriver_prediction") {
+    vals <- c(Shriver_Stats[TP != 'Historical', 'Prob'])$Prob
+    # redefine tdim to have the number of time steps for this run 
+    co <- c(1, 1, length(vals)) 
+    }
+  
+  if (valueName_short[n] == "GISSM_historical") vals <- c(NA, Hist_GISSM$SeedlingSurvival_1stSeason)
+  if (valueName_short[n] == "GISSM_prediction") {
+    vals <-  Future_GISSM$Prob
+    # redefine tdim to have the number of time steps for this run 
+    co <- c(1, 1, length(vals)) 
+}
   #write!
   if (isParallel) {
     pbdNCDF4::ncvar_put(get(netCDFnames[n]), varName[n], vals, 
