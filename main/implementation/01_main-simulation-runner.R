@@ -18,7 +18,7 @@ suppressMessages(library(ncdf4, quiet = TRUE))
 
 # variables --------------------------------------------------------------------
 isParallel <- FALSE # set to FALSE if you dont want to use pbdMPI to execute runs in parallel 
-nRuns = 5 #is 30 for point based netCDF, but changed to 5 here for testing purposes (this is the number of simulations for each grid?? I think? )
+nRuns = 30 #is 30 for point based netCDF, but changed to 5 here for testing purposes (this is the number of simulations for each grid?? I think? )
 
 # Begin ------------------------------------------------------------------------
 file_list <- list.files(path = "./functions/", full.names = TRUE)
@@ -97,7 +97,7 @@ if(!interactive() & isParallel) comm.print('begin simulations')
 
 # Run simulation --------------------------------------------------------------
 
-for (j in alljid) { # TO DO: use "while" not "for"
+for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   i <- j
   
   ################### ------------------------------------------------------------
@@ -333,4 +333,16 @@ if(!interactive() & isParallel) {
   rSOILWAT2::dbW_disconnectConnection()
   barrier()
   finalize()
+  #close netCDF connection?
+} else if (!isParallel) {
+  
+  #close netCDF connection
+  
+
+  apply(matrix(netCDFnames), MARGIN = 1, 
+        FUN = function(x) {
+         ncdf4::nc_close(get(x))
+        })
 }
+
+
