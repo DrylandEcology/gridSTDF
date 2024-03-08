@@ -161,7 +161,7 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   ################### ----------------------------------------------------------
   # Part 3 - Run SOILWAT Historical!
   ################### ----------------------------------------------------------
-  #if(!interactive()) comm.print(paste('Running Current Site', Site_id, Sys.time()))
+  #if(!interactive()) comm.print(pa e('Running Current Site', Site_id, Sys.time()))
   # runs SOILWAT2 for the historical data, and aggregates the results 
   # Note: hypothetically, we could run the historical period once, and then each 
   # month would run this part for the most recent month of historical data before running the anomaly data
@@ -338,7 +338,8 @@ if(!interactive() & isParallel) {
   
   #close netCDF connection
   
-
+  rSOILWAT2::dbW_disconnectConnection()
+  
   apply(matrix(netCDFnames), MARGIN = 1, 
         FUN = function(x) {
          ncdf4::nc_close(get(x))
