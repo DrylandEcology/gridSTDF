@@ -1,7 +1,7 @@
 rm(list=ls(all=TRUE))
 library(stars)
 
-gm_wUS_nc <- stars::read_ncdf('weather_grid_fix/grid_westernUS.nc', var = "ID")
+gm_wUS_nc <- stars::read_ncdf('./projects/01-Weather-grid-fix/grid_westernUS.nc', var = "ID")
 sf::st_crs(gm_wUS_nc) <- "OGC:CRS84"
 plot(gm_wUS_nc, reset = FALSE)
 

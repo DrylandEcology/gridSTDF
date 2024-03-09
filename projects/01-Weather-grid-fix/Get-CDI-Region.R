@@ -21,6 +21,7 @@ gm_wUS_poly <- cbind(gm_wUS_poly, do.call(rbind,lapply(gm_wUS_poly$geometry, st_
 gm_wUS_poly <- cbind(gm_wUS_poly,  do.call(rbind, st_geometry(gm_wUS_poly$geom_centroid)) %>% 
                        as_tibble() %>% setNames(c("Longitude","Latitude")))
 
+
 # Find intersection of centroids / points!
 points <- gm_wUS_poly[,c("Longitude","Latitude")]
 points2 <- st_geometry(gm_wUS_poly$geom_centroid)
@@ -35,12 +36,19 @@ points$region2 <- as.numeric(points$region)
 points <- points %>%
   rowwise() %>%
   mutate(point = list(st_point(c(Longitude,Latitude))))
+# 
+# 
+# overlapsGridMet <- gm_wUS_poly[st_intersects( CD102[CD102$ID4 == 79,], gm_wUS_poly)[[1]],]
+# overlapsPoints <- points[st_intersects(CD102[CD102$ID4 == 79,], points)[[1]],]
+# ggplot() +
+#   geom_sf(data = overlapsGridMet$geom_centroid) 
 
 # Method 2 ---------------------------------------------------------------------
 
 # Which are missing?
 Missing <- points[is.na(points$region2),]
 points <- points[!is.na(points$region2),] # not missing
+
 
 # Join back up with the gm_wUS polygon .....
 Missing2 <- as.data.frame(Missing[,c('Latitude', 'Longitude')])
@@ -55,10 +63,13 @@ Missing2$region <- (apply(st_intersects(CD102, Missing2$geometry, sparse = FALSE
 
 
 Missing2$region <- ifelse(Missing2$region == 'character(0)', 0, Missing2$region)
+ 
 Multiples <- Missing2[lengths(Missing2$region)>1, ] # save multis for another steps
 
 Missing2 <- Missing2[lengths(Missing2$region)==1, ]
 Missing2$region2 <- as.numeric(Missing2$region)
+
+
 
 Missing3 <- Missing2[Missing2$region2 == 0,] 
 Missing2 <- Missing2[Missing2$region2 > 0,] # 1102 of 3919 further ided (2817 still missing :())
@@ -74,7 +85,8 @@ Mult_pnts <- do.call("st_sfc",c(lapply(1:nrow(Multiples),
                                    list("crs" = 4326)))
 ggplot() +
   geom_sf(data = CD102) +
-  geom_sf(data = Mult_pnts)
+ # geom_sf(data = Mult_pnts) + 
+  geom_sf(data = Missing_pnts)
 
 
 # Final step --------------------- combine and save
@@ -83,6 +95,6 @@ x2 <- as.data.frame(Missing2[,c('Longitude', 'Latitude', 'geometry' ,'region2')]
 
 x3 <- rbind(x, x2)
 
-write.csv(x3, 'projects/01-Weather-grid-fix/CD_region_grid.csv', row.names = FALSE)
+x3_sf <- st_as_sf(x3)
 
-
+write.csv(x3[,c("Longitude", "Latitude", "region2")], 'projects/01-Weather-grid-fix/CD_region_grid.csv', row.names = FALSE)

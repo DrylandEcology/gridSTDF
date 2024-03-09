@@ -19,7 +19,8 @@ data <- var.get.nc(temp.nc,"air_temperature")
 data <- data[, ncol(data):1,  ] #lat being our dimension number 2
 data_day1 <- data[, , 1]
 
-image(lon, lat, data_day1)
+image(#x = lon, y = lat, 
+  data_day1)
 
 # WeatherDB  -------------------------------------------------------------------
 
