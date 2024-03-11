@@ -9,10 +9,11 @@ library(stars)
 library(RNetCDF)
 library(ncmeta)
 library(plyr)
+library(sf)
 
 attributes <- read.csv('./main/implementation/nc_atts-all.csv')
 
-outputPath <- "./outputs/20240308"
+outputPath <- "./outputs/20240311"
 
 Outputs <- list.files(outputPath)
 TempOuts <- grep('tmean|tmmx', Outputs, value = TRUE) # should get nine variables as it stands
@@ -37,6 +38,8 @@ Sites_sfc <- st_sfc(lapply(1:nrow(Sites), FUN = function(x) {
 }))
 Sites_sf <- st_sf(Sites, geometry = Sites_sfc, crs = "EPSG:4326")
 
+# read in bounding polygon
+poly <- st_read("./projects/07_TestOutputForFRESC/FRESC_testBox/", "GriddedDroughtSubset")
 # Find the centroids that overlap with the bounding polygon 
 whichSites <- Sites_sf[st_intersects(poly, Sites_sf)[[1]],]
 
@@ -45,6 +48,7 @@ Sites <- st_drop_geometry(whichSites)
 
 # make a list to hold data for each site 
 siteDat <- vector(mode = "list", length = 2)# nrow(Sites))
+
 # get data for each grid cell in turn 
 for (i in 1:nrow(Sites)) { 
   # get the ith lat

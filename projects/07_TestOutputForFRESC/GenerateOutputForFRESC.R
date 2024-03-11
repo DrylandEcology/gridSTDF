@@ -31,7 +31,7 @@ library(sf)
 
 
 # Read in shapefile from FRESC --------------------------------------------
-poly <- st_read(dsn = "/Users/astears/Downloads/zip/", layer = "GriddedDroughtSubset")
+poly <- st_read("./projects/07_TestOutputForFRESC/FRESC_testBox/", "GriddedDroughtSubset")
 
 # determine which grid-cells overlay this polygon --------------------------
 Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
@@ -110,7 +110,7 @@ suppressWarnings(source('./main/implementation/01.1_create-netcdfs.R')) # TO DO:
 ################### ------------------------------------------------------------
 # Run simulation --------------------------------------------------------------
 
-for (j in 1:alljid){#1:alljid) { # TO DO: use "while" not "for"
+for (j in 81:alljid){#1:alljid) { # TO DO: use "while" not "for"
   i <- j
   
   ################### ------------------------------------------------------------
