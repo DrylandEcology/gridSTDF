@@ -141,23 +141,8 @@ for (j in 1:alljid){#1:alljid) { # TO DO: use "while" not "for"
   clim <- rSOILWAT2::calc_SiteClimate(weatherList = wdata, year.start = 1991, 
                                       year.end = 2020, do_C4vars = TRUE)
   wdata <- c(wdata, wdata_plus)
-  
-  ## temporary fix for tiny inconsistencies in gridMet data
-  # if (i == 33) {
-  #   wdata[["2021"]]@data[301,c("Tmax_C", "Tmin_C")] <- c(.95, .85)
-  #   wdata[["2021"]]@data[302,c("Tmax_C", "Tmin_C")] <- c(.95, .85)
-  # } 
-  # if (i == 34) {
-  #   wdata[["2015"]]@data[145,c("Tmax_C", "Tmin_C")] <- c(28.65, 28.0)
-  #   wdata[["2018"]]@data[68,c("Tmax_C", "Tmin_C")] <- c(21.45, 21.0)
-  # }
-  # if (i == 35) {
-  #   wdata[["2015"]]@data[145,c("Tmax_C", "Tmin_C")] <- c(92.15, 29.0)
-  # }
-  # if (i == 35) {
-  #   wdata[["2015"]]@data[145,c("Tmax_C", "Tmin_C")] <- c(29.65, 29.0)
-  # }
-  
+
+  # hack to deal with issues in input data where min temp is slightly (usualy by ~.1 degrees) above max temp
   for (k in 1:length(wdata)) {
     if (sum((wdata[[names(wdata)[k]]]@data[,"Tmax_C"] < wdata[[names(wdata)[k]]]@data[,"Tmin_C"])) > 0) {
       

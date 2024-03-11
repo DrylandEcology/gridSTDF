@@ -13,11 +13,11 @@
  # Begin ------------------------------------------------------------------------
  #file_list <- list.files(path = "./functions/", full.names = TRUE)
  
- # Iterate over the file list and source each file. TO DO: package all these functions
- for (file in file_list) {
-   print(file)
-   source(file)
- }
+  # Iterate over the file list and source each file. TO DO: package all these functions
+ # for (file in file_list) {
+ #   print(file)
+ #   source(file)
+ # }
  
 #devtools::install_github("r4ecology/rcdo", dependencies = TRUE, force = TRUE)
 #library(rcdo)
