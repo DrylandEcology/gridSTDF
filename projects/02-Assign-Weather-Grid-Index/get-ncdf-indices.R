@@ -48,7 +48,7 @@ for(i in 1:nrow(Sites)) {
   
   if(i %in% seq(1, nrow(Sites), 1000)) print(i)
   
-  Sites$LatIndex[i] <- findCoordIndex(Sites$Latitude[i], lat)
+  Sites$LatIndex[i] <- (length(lat)+1) - findCoordIndex(Sites$Latitude[i], lat)
   Sites$LonIndex[i] <- findCoordIndex(Sites$Longitude[i], lon)
   
 }
