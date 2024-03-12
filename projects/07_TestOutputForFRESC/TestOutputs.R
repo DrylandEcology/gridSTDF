@@ -13,7 +13,7 @@ library(sf)
 
 attributes <- read.csv('./main/implementation/nc_atts-all.csv')
 
-outputPath <- "./outputs/20240311"
+  outputPath <- "./outputs/20240311/"
 
 Outputs <- list.files(outputPath)
 TempOuts <- grep('tmean|tmmx', Outputs, value = TRUE) # should get nine variables as it stands
@@ -81,11 +81,16 @@ for (i in 1:nrow(Sites)) {
     max_t <- attributes[a_idx, 'time_values_max']
     var <- attributes[a_idx, 'var_name']
     # get name for label of column
-    Outs
-    
+
     # get data
-    siteData <- var.get.nc(allData, variable = var, start = c(longInd, latInd, 1), 
-                           count = c(1, 1, max_t))
+    if (a_idx %in% c(59, 60, 58)) {
+      siteData <- var.get.nc(allData, variable = "ta", start = c(longInd, latInd, 1), 
+                             count = c(1, 1, max_t))
+    } else {
+      siteData <- var.get.nc(allData, variable = var, start = c(longInd, latInd, 1), 
+                             count = c(1, 1, max_t))
+      
+    }
     
     #if(attributes[a_idx, 'TP'] == 'P') siteData <- c(rep(NA, 198), siteData)
     # add appropriate NAs either before or after the length of the data to slot it into the right place in the time series 
@@ -149,6 +154,15 @@ ggplot(oneSite_met) +
 
 # for temp
 ggplot(oneSite_met) + 
+  #geom_line(aes(x = Date, y = tmean_dy_gridSTDF_recentpast)) + 
+  geom_line(aes(x = Date, y = `tmean_dy_gridSTDF_recentpast`)) + 
+  geom_line(aes(x = Date, y = oneSite_met$'tmean_dy_gridSTDF_median-prediction')) + 
+  geom_line(aes(x = Date, y = oneSite_met$'tmean_dy_gridSTDF_10pct-prediction'), col = 'blue', lty = 2) + 
+  geom_line(aes(x = Date, y = oneSite_met$'tmean_dy_gridSTDF_90pct-prediction'), col = 'blue', lty = 2)
+
+
+# for soil moisture
+ggplot(oneSite_met) + 
   #geom_line(aes(x = Date, y = ppt_dy_gridSTDF_recentpast)) + 
   geom_line(aes(x = Date, y = `vwc-deep_dy_gridSTDF_historical_19910101-20201231-median`), col = "darkgreen") + 
   geom_line(aes(x = Date, y = `vwc-deep_dy_gridSTDF_historical_19910101-20201231-10pct`), col = "green") + 
@@ -167,3 +181,81 @@ ggplot(oneSite_met) +
 #             #print(siteData2)
 #         }
 # }
+
+
+# get gridded data for all sites ------------------------------------------
+
+pptPred_all <- stars::read_ncdf("./projects/07_TestOutputForFRESC/trimmed_netCDFs/ppt_dy_gridSTDF_median-prediction_032024.nc.nc", 
+                                  var = "ppt", proxy = FALSE) 
+st_crs(pptPred_all) <- 4326
+
+pptPred_trim <- st_transform(pptPred_all, st_crs(poly)) # datum transformation
+
+# trim to one date, just to make things simpler
+pptPred_oneDate <- pptPred_trim["ppt", , , 300]
+mapview(pptPred_oneDate)
+
+
+# trim to one date, just to make things simpler
+tMeanHist_oneDate <-  tmeanHist_all["ta", , , 10]
+
+test <- st_crop(tmeanHist_trim, poly, crop = TRUE)
+
+plot(tMeanHist_oneDate, border = NA, reset = FALSE)
+
+#Crop to bounding box (insert coordinates in ...)
+bb <- sf::st_bbox(poly)
+stars_object <- tmeanHist_trim[bb]
+
+#plot
+ggplot()+
+  geom_stars(data = stars_object) +
+  geom_sf(data = sf_object)
+
+
+
+
+
+colrow_from_xy = function(x, obj, NA_outside = FALSE) {
+  if (inherits(obj, "stars"))
+    obj = st_dimensions(obj)
+  xy = attr(obj, "raster")$dimensions
+  if (inherits(obj, "dimensions"))
+    gt = st_geotransform(obj)
+  
+  if (isTRUE(st_is_longlat(st_crs(obj)))) {
+    bb = st_bbox(obj)
+    # see https://github.com/r-spatial/stars/issues/519 where this is problematic;
+    # not sure whether this introduces new problems.
+    #		sign = ifelse(x[,1] < bb["xmin"], 1., ifelse(x[,1] > bb["xmax"], -1., 0.))
+    #		x[,1] = x[,1] + sign * 360.
+    # one more try: https://github.com/r-spatial/stars/issues/563
+    ix = x[,1] > bb["xmax"] & !is.na(x[,1])
+    x[ix,1] = x[ix,1] - 360.
+    ix = x[,1] < bb["xmin"] & !is.na(x[,1])
+    x[ix,1] = x[ix,1] + 360.
+  }
+  if (!any(is.na(gt))) { # have geotransform
+    inv_gt = gdal_inv_geotransform(gt)
+    if (any(is.na(inv_gt)))
+      stop("geotransform not invertible")
+    ret = floor(xy_from_colrow(x, inv_gt) + 1.) # will return floating point col/row numbers!!
+    if (NA_outside)
+      ret[ ret[,1] < 1 | ret[,1] > obj[[ xy[1] ]]$to | ret[,2] < 1 | ret[,2] > obj[[ xy[2] ]]$to, ] = NA
+    ret
+  } else if (is_rectilinear(obj)) {
+    ix = obj[[ xy[1] ]]$values 
+    if (!inherits(ix, "intervals"))
+      ix = as_intervals(ix, add_last = length(ix) == dim(obj)[ xy[1] ])
+    cols = find_interval(x[,1], ix)
+    iy = obj[[ xy[2] ]]$values 
+    if (!inherits(iy, "intervals"))
+      iy = as_intervals(iy, add_last = length(iy) == dim(obj)[ xy[2] ])
+    rows = find_interval(x[,2], iy) # always NA_outside
+    cbind(cols, rows)
+  } else if (is_curvilinear(obj)) {
+    stop("colrow_from_xy not supported for curvilinear objects")
+  } else
+    stop("colrow_from_xy not supported for this object")
+}
+  
