@@ -11,3 +11,4 @@ HPC_Files/Outs/
 *.nc*
 projects/06-TestOutputs/*.csv
 projects/07-TestOutputForFRESC/*.zip
+projects/07-TestOutputForFRESC/full_netCDFs.zip
