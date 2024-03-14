@@ -110,7 +110,7 @@ suppressWarnings(source('./main/implementation/01.1_create-netcdfs.R')) # TO DO:
 ################### ------------------------------------------------------------
 # Run simulation --------------------------------------------------------------
 
-for (j in 81:alljid){#1:alljid) { # TO DO: use "while" not "for"
+for (j in 1:alljid){#1:alljid) { # TO DO: use "while" not "for"
   i <- j
   
   ################### ------------------------------------------------------------
