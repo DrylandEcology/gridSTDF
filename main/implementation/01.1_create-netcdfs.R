@@ -175,12 +175,12 @@ time_values_daily_rp <- c1
 
 # historical annually (for some ecological indicators) --------------------------
 c1 <- seq(as.Date(paste0(lastYear-31,"/1/1")), as.Date(paste0(lastYear,"/1/1")), "years")
-c2 <- seq(as.Date(paste0(lastYear-31,"/1/1")), as.Date(paste0(lastYear,"/12/31")), "years")
+c2 <- seq(as.Date(paste0(lastYear-31,"/12/31")), as.Date(paste0(lastYear,"/12/31")), "years")
 
-time_bounds_annually_h = matrix(c(c1, c2), 
+time_bounds_annually_h <- matrix(c(as.integer(c1),  as.integer(c2)), 
                              nrow = length(1:length(c2)), ncol = 2)
 
-time_values_annually_h <- as.numeric(year(c1))
+time_values_annually_h <- as.integer(c1)
 
 # annual predictions for ecological indicators ---------------------------------
 c1 <- c(rep(as.Date(paste0(currYear,"/1/1")), nRuns), rep(as.Date(paste0(currYear + 1,"/1/1")), nRuns))
