@@ -183,13 +183,13 @@ time_bounds_annually_h <- matrix(c(as.integer(c1),  as.integer(c2)),
 time_values_annually_h <- as.integer(c1)
 
 # annual predictions for ecological indicators ---------------------------------
-c1 <- c(rep(as.Date(paste0(currYear,"/1/1")), nRuns), rep(as.Date(paste0(currYear + 1,"/1/1")), nRuns))
-c2 <- c(rep(as.Date(paste0(currYear,"/12/1")), nRuns), rep(as.Date(paste0(currYear + 1,"/12/1")), nRuns))
+c1 <- c(as.Date(paste0(currYear,"/1/1")), as.Date(paste0(currYear + 1,"/1/1")))
+c2 <- c(as.Date(paste0(currYear,"/12/31")),as.Date(paste0(currYear + 1,"/12/31")))
 
 time_bounds_annually_p = matrix(c(c1, c2), 
                                 nrow = length(1:length(c2)), ncol = 2)
 
-time_values_annually_p <- as.numeric(year(c1))
+time_values_annually_p <- as.integer(c1)
 
 # -----------------------------------------------------------------------------
 # 3) read in other information ------------------------------------------------
