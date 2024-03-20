@@ -174,8 +174,8 @@ time_bounds_daily_rp = matrix(c(c1, c2),
 time_values_daily_rp <- c1
 
 # historical annually (for some ecological indicators) --------------------------
-c1 <- seq(as.Date("1991/1/1"), as.Date(paste0(lastYear,"/1/1")), "years")
-c2 <- seq(as.Date("1991/12/31"), as.Date(paste0(lastYear,"/12/31")), "years")
+c1 <- seq(as.Date(paste0(lastYear-31,"/1/1")), as.Date(paste0(lastYear,"/1/1")), "years")
+c2 <- seq(as.Date(paste0(lastYear-31,"/1/1")), as.Date(paste0(lastYear,"/12/31")), "years")
 
 time_bounds_annually_h = matrix(c(c1, c2), 
                              nrow = length(1:length(c2)), ncol = 2)
