@@ -130,8 +130,15 @@ for (j in 1:alljid){#1:alljid) { # TO DO: use "while" not "for"
   st <- c(LonIdx, LatIdx, 1)
   
   wdata <- rSOILWAT2::dbW_getWeatherData(Site_id = Site_id)
+ 
+  
+  wdata_bad <- sapply(wdata, FUN = function(x) {
+    which(x@data[,"Tmin_C"] > x@data[,"Tmax_C"])
+  })
+  
   wdata_plus <- suppressWarnings(getWeatherData(Lat, Long, currYear,
                                                 dir = 'main/Data/www.northwestknowledge.net/metdata/data/'))
+  wdata_plus_bad <-  which(wdata_plus[[1]][,"Tmin_C"] >  wdata_plus[[1]][,"Tmax_C"])
   
   lastWeatherDate <- wdata_plus[[2]]
   wdata_plus <- wdata_plus[[1]]
@@ -142,15 +149,16 @@ for (j in 1:alljid){#1:alljid) { # TO DO: use "while" not "for"
                                       year.end = 2020, do_C4vars = TRUE)
   wdata <- c(wdata, wdata_plus)
 
-  # hack to deal with issues in input data where min temp is slightly (usualy by ~.1 degrees) above max temp
-  for (k in 1:length(wdata)) {
-    if (sum((wdata[[names(wdata)[k]]]@data[,"Tmax_C"] < wdata[[names(wdata)[k]]]@data[,"Tmin_C"])) > 0) {
-      
-      wdata[[names(wdata)[k]]]@data[wdata[[names(wdata)[k]]]@data[,"Tmax_C"] < wdata[[names(wdata)[k]]]@data[,"Tmin_C"],"Tmin_C"] <- 
-        wdata[[names(wdata)[k]]]@data[wdata[[names(wdata)[k]]]@data[,"Tmax_C"] < wdata[[names(wdata)[k]]]@data[,"Tmin_C"],"Tmax_C"] 
-    }
-  }
   
+  # # hack to deal with issues in input data where min temp is slightly (usually by ~.1 degrees) above max temp
+  # for (k in 1:length(wdata)) {
+  #   if (sum((wdata[[names(wdata)[k]]]@data[,"Tmax_C"] < wdata[[names(wdata)[k]]]@data[,"Tmin_C"])) > 0) {
+  #     
+  #     wdata[[names(wdata)[k]]]@data[wdata[[names(wdata)[k]]]@data[,"Tmax_C"] < wdata[[names(wdata)[k]]]@data[,"Tmin_C"],"Tmin_C"] <- 
+  #       wdata[[names(wdata)[k]]]@data[wdata[[names(wdata)[k]]]@data[,"Tmax_C"] < wdata[[names(wdata)[k]]]@data[,"Tmin_C"],"Tmax_C"] 
+  #   }
+  # }
+  # 
   ################### ----------------------------------------------------------
   # Part 2 - Sets SW parameters besides weather
   ################### ----------------------------------------------------------
