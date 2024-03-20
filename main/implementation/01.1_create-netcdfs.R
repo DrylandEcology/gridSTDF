@@ -83,7 +83,8 @@ western_region.nc1 <- rSW2st::read_netCDF(file1, method = "array",
 
 nc_att_crs <- example1$crs_attributes
 nc_att_xy <- western_region.nc1$xy_attributes
-
+ ## then change all of the values in "data" to NULL 
+western_region.nc1[["data"]] <- NULL
 
 # 2) determine time information ------------------------------------------------
 
@@ -231,9 +232,9 @@ for(nc in 1:100){
     time_bounds_daily_h
   } else if(nc_time$units == "days since 1970-01-01" && attributes$TP[nc] == 'RP') {
     time_bounds_daily_rp
-  } else if(nc_time$units == "year"  && attributes$TP[nc] == 'EH') {
+  } else if(nc_time$units == "days since 1970-01-01"  && attributes$TP[nc] == 'EH') {
     time_bounds_annually_h
-  } else if(nc_time$units == "year"  && attributes$TP[nc] == 'EP') {
+  } else if(nc_time$units == "days since 1970-01-01"  && attributes$TP[nc] == 'EP') {
     time_bounds_annually_p
   }
   
@@ -244,15 +245,12 @@ for(nc in 1:100){
     time_values_daily_h
   } else if(nc_time$units == "days since 1970-01-01" && attributes$TP[nc] == 'RP') {
     time_values_daily_rp
-  } else if(nc_time$units == "year"  && attributes$TP[nc] == 'EH') {
+  } else if(nc_time$units == "days since 1970-01-01"  && attributes$TP[nc] == 'EH') {
     time_values_annually_h
-  } else if(nc_time$units == "year"  && attributes$TP[nc] == 'EP') {
+  } else if(nc_time$units == "days since 1970-01-01"  && attributes$TP[nc] == 'EP') {
     time_values_annually_p
   }
 
-  ## data_dims ---------------------------------
-  data_dims_nc <- c(0, 739, 585, 0, nrow(time_bounds), 0)
-  names(data_dims_nc) <- c("ns", "nx", "ny", "nz", "nt", "nv")
   
   # global ----------------------------------------------------------------------
   nc_att_global <- list(
@@ -272,25 +270,67 @@ for(nc in 1:100){
     nominal_resolution = "4km",
     Conventions = "CF-1.8")
   
-  
-  assign(names[nc], create_netCDF(
-    filename = file.path(Output_folder,
-                         paste0(attributes$Name[nc], '_', format(currDate, "%m%Y"), '.nc')),
-    overwrite = TRUE,
-    xyspace = western_region.nc1[["xyspace"]],
-    data = western_region.nc1[["data"]],
-    data_str = "xyt",
-    data_dims = data_dims_nc,
-    var_attributes = nc_vars,
-    xy_attributes = nc_att_xy,
-    crs_attributes = nc_att_crs,
-    time_values = time_values,
-    time_attributes = nc_time,
-    time_bounds = time_bounds, 
-    type_timeaxis = attributes$type_timeaxis[nc],
-    global_attributes = nc_att_global, 
-    isParallel = isParallel # set in main runner file
-  ))
+  # for future predictions of ecological variables, add a dimension for simulations (30 values long, using the "z" dimension??)
+  if (attributes$short_name[nc] %in% c("shriver_prediction", "GISSM_prediction")) {
+    
+    ## data_dims ---------------------------------
+    data_dims_nc <- c(0, 739, 585, 30, nrow(time_bounds), 0)
+    names(data_dims_nc) <- c("ns", "nx", "ny", "nz", "nt", "nv")
+    # create netCDF 
+    # create netCDF 
+    assign(names[nc], create_netCDF(
+      filename = file.path(Output_folder,
+                           paste0(attributes$Name[nc], '_', format(currDate, "%m%Y"), '.nc')),
+      overwrite = TRUE,
+      xyspace = western_region.nc1[["xyspace"]],
+      data = western_region.nc1[["data"]],
+      data_str = "xyzt",
+      data_dims = data_dims_nc,
+      vertical_values = 1:30, 
+      vertical_attributes = list(units = "simulationNumber", positive = "up"),
+      var_attributes = nc_vars,
+      xy_attributes = nc_att_xy,
+      crs_attributes = nc_att_crs,
+      time_values = time_values,
+      time_attributes = nc_time,
+      time_bounds = time_bounds, 
+      type_timeaxis = attributes$type_timeaxis[nc],
+      nc_compression = TRUE,
+      nc_chunks = NA,
+      nc_shuffle = FALSE,
+      nc_deflate = 5,
+      global_attributes = nc_att_global, 
+      isParallel = isParallel # set in main runner file
+    ))
+  } else {
+    ## data_dims ---------------------------------
+    data_dims_nc <- c(0, 739, 585, 0, nrow(time_bounds), 0)
+    names(data_dims_nc) <- c("ns", "nx", "ny", "nz", "nt", "nv")
+    # create netCDF 
+    assign(names[nc], create_netCDF(
+      filename = file.path(Output_folder,
+                           paste0(attributes$Name[nc], '_', format(currDate, "%m%Y"), '.nc')),
+      overwrite = TRUE,
+      xyspace = western_region.nc1[["xyspace"]],
+      data = western_region.nc1[["data"]],
+      data_str = "xyt",
+      data_dims = data_dims_nc,
+      var_attributes = nc_vars,
+      xy_attributes = nc_att_xy,
+      crs_attributes = nc_att_crs,
+      time_values = time_values,
+      time_attributes = nc_time,
+      time_bounds = time_bounds, 
+      type_timeaxis = attributes$type_timeaxis[nc],
+      nc_compression = TRUE,
+      nc_chunks = NA,
+      nc_shuffle = FALSE,
+      nc_deflate = 5,
+      global_attributes = nc_att_global, 
+      isParallel = isParallel # set in main runner file
+    ))
+    
+  }
   
 }
 
