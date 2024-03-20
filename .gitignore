@@ -10,7 +10,7 @@ HPC_Files/Outs/
 .DS_Store
 *.nc*
 *.zip*
-projects/06-TestOutputs/*.csv
-projects/07-TestOutputForFRESC/*.zip
-projects/07-TestOutputForFRESC/full_netCDFs.zip
-projects/07-TestOutputForFRESC/trimmed_netCDFs.zip
+projects/06_TestOutputs/*.csv
+projects/07_TestOutputForFRESC/*.zip
+projects/07_TestOutputForFRESC/full_netCDFs.zip
+./projects/07_TestOutputForFRESC/trimmed_netCDFs.zip
