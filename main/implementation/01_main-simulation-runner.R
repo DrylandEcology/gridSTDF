@@ -1,5 +1,10 @@
 rm(list=ls(all=TRUE))
 
+# install rNETCDF 
+# R CMD INSTALL --configure-args="CPPFLAGS=-I/sw/include \
+#     LDFLAGS=-L/sw/lib LIBS=-lhdf5 --with-mpicc=mpicc --with-mpiexec=mpiexec" \
+# RNetCDF_2.9-1.tar.gz
+
 suppressMessages(library(rSOILWAT2, quiet = TRUE))
 
 suppressMessages(library(rSW2data, quiet = TRUE))

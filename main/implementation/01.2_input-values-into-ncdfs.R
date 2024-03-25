@@ -21,9 +21,12 @@ for(n in seq_along(netCDFnames)){
   #print(netCDFnames[n])
   #print(valueName[n])
 
-  # set count based on length of values
+  # where to start 
+  # set count based on length of values data_dims_nc <- c(0, 739, 585, 0, nrow(time_bounds), 0)
+  # the 'count' that will be fed into nc_put, which is a "vector of integers 
+  # indicating the count of values to write along each dimension, order is x-y-t)
   co <- c(1, 1, tdim[n])
-  
+  st_n <- st
   #AES get values for last 180 days? 
   # get the date for 180 previous from today
   if (tdim[n] == 180) {
@@ -38,23 +41,31 @@ for(n in seq_along(netCDFnames)){
   if (valueName_short[n] == "shriver_prediction") {
     vals <- c(Shriver_Stats[TP != 'Historical', 'Prob'])$Prob
     # redefine tdim to have the number of time steps for this run 
-    co <- c(1, 1, length(vals)) 
+    # the 'count' that will be fed into nc_put, which is a "vector of integers 
+    # indicating the count of values to write along each dimension, order is x-y-z-t)
+    co <- c(1, 1, 30, tdim[n]) 
+    # ammend the 'st' vecotr, which tells the ncvar_put function where to start writing the data 
+    st_n <- c(st, 1)
     }
   
   if (valueName_short[n] == "GISSM_historical") vals <- c(NA, Hist_GISSM$SeedlingSurvival_1stSeason)
   if (valueName_short[n] == "GISSM_prediction") {
     vals <-  Future_GISSM$Prob
     # redefine tdim to have the number of time steps for this run 
-    co <- c(1, 1, length(vals)) 
+    # the 'count' that will be fed into nc_put, which is a "vector of integers 
+    # indicating the count of values to write along each dimension, order is x-y-z-t)
+    co <- c(1, 1, 30, tdim[n]) 
+    # ammend the 'st' vecotr, which tells the ncvar_put function where to start writing the data 
+    st_n <- c(st, 1)
 }
   #write!
   if (isParallel) {
     pbdNCDF4::ncvar_put(get(netCDFnames[n]), varName[n], vals, 
-                        start = st, count = co)
+                        start = st_n, count = co)
     pbdNCDF4::nc_sync(get(netCDFnames[n])) 
   } else {
     ncdf4::ncvar_put(get(netCDFnames[n]), varName[n], vals, 
-                        start = st, count = co)
+                        start = st_n, count = co)
     ncdf4::nc_sync(get(netCDFnames[n])) 
   }
 
