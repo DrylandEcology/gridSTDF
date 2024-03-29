@@ -13,7 +13,7 @@ getHistoricalClimatology <- function(dataset, yearBegin, yearEnd, SoilsDF) {
   HistData_Norm_Stats <- makeDateMonthDat(HistData_Norm_Stats, 'Day')     # Get date without the year
   HistData_Norm_Stats$Year <- HistData_Norm_Stats$Day <- NULL
   ll <- length(names(HistData_Norm_Stats))
-  HistData_Norm_Stats <- setnames(setDT(HistData_Norm_Stats)[ ,sapply(.SD, function(x) list(med=median(x),
+  HistData_Norm_Stats <- setnames(setDT(HistData_Norm_Stats)[ ,sapply(.SD, function(x) list(med=median(x, na.rm = TRUE),
                                                                                             x10=quantile(x, .1, na.rm = TRUE),
                                                                                             x90 = quantile(x, .9, na.rm = TRUE))),
                                                               .(Date)],

@@ -1,6 +1,5 @@
 getWeatherData <- function(lat, lng, currYear, dir) {
   
-  # Make data.frame of just years and days -------------------------------------------
   wdata <- data.frame(Date = seq(from = as.Date('2022-01-01'), 
                                  to = as.Date(paste0(currYear,'-12-31')), by="day"))
   wdata$Year <- year(wdata$Date)
@@ -47,7 +46,7 @@ getWeatherData <- function(lat, lng, currYear, dir) {
     wdata[wdata$Year == year, 'PPT_cm'][1:length(vals)] <- vals
   }
   
-  # if there isn't 365 days in each year ... na.locf for temp and put 0 for ppt?
+  # if there aren't 365 days in each year ... na.locf for temp and put 0 for ppt?
   # fill in missing with weather generator when running SOILWAT?
   wdata$Tmax_C <- zoo::na.locf(as.numeric(wdata$Tmax_C))
   wdata$Tmin_C <- zoo::na.locf(as.numeric(wdata$Tmin_C))
@@ -67,42 +66,56 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
                                      currDOY, currMonth, currYear, currDate){
   
   # Prepare historical data ----------------------------------------------------
-  wdata_dt <- rSOILWAT2::dbW_weatherData_to_dataframe(wdata)
+  # customize the rSOILWAT2::dbW_weatherData_to_dataframe function to our needs
+   dbW_weatherData_to_dataframe_OURS <- function (weatherData, valNA = NULL) {
+    do.call(rbind, lapply(weatherData, FUN = function(x) {
+      tmp <- set_missing_weather(x@data, valNA = valNA)
+      tmp2 <- tmp[,c("DOY", "Tmax_C", "Tmin_C", "PPT_cm")]
+      Year <- rep(x@year, times = nrow(tmp2))
+      cbind(Year, tmp2)
+    }))
+  }
+  wdata_dt <- dbW_weatherData_to_dataframe_OURS(wdata)
   Month <- lubridate::month(strptime(paste0(as.character(wdata_dt[,'Year']), as.character(wdata_dt[,'DOY'])),format="%Y %j"))
   wdata_dt <- cbind(wdata_dt, Month)
+
   
-  ## Calculate mean daily temperature
-  wdata_dt <- cbind(wdata_dt, 'Tmean_C' = rowMeans(wdata_dt[,c('Tmax_C', 'Tmin_C')]))
-  
+  ## Data are Calculated for mean daily temperature (SOILWAT requires daily values, you can't give it monthly)
   # Aggregate to monthly values
+  wdata_dt <- cbind(wdata_dt, 'Tmean_C' = rowMeans(wdata_dt[,c('Tmax_C', 'Tmin_C')]))
   wdata_dt <- setDT(as.data.frame(wdata_dt))
   monthlyWdata <- wdata_dt[,.(Tmean_C = mean(Tmean_C), 
                               PPT_cm = sum(PPT_cm)), .(Month, Year)]
   
-  # Convert monthly PPT to inches
+  # Convert monthly PPT to inches (the power function for transformation was fit w/ inches, not cm)
   monthlyWdata$PPT_in <- monthlyWdata$PPT_cm / 2.54
   
-  # Aggregate to moving left-aligned 3-month periods (NWS lead seasons)
+  # Aggregate to moving left-aligned 3-month periods (NWS lead seasons) 
+  #(aggregates the historical data to three month chunks, to be in line with the leads)
   monthlyWdata$Tmean_C_rollMean <- zoo::rollmean(x = monthlyWdata[,c("Tmean_C")],
                                                  k = 3, FUN = mean, fill = NA,
                                                  partial = TRUE, align = "left")
   monthlyWdata$PPT_in_rollSum <- zoo::rollsum(x = monthlyWdata[,c("PPT_in")],
                                               k = 3, fill = NA,
                                               partial = TRUE, align = "left")
-  # Norm
+  # get data just for the period of the Normal
   monthlyWdata <- monthlyWdata[monthlyWdata$Year %in% 1991:2020, ]
   
   # Convert moving left-aligned 3-month periods to NWS leads
   monthlyWdata <- merge(monthlyWdata, monthLeads[,1:2])
 
-  # Transform PPT_in_rollingSum using powers (PO) from NWS long-long ppt forecasts
+  # Transform PPT_in_rollingSum using powers (PO) (#Powers are how the NWS 
+  # transform the precip data to be normalized) from NWS long-long ppt forecasts
   monthlyWdata <- merge(monthlyWdata, PPTAnoms[,c('LEAD', 'PO')], by = 'LEAD')
   monthlyWdata$PPT_PO_rollSum <- monthlyWdata$PPT_in_rollSum ^ monthlyWdata$PO
   
   # Begin generating futures! ----------------------------------------------------------------------
   # Step 1 - generate an anomaly for each lead -------------------------------------------------
+   # essentially getting the forecasted mean temp and precip for each lead, and 
+  #comparing it to the historical normals to get the anomalies 
+  # converting temp to celsius
   
-  # Temp
+  # for temp, you subtract values to get the anomalies
   TempAnoms$ClimatologicalMEAN_Temp_C <- (TempAnoms$ClimatologicalMEAN - 32) * (5/9)
   TempAnoms$ForecastedMEAN_Temp_C <- (TempAnoms$ForecastedMEAN - 32) * (5/9)
   
@@ -111,6 +124,8 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
   TempAnoms$Anom_C <- TempAnoms$Anom_F * (5/9)
   
   # PPT - keep in transformed units
+  # anomalies for precip have to be in transformed units 
+  # fore precip, you divide (not subtract!) the transformed precip units
   backT <- 1/PPTAnoms$PO
   
   # convert
@@ -136,8 +151,9 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
   # Step 2 - n samples, multivariate sampling for each lead -------------------------------------------------
   generatedAnomData <- generateAnomalyData(monthlyWdata, TempAnoms, PPTAnoms,
                                            leads = seq_len(Nleads), Nleads = Nleads,
-                                           n = 30)
+                                           n = n)
   #saveRDS(generatedAnomData,  'ExampleData/generatedAnomData')
+  ## in generatedAnomData, the rows are for each lead (12 rows), and the columns (30) are each for a different multivariate sample
   
   # Step 2.1 - Correction factor to the correction factor based on mean -------------------------------
   
@@ -171,6 +187,7 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
   #saveRDS(generatedAnomData,  'Git/shorttermdroughtforecaster/ExampleData/generatedAnomData_BiasCorrected')
   AllOut1 <- Shriver_Out <- GISSM_Out <- list()
   
+  ##AES this loop could be an place to speed things up? 
   for(nn in 1:n){
     #print(nn)
     
@@ -182,6 +199,7 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
     yearlydat <- matrix(nrow = 12, ncol = 3)
     colnames(yearlydat) <- c('tempAnom', 'pptAnom_cm', 'pptAnom_CF')
     yearlydat <- cbind(yearlydat, 'Month' = 1:12)
+    
     
     for(m in seq(12)){ # for each month, m, in a year, nn
       
@@ -205,15 +223,18 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
 
     # Step 4 ----------------------------------------------------------------------------------------------
     # Create future weather / integrate anomaly data into historical weather ----------------------------------------------------------
-    years <- 1991:2021
+    years <- 1991:2021 # this "historical normal" period is from 1991-2020, but we need to include 2021 to get the "future" months for 2020
     wdata2 <- wdata_dt[wdata_dt$Year %in% years, ]
-    weathAnomAll <- integrateAnomalyData(wdata2, yearlydat)
+    weathAnomAll <- integrateAnomalyData(wdata2, yearlydat) # taking the daily historical climate record, and adding anomalies onto it
     
     # Make weather data for one simulation
     ## Three years worth of data:
     # 1) One year ago
-    # 2) Observed until today's date
+    # 2) Observed until today's date 
     # 3) Future data integrated with historical data (weath Anom)
+    
+    # Note: Currently, SOILWAT2 runs with the entire time series of data for 
+    #each of 900 runs (even though the historical data is the same)... This happens because the first section of time is used to "spin up" the model 
     
     ### year 1 - The year prior to current year's observed data
     year1 <- wdata_dt[wdata_dt$Year == currYear - 1, c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')]
@@ -227,7 +248,7 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
       weathAnomOneSim <- makeWeathOneSim(y, year1, thisYearObservedWData, weathAnomAll,
                                          currDOY, currYear)
       # run SOILWAT2 for future years ----------------------------------------------------------
-      weathAnomOneSim <- dbW_dataframe_to_weatherData(weathAnomOneSim, round = 4)
+      weathAnomOneSim <- dbW_dataframe_to_weatherData(weathAnomOneSim)
       
       swYears_EndYear(sw_in0) <- currYear + 1
       swYears_StartYear(sw_in0) <- currYear - 1
@@ -283,6 +304,8 @@ generateAnomalyData <- function(monthlyWdata, TempAnoms, PPTAnoms,
     dPPT_PO = monthlyWdata[["PPT_PO_rollSum"]] - forecast_NWS[["ClimatatologicalMEAN_PPT_PO"]][ids]
   )
 
+  # the covariances for each lead used in multivariate sampling are generated 
+  # from historical anomalies data for a site (don't have temp anomaly and precip anomaly covariances from the NWS forecasts)
   # Within-lead covariances among dT and dPPT from historical data
   cov_anomalies_leads <- by(
     data =  meteo_anomalies_leads[c("dT_C", "dPPT_PO")], # why covariance on the difference?

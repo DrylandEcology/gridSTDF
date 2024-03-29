@@ -7,12 +7,12 @@
 valueName <- c(attributes$dataset_column_name)[1:100]
 #index <- valueName %in% names(AllVarData)
 
-netCDFnames <- c(attributes$short_name)[1:100]
+netCDFnames <- c(attributes$short_name)[1:100] 
 
 varName <- c(attributes$var_name)[1:100]
 
 valueName <- c(attributes$dataset_column_name)
-
+valueName_short <- c(attributes$short_name)
 tdim <- c(attributes$time_values_max)[1:100]
 
 
@@ -21,29 +21,51 @@ for(n in seq_along(netCDFnames)){
   #print(netCDFnames[n])
   #print(valueName[n])
 
-  # set count based on length of values
+  # where to start 
+  # set count based on length of values data_dims_nc <- c(0, 739, 585, 0, nrow(time_bounds), 0)
+  # the 'count' that will be fed into nc_put, which is a "vector of integers 
+  # indicating the count of values to write along each dimension, order is x-y-t)
   co <- c(1, 1, tdim[n])
-
-  # format
-  Shriver_Hist <- c(Shriver_Stats[TP == 'Historical', 'Prob'])
-  Shriver_Fut <- c(Shriver_Stats[TP != 'Historical', 'Prob'])
-  GISSM_Hist <- c(NA, Hist_GISSM$SeedlingSurvival_1stSeason)
-  GISSM_Fut <- Future_GISSM$Prob
+  st_n <- st
+  #AES get values for last 180 days? 
+  # get the date for 180 previous from today
+  if (tdim[n] == 180) {
+    vals <- AllVarData[1:183,valueName[n]] 
+  } else if (tdim[n] == 549){
+    vals <- as.vector(AllVarData[ ,valueName[n]]) 
+  } else if (tdim[n] == 352) {
+    vals <- as.vector(AllVarData[(nrow(AllVarData)-351):nrow(AllVarData),valueName[n]])
+  } 
   
-  vals <- as.vector(AllVarData[,valueName[n]])
-  vals <- c(vals, Shriver_Hist,Shriver_Fut, GISSM_Hist, GISSM_Fut) #add ecovars
+  if (valueName_short[n] == "shriver_historical") vals <- c(Shriver_Stats[TP == 'Historical', 'Prob'])[["Prob"]]
+  if (valueName_short[n] == "shriver_prediction") {
+    vals <- c(Shriver_Stats[TP != 'Historical', 'Prob'])$Prob
+    # redefine tdim to have the number of time steps for this run 
+    # the 'count' that will be fed into nc_put, which is a "vector of integers 
+    # indicating the count of values to write along each dimension, order is x-y-z-t)
+    co <- c(1, 1, 30, tdim[n]) 
+    # ammend the 'st' vecotr, which tells the ncvar_put function where to start writing the data 
+    st_n <- c(st, 1)
+    }
   
-  
-  if(tdim[n] < 549) vals <- vals[!is.na(vals)]
-
+  if (valueName_short[n] == "GISSM_historical") vals <- c(NA, Hist_GISSM$SeedlingSurvival_1stSeason)
+  if (valueName_short[n] == "GISSM_prediction") {
+    vals <-  Future_GISSM$Prob
+    # redefine tdim to have the number of time steps for this run 
+    # the 'count' that will be fed into nc_put, which is a "vector of integers 
+    # indicating the count of values to write along each dimension, order is x-y-z-t)
+    co <- c(1, 1, 30, tdim[n]) 
+    # ammend the 'st' vecotr, which tells the ncvar_put function where to start writing the data 
+    st_n <- c(st, 1)
+}
   #write!
-  if(isParallel) {
+  if (isParallel) {
     pbdNCDF4::ncvar_put(get(netCDFnames[n]), varName[n], vals, 
-                        start = st, count = co)
+                        start = st_n, count = co)
     pbdNCDF4::nc_sync(get(netCDFnames[n])) 
   } else {
     ncdf4::ncvar_put(get(netCDFnames[n]), varName[n], vals, 
-                        start = st, count = co)
+                        start = st_n, count = co)
     ncdf4::nc_sync(get(netCDFnames[n])) 
   }
 

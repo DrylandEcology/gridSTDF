@@ -4,13 +4,22 @@
 
 
 # rm(list = ls(all = TRUE))
- library(RNetCDF)
- library(pbdNCDF4)
+ #library(RNetCDF) # this package has parallel capabilities now, so replace pdbNCDF4??
+ library(ncdf4)
+ #library(pbdNCDF4)
  #source('functions/netcdf_functions2.R')
  #source('functions/netcdf_functions_HPC.R')
-
+# source functions
+ # Begin ------------------------------------------------------------------------
+ #file_list <- list.files(path = "./functions/", full.names = TRUE)
+ 
+  # Iterate over the file list and source each file. TO DO: package all these functions
+ # for (file in file_list) {
+ #   print(file)
+ #   source(file)
+ # }
+ 
 #devtools::install_github("r4ecology/rcdo", dependencies = TRUE, force = TRUE)
-# Clip file to our domain if you haven't already ----------------------------
 #library(rcdo)
 # source('projects/03-Make-Climatologies-netCDF/nc_clip_edit.R')
 # 
@@ -34,7 +43,7 @@
 # ------------------------------------------------------------------------------
 # Step 1 -----------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-Output_folder <- paste0('./outputs/', format(currDate, "%Y%m%d"), '/')
+Output_folder <- paste0('./outputs/', format(currDate, "%Y%m%d"))
 
 if (!file.exists(Output_folder)){
     dir.create(Output_folder)    
@@ -74,7 +83,8 @@ western_region.nc1 <- rSW2st::read_netCDF(file1, method = "array",
 
 nc_att_crs <- example1$crs_attributes
 nc_att_xy <- western_region.nc1$xy_attributes
-
+ ## then change all of the values in "data" to NULL 
+western_region.nc1[["data"]] <- NULL
 
 # 2) determine time information ------------------------------------------------
 
@@ -100,17 +110,17 @@ if(today_julian <= 183) {
   year(c1[year(c1) == currYear]) <- 1992
   year(c1[year(c1) == nextYear]) <- 1993
 
-  year(c2[year(c2) == lastYear]) <- 2020
-  year(c2[year(c2) == currYear]) <- 2021
-  year(c2[year(c2) == nextYear]) <- 2022
+  year(c2[year(c2) == lastYear]) <- 2023
+  year(c2[year(c2) == currYear]) <- 2024
+  year(c2[year(c2) == nextYear]) <- 2025
 
 } else {
 
   year(c1[year(c1) == currYear]) <- 1991
   year(c1[year(c1) == nextYear]) <- 1992
   
-  year(c2[year(c2) == currYear]) <- 2020
-  year(c2[year(c2) == nextYear]) <- 2021
+  year(c2[year(c2) == currYear]) <- 2023
+  year(c2[year(c2) == nextYear]) <- 2024
   
 }
 
@@ -132,7 +142,7 @@ if(any(is.na(c2))) {
   
 }
 
-time_bounds_daily_h = matrix(c(as.integer(c1), as.integer(c2)), 
+time_bounds_daily_h <- matrix(c(as.integer(c1), as.integer(c2)), 
                                nrow = length(1:549), ncol = 2)
 
 
@@ -165,22 +175,22 @@ time_bounds_daily_rp = matrix(c(c1, c2),
 time_values_daily_rp <- c1
 
 # historical annually (for some ecological indicators) --------------------------
-c1 <- seq(as.Date("1991/1/1"), as.Date(paste0(lastYear,"/1/1")), "years")
-c2 <- seq(as.Date("1991/12/31"), as.Date(paste0(lastYear,"/12/31")), "years")
+c1 <- seq(as.Date(paste0(lastYear-31,"/1/1")), as.Date(paste0(lastYear,"/1/1")), "years")
+c2 <- seq(as.Date(paste0(lastYear-31,"/12/31")), as.Date(paste0(lastYear,"/12/31")), "years")
 
-time_bounds_annually_h = matrix(c(c1, c2), 
+time_bounds_annually_h <- matrix(c(as.integer(c1),  as.integer(c2)), 
                              nrow = length(1:length(c2)), ncol = 2)
 
-time_values_annually_h <- as.numeric(year(c1))
+time_values_annually_h <- as.integer(c1)
 
 # annual predictions for ecological indicators ---------------------------------
-c1 <- c(rep(as.Date(paste0(currYear,"/1/1")), nRuns), rep(as.Date(paste0(currYear + 1,"/1/1")), nRuns))
-c2 <- c(rep(as.Date(paste0(currYear,"/12/1")), nRuns), rep(as.Date(paste0(currYear + 1,"/12/1")), nRuns))
+c1 <- c(as.Date(paste0(currYear,"/1/1")), as.Date(paste0(currYear + 1,"/1/1")))
+c2 <- c(as.Date(paste0(currYear,"/12/31")),as.Date(paste0(currYear + 1,"/12/31")))
 
 time_bounds_annually_p = matrix(c(c1, c2), 
                                 nrow = length(1:length(c2)), ncol = 2)
 
-time_values_annually_p <- as.numeric(year(c1))
+time_values_annually_p <- as.integer(c1)
 
 # -----------------------------------------------------------------------------
 # 3) read in other information ------------------------------------------------
@@ -202,7 +212,7 @@ for(nc in 1:100){
     description = attributes$var_description[nc],
     comment = attributes$var_comment[nc],
     cell_methods = attributes$var_cell_methods[nc],
-    prec = "float")
+    prec = "NC_FLOAT")
   
   nc_vars <- nc_var1
   
@@ -222,9 +232,9 @@ for(nc in 1:100){
     time_bounds_daily_h
   } else if(nc_time$units == "days since 1970-01-01" && attributes$TP[nc] == 'RP') {
     time_bounds_daily_rp
-  } else if(nc_time$units == "year"  && attributes$TP[nc] == 'EH') {
+  } else if(nc_time$units == "days since 1970-01-01"  && attributes$TP[nc] == 'EH') {
     time_bounds_annually_h
-  } else if(nc_time$units == "year"  && attributes$TP[nc] == 'EP') {
+  } else if(nc_time$units == "days since 1970-01-01"  && attributes$TP[nc] == 'EP') {
     time_bounds_annually_p
   }
   
@@ -235,22 +245,19 @@ for(nc in 1:100){
     time_values_daily_h
   } else if(nc_time$units == "days since 1970-01-01" && attributes$TP[nc] == 'RP') {
     time_values_daily_rp
-  } else if(nc_time$units == "year"  && attributes$TP[nc] == 'EH') {
+  } else if(nc_time$units == "days since 1970-01-01"  && attributes$TP[nc] == 'EH') {
     time_values_annually_h
-  } else if(nc_time$units == "year"  && attributes$TP[nc] == 'EP') {
+  } else if(nc_time$units == "days since 1970-01-01"  && attributes$TP[nc] == 'EP') {
     time_values_annually_p
   }
 
-  ## data_dims ---------------------------------
-  data_dims_nc <- c(0, 739, 585, 0, nrow(time_bounds), 0)
-  names(data_dims_nc) <- c("ns", "nx", "ny", "nz", "nt", "nv")
   
   # global ----------------------------------------------------------------------
   nc_att_global <- list(
     title = "Short-term drought forecasts based on NWS long-leads for the western U.S.",
     created_date = paste0( format(currDate, "%Y-%m-%d")),
     version = paste0("v.", format(currDate, "%b%Y")),
-    created_by = paste(version$version.string, '; R packages: pbdncdf4', packageVersion("pbdNCDF4")),
+    created_by = paste(version$version.string, '; R packages: pbdncdf4', packageVersion("ncdf4")),
     source = paste("SOILWAT2 (v6.6.0);  rSOILWAT2", "; gridSTDF"),
     further_info_url = "https://github.com/DrylandEcology/",
     institution = "Southwest Biological Science Center, U.S. Geological Survey",
@@ -263,29 +270,69 @@ for(nc in 1:100){
     nominal_resolution = "4km",
     Conventions = "CF-1.8")
   
-  ## Write netCDF for gridded data
-
-  assign(names[nc], create_netCDF(
-    filename = file.path(Output_folder,
-                         paste0(attributes$Name[nc], '_', format(currDate, "%m%Y"), '.nc')),
-    overwrite = TRUE,
-    xyspace = western_region.nc1[["xyspace"]],
-    #data = western_region.nc1[["data"]],
-    data_str = "xyt",
-    data_dims = data_dims_nc,
-    var_attributes = nc_vars,
-    xy_attributes = nc_att_xy,
-    crs_attributes = nc_att_crs,
-    time_values = time_values,
-    time_attributes = nc_time,
-    time_bounds = time_bounds, 
-    type_timeaxis = attributes$type_timeaxis[nc],
-    global_attributes = nc_att_global, 
-    isParallel = isParallel # set in main runner file
-  ))
+  # for future predictions of ecological variables, add a dimension for simulations (30 values long, using the "z" dimension??)
+  if (attributes$short_name[nc] %in% c("shriver_prediction", "GISSM_prediction")) {
+    
+    ## data_dims ---------------------------------
+    data_dims_nc <- c(0, 739, 585, 30, nrow(time_bounds), 0)
+    names(data_dims_nc) <- c("ns", "nx", "ny", "nz", "nt", "nv")
+    # create netCDF 
+    # create netCDF 
+    assign(names[nc], create_netCDF(
+      filename = file.path(Output_folder,
+                           paste0(attributes$Name[nc], '_', format(currDate, "%m%Y"), '.nc')),
+      overwrite = TRUE,
+      xyspace = western_region.nc1[["xyspace"]],
+      data = western_region.nc1[["data"]],
+      data_str = "xyzt",
+      data_dims = data_dims_nc,
+      vertical_values = 1:30, 
+      vertical_attributes = list(units = "simulationNumber", positive = "up"),
+      var_attributes = nc_vars,
+      xy_attributes = nc_att_xy,
+      crs_attributes = nc_att_crs,
+      time_values = time_values,
+      time_attributes = nc_time,
+      time_bounds = time_bounds, 
+      type_timeaxis = attributes$type_timeaxis[nc],
+      nc_compression = TRUE,
+      nc_chunks = NA,
+      nc_shuffle = FALSE,
+      nc_deflate = 5,
+      global_attributes = nc_att_global, 
+      isParallel = isParallel # set in main runner file
+    ))
+  } else {
+    ## data_dims ---------------------------------
+    data_dims_nc <- c(0, 739, 585, 0, nrow(time_bounds), 0)
+    names(data_dims_nc) <- c("ns", "nx", "ny", "nz", "nt", "nv")
+    # create netCDF 
+    assign(names[nc], create_netCDF(
+      filename = file.path(Output_folder,
+                           paste0(attributes$Name[nc], '_', format(currDate, "%m%Y"), '.nc')),
+      overwrite = TRUE,
+      xyspace = western_region.nc1[["xyspace"]],
+      data = western_region.nc1[["data"]],
+      data_str = "xyt",
+      data_dims = data_dims_nc,
+      var_attributes = nc_vars,
+      xy_attributes = nc_att_xy,
+      crs_attributes = nc_att_crs,
+      time_values = time_values,
+      time_attributes = nc_time,
+      time_bounds = time_bounds, 
+      type_timeaxis = attributes$type_timeaxis[nc],
+      nc_compression = TRUE,
+      nc_chunks = NA,
+      nc_shuffle = FALSE,
+      nc_deflate = 5,
+      global_attributes = nc_att_global, 
+      isParallel = isParallel # set in main runner file
+    ))
+    
+  }
   
 }
 
 if(!interactive() & isParallel) comm.print("creation done")
-
 

@@ -19,7 +19,8 @@ data <- var.get.nc(temp.nc,"air_temperature")
 data <- data[, ncol(data):1,  ] #lat being our dimension number 2
 data_day1 <- data[, , 1]
 
-image(lon, lat, data_day1)
+image(#x = lon, y = lat, 
+  data_day1)
 
 # WeatherDB  -------------------------------------------------------------------
 
@@ -47,7 +48,7 @@ for(i in 1:nrow(Sites)) {
   
   if(i %in% seq(1, nrow(Sites), 1000)) print(i)
   
-  Sites$LatIndex[i] <- findCoordIndex(Sites$Latitude[i], lat)
+  Sites$LatIndex[i] <- (length(lat)+1) - findCoordIndex(Sites$Latitude[i], lat)
   Sites$LonIndex[i] <- findCoordIndex(Sites$Longitude[i], lon)
   
 }
