@@ -1,0 +1,33 @@
+## Not run:
+# This example assumes that the NetCDF library was built with MPI support,
+# and that both RNetCDF and pbdMPI are installed in R.
+# If the example code is stored in a file myexample.R,
+# run R under MPI using a command similar to:
+# SHELL> mpiexec -np 2 Rscript --vanilla myexample.R
+library(pbdMPI, quiet = TRUE)
+library(RNetCDF, quiet = TRUE)
+# Get MPI parameters
+init()
+rank <- comm.rank()
+size <- comm.size()
+# Define dimensions and data
+nr <- 5
+nc_local <- 4
+nc <- nc_local * size
+data_local <- matrix(rank, nrow=nr, ncol=nc_local)
+# Open file for parallel access and define metadata
+filename <- "myexample.nc"
+info.create()
+ncid <- create.nc(filename, format="netcdf4", mpi_comm=comm.c2f(), mpi_info=info.c2f())
+rdim <- dim.def.nc(ncid, "rows", nr)
+cdim <- dim.def.nc(ncid, "cols", nc)
+varid <- var.def.nc(ncid, "data", "NC_INT", c(rdim, cdim))
+# Use collective I/O
+var.par.nc(ncid, "data", "NC_COLLECTIVE")
+# Write data
+var.put.nc(ncid, varid, data_local, start=c(1,rank*nc_local+1), count=c(nr,nc_local))
+# Finish up
+close.nc(ncid)
+info.free()
+finalize()
+## End(Not run)
