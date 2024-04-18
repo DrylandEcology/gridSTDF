@@ -185,7 +185,7 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
     generatedAnomData [, , "PPT_CF"] * PPTAnoms$ClimatatologicalMEAN_PPT_cm
   
   #saveRDS(generatedAnomData,  'Git/shorttermdroughtforecaster/ExampleData/generatedAnomData_BiasCorrected')
-  AllOut1 <- Shriver_Out <- GISSM_Out <- list()
+  AllOut1 <- Shriver_Out <- GISSM_Out <- OConnor_Out <- list()
   
   ##AES this loop could be an place to speed things up? 
   for(nn in 1:n){
@@ -273,10 +273,14 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
       Fut_GISSM <- list(Out1[[3]])
       names(Fut_GISSM) <- paste(nn, y, sep = '_')
       GISSM_Out <- append(GISSM_Out, Fut_GISSM)
+      
+      Fut_Oconnor <- list(Out1[[4]])
+      names(Fut_Oconnor) <- paste(nn, y, sep = "_")
+      OConnor_Out <- append(OConnor_Out, Fut_Oconnor)
     }
     
   } 
-  return(list(AllOut1, Shriver_Out, GISSM_Out))
+  return(list(AllOut1, Shriver_Out, GISSM_Out, OConnor_Out))
 }
 
   #return(Out1)

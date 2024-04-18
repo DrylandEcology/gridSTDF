@@ -228,7 +228,7 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
 
   Hist_GISSM <-  HistDataAll[[3]]
    
-  # Hist_OConnor2020 <- HistDataAll[[4]]
+  Hist_OConnor2020 <- HistDataAll[[4]]
   
   
   ################### ----------------------------------------------------------------
@@ -313,7 +313,8 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   Future_GISSM <- formatfutureGISSM(Future_GISSM)
   
   # TO DO: Need to discuss with group what this output is looks like as netCDf/map
-  # Oconnor_Stats <- formatOConnor2020(Hist_OConnor2020, Future_OConnor2020) 
+  Future_OConnor2020 <- dplyr::bind_rows(AnomalyData1[[4]])
+  Oconnor_Stats <- formatOConnor2020(Hist_OConnor2020, Future_OConnor2020) 
   
   ################### ----------------------------------------------------------
   # Part 6 - Insert into netCDFs!!!
