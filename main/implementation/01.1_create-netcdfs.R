@@ -192,6 +192,20 @@ time_bounds_annually_p = matrix(c(c1, c2),
 
 time_values_annually_p <- as.integer(c1)
 
+# time bounds for OConnor prediction variables ---------------------------------
+# is the current date before march in the current year? 
+if (lubridate::month(currDate) > 3 ) {
+  Year_OC <- currYear + 1
+} else if (lubridate::month(currDate) <= 3) {
+  Year_OC <- currYear
+}
+c1 <- seq(as.Date(paste0(Year_OC,"/3/1")), as.Date(paste0(Year_OC ,"/3/31")), "days")
+c2 <- c1 
+time_bounds_March = matrix(c(c1, c2), 
+                                nrow = length(1:length(c2)), ncol = 2)
+
+time_values_March <- as.integer(c1)
+
 # -----------------------------------------------------------------------------
 # 3) read in other information ------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -199,7 +213,7 @@ time_values_annually_p <- as.integer(c1)
 attributes <- read.csv('./main/implementation/nc_atts-all.csv')
 names <-  attributes$short_name
 
-for(nc in 1:100){
+for(nc in 1:106){
   #comm.print(nc)
   print(nc)
   
@@ -236,6 +250,8 @@ for(nc in 1:100){
     time_bounds_annually_h
   } else if(nc_time$units == "days since 1970-01-01"  && attributes$TP[nc] == 'EP') {
     time_bounds_annually_p
+  } else if (nc_time$units == 'days since 1970-01-01' && attributes$TP[nc] == 'OC') {
+    time_bounds_March
   }
   
   ## time values --------------------------------
@@ -249,6 +265,8 @@ for(nc in 1:100){
     time_values_annually_h
   } else if(nc_time$units == "days since 1970-01-01"  && attributes$TP[nc] == 'EP') {
     time_values_annually_p
+   }else if (nc_time$units == 'days since 1970-01-01' && attributes$TP[nc] == 'OC') {
+    time_values_March
   }
 
   
