@@ -35,6 +35,7 @@ poly <- st_read("./projects/07_TestOutputForFRESC/FRESC_testBox/", "GriddedDroug
 
 # determine which grid-cells overlay this polygon --------------------------
 Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
+
 Sites_sfc <- st_sfc(lapply(1:nrow(Sites), FUN = function(x) {
   #st_point(c(x[2], x[1]))
   st_point(c(Sites[x,"Longitude"], Sites[x,"Latitude"]))
@@ -129,16 +130,11 @@ for (j in 1:alljid){#1:alljid) { # TO DO: use "while" not "for"
   
   st <- c(LonIdx, LatIdx, 1)
   
+  if(!interactive() & isParallel) comm.print(paste(i, ': Site', Site_id, 'running', Sys.time()))
+  
   wdata <- rSOILWAT2::dbW_getWeatherData(Site_id = Site_id)
- 
-  
-  wdata_bad <- sapply(wdata, FUN = function(x) {
-    which(x@data[,"Tmin_C"] > x@data[,"Tmax_C"])
-  })
-  
   wdata_plus <- suppressWarnings(getWeatherData(Lat, Long, currYear,
                                                 dir = 'main/Data/www.northwestknowledge.net/metdata/data/'))
-  wdata_plus_bad <-  which(wdata_plus[[1]][,"Tmin_C"] >  wdata_plus[[1]][,"Tmax_C"])
   
   lastWeatherDate <- wdata_plus[[2]]
   wdata_plus <- wdata_plus[[1]]
@@ -148,17 +144,14 @@ for (j in 1:alljid){#1:alljid) { # TO DO: use "while" not "for"
   clim <- rSOILWAT2::calc_SiteClimate(weatherList = wdata, year.start = 1991, 
                                       year.end = 2020, do_C4vars = TRUE)
   wdata <- c(wdata, wdata_plus)
-
   
-  # # hack to deal with issues in input data where min temp is slightly (usually by ~.1 degrees) above max temp
-  # for (k in 1:length(wdata)) {
-  #   if (sum((wdata[[names(wdata)[k]]]@data[,"Tmax_C"] < wdata[[names(wdata)[k]]]@data[,"Tmin_C"])) > 0) {
-  #     
-  #     wdata[[names(wdata)[k]]]@data[wdata[[names(wdata)[k]]]@data[,"Tmax_C"] < wdata[[names(wdata)[k]]]@data[,"Tmin_C"],"Tmin_C"] <- 
-  #       wdata[[names(wdata)[k]]]@data[wdata[[names(wdata)[k]]]@data[,"Tmax_C"] < wdata[[names(wdata)[k]]]@data[,"Tmin_C"],"Tmax_C"] 
-  #   }
-  # }
-  # 
+# hack to deal with issues in input data where min temp is slightly (usually by ~.1 degrees) above max temp
+  for (k in 1:length(wdata)) {
+    if (sum((wdata[[names(wdata)[k]]]@data[, "Tmax_C"] < wdata[[names(wdata)[k]]]@data[, "Tmin_C"])) > 0) {
+      wdata[[names(wdata)[k]]]@data[wdata[[names(wdata)[k]]]@data[, "Tmax_C"] < wdata[[names(wdata)[k]]]@data[, "Tmin_C"], "Tmin_C"] <-
+        wdata[[names(wdata)[k]]]@data[wdata[[names(wdata)[k]]]@data[, "Tmax_C"] < wdata[[names(wdata)[k]]]@data[, "Tmin_C"], "Tmax_C"]
+    }
+  }
   ################### ----------------------------------------------------------
   # Part 2 - Sets SW parameters besides weather
   ################### ----------------------------------------------------------
@@ -251,7 +244,7 @@ for (j in 1:alljid){#1:alljid) { # TO DO: use "while" not "for"
   
   Hist_GISSM <-  HistDataAll[[3]]
   
-  # Hist_OConnor2020 <fd- HistDataAll[[4]]
+  Hist_OConnor2020 <- HistDataAll[[4]]
   
   
   ################### ----------------------------------------------------------------
@@ -336,7 +329,8 @@ for (j in 1:alljid){#1:alljid) { # TO DO: use "while" not "for"
   Future_GISSM <- formatfutureGISSM(Future_GISSM)
   
   # TO DO: Need to discuss with group what this output is looks like as netCDf/map
-  # Oconnor_Stats <- formatOConnor2020(Hist_OConnor2020, Future_OConnor2020) 
+  Future_OConnor2020 <- dplyr::bind_rows(AnomalyData1[[4]])
+  Oconnor_Stats <- formatOConnor2020(Hist_OConnor2020, Future_OConnor2020) 
   
   ################### ----------------------------------------------------------
   # Part 6 - Insert into netCDFs!!!
