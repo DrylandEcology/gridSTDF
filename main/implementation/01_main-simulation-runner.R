@@ -60,6 +60,16 @@ Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestInde
 
 sites <- dim(Sites)[1]
 
+# load gridded soils data from Daniel (currently an old version, will be updated w/ SOLUS100 data)
+soils_gridClay <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slclay_fx_SOILWAT2_wUS-gm_gn.nc") 
+soils_gridSand <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slsand_fx_SOILWAT2_wUS-gm_gn.nc") 
+soils_gridSilt <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slsilt_fx_SOILWAT2_wUS-gm_gn.nc") 
+soils_gridDensity <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slbdensity_fx_SOILWAT2_wUS-gm_gn.nc") 
+soils_gridThickness <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slthick_fx_SOILWAT2_wUS-gm_gn.nc") 
+soils_gridCoarse <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slcoarse_fx_SOILWAT2_wUS-gm_gn.nc")
+soilGridLats <- var.get.nc(soils_gridClay, "lat")
+soilGridLons <- var.get.nc(soils_gridClay, "lon")
+
 if(isParallel) {
   alljid <- get.jid(n = sites, method = "block", all = FALSE) 
   comm.print(alljid) 
@@ -132,9 +142,32 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   wdata_plus <-rSOILWAT2::dbW_dataframe_to_weatherData(
     wdata_plus[,c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')])
    
-  clim <- rSOILWAT2::calc_SiteClimate(weatherList = wdata, year.start = 1991, 
+`  clim` <- rSOILWAT2::calc_SiteClimate(weatherList = wdata, year.start = 1991, 
                                       year.end = 2020, do_C4vars = TRUE)
   wdata <- c(wdata, wdata_plus)
+  
+  ### get soils data for this gridcell
+  # git indices for soil grid Lat and Lon
+  soilLat_i <- which(round(soilGridLats,5)==round(Lat,5))
+  soilLon_i <- which(round(soilGridLons,5)==round(Long,5))
+  #clay
+  clay_i <- var.get.nc(soils_gridClay, "slclay", start = c(soilLon_i, soilLat_i,1), 
+             count = c(1,1,12))
+  #sand
+  sand_i <- var.get.nc(soils_gridSand, "slsand", start = c(soilLon_i, soilLat_i,1), 
+                       count = c(1,1,12))
+  #silt
+  silt_i <- var.get.nc(soils_gridSilt, "slsilt", start = c(soilLon_i, soilLat_i,1), 
+                       count = c(1,1,12))
+  #silt
+  coarse_i <- var.get.nc(soils_gridCoarse, "slcoarse", start = c(soilLon_i, soilLat_i,1), 
+                       count = c(1,1,12))
+  #thickness
+  thickness_i <- var.get.nc(soils_gridThickness, "slthick", start = c(soilLon_i, soilLat_i,1), 
+                       count = c(1,1,12))
+  #density
+  bulkdensity_i <- var.get.nc(soils_gridDensity, "slbdensity", start = c(soilLon_i, soilLat_i,1), 
+                       count = c(1,1,12))
   
   ################### ----------------------------------------------------------
   # Part 2 - Sets SW parameters besides weather
@@ -143,7 +176,7 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   #sw_in <- new("swInputData") # baseline data # new() creates an empty object of this class, but everything needs to be addedd manually... which may be cumbersome
   sw_in <- swInputData()
   sw_in <- setVeg(sw_in, AllProdInfo, i)
-  sw_in <- setSW(sw_in, Lat, Long, clim)
+  sw_in <- setSW(sw_in, Lat, Long, clim, clay_i, sand_i, silt_i, thickness_i, bulkdensity_i)
   #sw_in <- set_soils(sw_in, 2, 35, 35) #AES is done elsewhere in the setSW() function
   sw_in@site@SoilTemperatureFlag <- TRUE # turns off the soil temp option #AES follow-up with Caitlin why it was turned off? 
   swCarbon_Use_Bio(sw_in) <- FALSE # turns off carbon #turns off CO2 fertilization effects... something we could potentially change
