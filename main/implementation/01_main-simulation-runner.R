@@ -142,7 +142,7 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   wdata_plus <-rSOILWAT2::dbW_dataframe_to_weatherData(
     wdata_plus[,c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')])
    
-`  clim` <- rSOILWAT2::calc_SiteClimate(weatherList = wdata, year.start = 1991, 
+`clim` <- rSOILWAT2::calc_SiteClimate(weatherList = wdata, year.start = 1991, 
                                       year.end = 2020, do_C4vars = TRUE)
   wdata <- c(wdata, wdata_plus)
   
@@ -163,8 +163,8 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   coarse_i <- var.get.nc(soils_gridCoarse, "slcoarse", start = c(soilLon_i, soilLat_i,1), 
                        count = c(1,1,12))
   #thickness
-  thickness_i <- var.get.nc(soils_gridThickness, "slthick", start = c(soilLon_i, soilLat_i,1), 
-                       count = c(1,1,12))
+  thickness_i <- 100*var.get.nc(soils_gridThickness, "slthick", start = c(soilLon_i, soilLat_i,1), 
+                       count = c(1,1,12))   # also convert thickness to centimeters from meters
   #density
   bulkdensity_i <- var.get.nc(soils_gridDensity, "slbdensity", start = c(soilLon_i, soilLat_i,1), 
                        count = c(1,1,12))
@@ -176,7 +176,8 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   #sw_in <- new("swInputData") # baseline data # new() creates an empty object of this class, but everything needs to be addedd manually... which may be cumbersome
   sw_in <- swInputData()
   sw_in <- setVeg(sw_in, AllProdInfo, i)
-  sw_in <- setSW(sw_in, Lat, Long, clim, clay_i, sand_i, silt_i, thickness_i, bulkdensity_i)
+  sw_in <- setSW(sw_in, Lat, Long, clim, 
+                 clay_i, sand_i, silt_i, coarse_i, thickness_i, bulkdensity_i)
   #sw_in <- set_soils(sw_in, 2, 35, 35) #AES is done elsewhere in the setSW() function
   sw_in@site@SoilTemperatureFlag <- TRUE # turns off the soil temp option #AES follow-up with Caitlin why it was turned off? 
   swCarbon_Use_Bio(sw_in) <- FALSE # turns off carbon #turns off CO2 fertilization effects... something we could potentially change
@@ -185,7 +186,7 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   
   # Soils info formatting ----------------------------------------------------
   # waiting on the proper soils data, this is sort of a placeholder
-    
+    #AES how do we define what the depths are?? 
   SoilsDF <- data.frame(depth_cm = c(1:250),
                         Depth = c(rep('Shallow', 15),
                                   rep('Intermediate', 50), #16 - 65
@@ -356,6 +357,7 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   # TO DO: Another netCDF that tracks success and failure
   
   if(!interactive() & isParallel) comm.print('Inserting into netCDFs.', Sys.time())
+  
   
   #TO DO: Make this into a function not a script #AES not working as of 3/4/24
   source('./main/implementation/01.2_input-values-into-ncdfs.R') 

@@ -85,21 +85,21 @@ setSW <- function(sw_in, Lat, Long, calc_SiteClimate,
   rSOILWAT2::swCloud_SkyCover(sw_in) <- sc
   
   ## Soils  --------------------------------------------------------------------
-  #AES another place to update... soils are hard-coded now, but should be getting info at the grid level
-    soils_fixed <- data.frame(
-      depth =c(5, 15, 30, 70), # AES updated so we have a deep layer... 
-      bulkd = 1.3,
-      gravel = 0.1,
-      evco = NA,
-      trco_grass = NA,
-      trco_shrub = NA,
-      trco_tree = NA,
-      trco_forb = NA,
-      sand = 0.65,
-      clay = 0.05,
-      impermeability = NA,
-      soil_temp = NA
-    )
+  # #AES another place to update... soils are hard-coded now, but should be getting info at the grid level
+  #   soils_fixed <- data.frame(
+  #     depth =c(5, 15, 30, 70), # AES updated so we have a deep layer... 
+  #     bulkd = 1.3,
+  #     gravel = 0.1,
+  #     evco = NA,
+  #     trco_grass = NA,
+  #     trco_shrub = NA,
+  #     trco_tree = NA,
+  #     trco_forb = NA,
+  #     sand = 0.65,
+  #     clay = 0.05,
+  #     impermeability = NA,
+  #     soil_temp = NA
+  #   )
   # set soils from gridded input 
   # clay_i, sand_i, silt_i, coarse_i, thickness_i, bulkdensity_i
   
