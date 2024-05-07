@@ -179,18 +179,19 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   sw_in <- setSW(sw_in, Lat, Long, clim, 
                  clay_i, sand_i, silt_i, coarse_i, thickness_i, bulkdensity_i)
   #sw_in <- set_soils(sw_in, 2, 35, 35) #AES is done elsewhere in the setSW() function
-  sw_in@site@SoilTemperatureFlag <- TRUE # turns off the soil temp option #AES follow-up with Caitlin why it was turned off? 
+  sw_in@site@SoilTemperatureFlag <- TRUE # turns on the soil temperature 
   swCarbon_Use_Bio(sw_in) <- FALSE # turns off carbon #turns off CO2 fertilization effects... something we could potentially change
   swCarbon_Use_WUE(sw_in) <- FALSE # turns off Water use efficiency 
   swYears_EndYear(sw_in) <- currYear - 1 # the setting for the historical simulation 
   
   # Soils info formatting ----------------------------------------------------
   # waiting on the proper soils data, this is sort of a placeholder
-    #AES how do we define what the depths are?? 
+    #AES how do we define what the depths are?? -- double check 
   SoilsDF <- data.frame(depth_cm = c(1:250),
                         Depth = c(rep('Shallow', 15),
                                   rep('Intermediate', 50), #16 - 65
                                   rep('Deep',185))) # 66 - 250
+  # could be problematic if some soils are shallow--maybe should indicate how much depth is represented in each 
 
   Soils <- data.frame(sw_in@soils@Layers)[,c('depth_cm', 'sand_frac', 'clay_frac')]
   Soils$width <- diff(c(0, Soils$depth_cm))
@@ -223,7 +224,7 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   HistDataAll1 <- setorder(as.data.frame(HistDataAll[[1]]), Year, Day)
   HistDataRolling <- getRolling(HistDataAll1, TimePeriod = 'Historical')
   
-  # 2 - Get climatologies! Daily for 18 months 549  -----------------------------
+  # 2 - Get climatologies! Daily for 18 months (549 days)  -----------------------------
   
   # ---- Need to account for the 30-year baseline of the calc ...
   # ---- Each calc return 366 days. "get18MonthClimatologicalRecord" slices it all apart ...

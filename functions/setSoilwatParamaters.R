@@ -108,19 +108,19 @@ setSW <- function(sw_in, Lat, Long, calc_SiteClimate,
       bulkd = bulkdensity_i,
       gravel = coarse_i, #?? don't have these data? 
       evco = NA,
-      trco_grass = NA,
+      trco_grass = NA, # transpiration coefficients--based on rooting distribution (from a review of rooting distributions) --
       trco_shrub = NA,
       trco_tree = NA,
       trco_forb = NA,
       sand = sand_i,
       clay = clay_i,
       impermeability = NA,
-      soil_temp = NA
+      soil_temp = NA # estimated in later code in this function
     )
   
     soil_new <- data.frame(rSOILWAT2::swSoils_Layers(sw_in)[0, ])
     soil_new[seq_len(nrow(soil_gridded)), ] <- soil_gridded
-    soil_new[, "impermeability_frac"] <- 0
+    soil_new[, "impermeability_frac"] <- 0 # is ok
     
     ##  Potential bare-soil evaporation rates --------------------------------------
     # not sure what this is for? because we don't actually have the data? 
