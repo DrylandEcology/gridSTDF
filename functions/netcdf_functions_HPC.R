@@ -377,7 +377,8 @@ create_netCDF <- function(
     verbose = FALSE
 ) {
   #------ 1) Checks/preparations -----------------------------------------------
-  stopifnot(requireNamespace("pbdNCDF4"))
+  #stopifnot(requireNamespace("pbdNCDF4"))
+  stopifnot(requireNamespace("RNetCDF"))
   
   has_compression <- isTRUE(nc_compression)
   stopifnot(nc_deflate %in% c(NA, 1:9))
@@ -452,18 +453,18 @@ create_netCDF <- function(
     # Convert list to named vector (now that we took care of possible NULLs)
     data_dims <- unlist(data_dims)
     
-    # Check that provided `data_dims` match dimensions of argument `data`
-    ##AES temporarilly commented this check out... may be a bad idea, we'll see! 
-    # if (has_data) {
-    #   if (
-    #     !isTRUE(all.equal(
-    #       data_dims_from_data,
-    #       data_dims[names(data_dims_from_data)]
-    #     ))
-    #   ) {
-    #     stop("Disagreement in dimensions between `data_dims` and `data`.")
-    #   }
-    # }
+    #Check that provided `data_dims` match dimensions of argument `data`
+    #AES temporarilly commented this check out... may be a bad idea, we'll see!
+    if (has_data) {
+      if (
+        !isTRUE(all.equal(
+          data_dims_from_data,
+          data_dims[names(data_dims_from_data)]
+        ))
+      ) {
+        stop("Disagreement in dimensions between `data_dims` and `data`.")
+      }
+    }
   }
   
   
@@ -475,34 +476,35 @@ create_netCDF <- function(
   )
   
   # Check that data structure is possible given data dimensions
-  tmp <- switch(
-    EXPR = data_str,
-    
-    `xyzt` = stopifnot(
-      data_dims["nt"] > 0,
-      data_dims["nz"] > 0,
-      data_dims["nv"] == 0
-    ),
-    
-    `xyt` = stopifnot(
-      data_dims["nt"] > 0,
-      data_dims["nz"] == 0,
-      data_dims["nv"] == 0
-    ),
-    
-    `xyz` = stopifnot(
-      data_dims["nt"] == 0,
-      data_dims["nz"] > 0,
-      data_dims["nv"] == 0
-    ),
-    
-    `xy` = stopifnot(
-      data_dims["nt"] == 0,
-      data_dims["nz"] == 0,
-      data_dims["nv"] >= 0
-    )
-  )
-  
+  try(if(data_str !=  paste(sub(pattern = "n", replacement = "", x = names(which(data_dims!=0))), collapse = ""))
+    stop ("'data_str' does not match 'data_dims'"))
+  #   EXPR = data_str,
+  # 
+  #   `xyzt` = stopifnot(
+  #       data_dims["nt"] > 0,
+  #       data_dims["nz"] > 0,
+  #       data_dims["nv"] == 0
+  #   ),
+  # 
+  #   `xyt` = stopifnot(
+  #     data_dims["nt"] > 0,
+  #     data_dims["nz"] == 0,
+  #     data_dims["nv"] == 0
+  #   ),
+  # 
+  #   `xyz` = stopifnot(
+  #     data_dims["nt"] == 0,
+  #     data_dims["nz"] > 0,
+  #     data_dims["nv"] == 0
+  #   ),
+  # 
+  #   `xy` = stopifnot(
+  #     data_dims["nt"] == 0,
+  #     data_dims["nz"] == 0,
+  #     data_dims["nv"] >= 0
+  #   )
+  # )
+
   
   
   #------ xy-space ------
@@ -1203,158 +1205,158 @@ create_netCDF <- function(
 
 
 # testing -----------------------------------------------------------------
- ncvar_put_MINE <- function (nc, varid = NA, vals = NULL, start = NA, count = NA, 
-            verbose = FALSE) {
-    if (class(nc) != "ncdf4") 
-      stop(paste("Error: first argument to ncvar_put must be an object of type ncdf,", 
-                 "as returned by a call to nc_open(...,write=TRUE) or nc_create"))
-    if ((mode(varid) != "character") && (class(varid) != "ncvar4") && 
-        (class(varid) != "ncdim4") && (!is.na(varid))) 
-      stop(paste("Error: second argument to ncvar_put must be either an object of type ncvar,", 
-                 "as returned by a call to ncvar_def, or the character-string name of a variable", 
-                 "in the file.  If there are multiple vars in the file with the same name (but", 
-                 "in different groups), then the fully qualified var name must be given, for", 
-                 "example, model1/run5/Temperature"))
-    if ((class(varid) == "ncvar4") || (class(varid) == "ncdim4")) {
-      varid = varid$name
-      if (verbose) 
-        print(paste("ncvar_put: converting passed ncvar4/ncdim4 object to the name:", 
-                    varid))
-    }
-    if (is.null(vals)) 
-      stop("requires a vals argument to be set")
-    if (verbose) {
-      if (mode(varid) == "character") 
-        vname <- varid
-      else vname <- varid$name
-      print(paste("ncvar_put: entering, filename=", nc$filename, 
-                  " varname=", vname))
-    }
-    idobj = vobjtovarid4(nc, varid, allowdimvar = TRUE, verbose = verbose)
-    ncid2use = idobj$group_id
-    varid2use = idobj$id
-    varidx2use = idobj$list_index
-    isdimvar = idobj$isdimvar
-    if (verbose) 
-      print(paste("ncvar_put: writing to var (or dimvar) with id=", 
-                  idobj$id, " group_id=", idobj$group_id))
-    sm <- storage.mode(start)
-    if ((sm != "double") && (sm != "integer") && (sm != "logical")) 
-      stop(paste("passed a start argument of storage mode", 
-                 sm, "; can only handle double or integer"))
-    sm <- storage.mode(count)
-    if ((sm != "double") && (sm != "integer") && (sm != "logical")) 
-      stop(paste("passed a 'count' argument with storage mode '", 
-                 sm, "'; can only handle double or integer", sep = ""))
-    if (!nc$writable) 
-      stop(paste("trying to write to file", nc$filename, "but it was not opened with write=TRUE"))
-    varsize <- ncdf4:::ncvar_size(ncid2use, varid2use)
-    ndims <- ncdf4:::ncvar_ndims(ncid2use, varid2use)
-    is_scalar = FALSE #(varsize == 1) && (ndims == 0)
-    if (verbose) {
-      print(paste("ncvar_put: varsize="))
-      print(varsize)
-      print(paste("ncvar_put: ndims=", ndims))
-      print(paste("ncvar_put: is_scalar=", is_scalar))
-    }
-    if ((length(start) == 1) && is.na(start)) {
-      if (is_scalar) 
-        start <- 1
-      else start <- rep(1, ndims)
-    }else {
-      if (length(start) != ndims) 
-        stop(paste("'start' should specify", ndims, "dims but actually specifies", 
-                   length(start)))
-    }
-    if (verbose) {
-      print("ncvar_put: using start=")
-      print(start)
-    }
-    if ((length(count) == 1) && is.na(count)) {
-      count <- varsize - start + 1
-    } else {
-      if (length(count) != ndims) 
-        stop(paste("'count' should specify", ndims, "dims but actually specifies", 
-                   length(count)))
-      count <- ifelse((count == -1), varsize - start + 1, count)
-    }
-    if (verbose) {
-      print("ncvar_put: using count=")
-      print(count)
-    }
-    c.start <- start[ndims:1] - 1
-    c.count <- count[ndims:1]
-    if (verbose) 
-      print("about to change NAs to variables missing value")
-    if (isdimvar) 
-      mv <- default_missval_ncdf4()
-    else mv <- nc$var[[varidx2use]]$missval
-    vals <- ifelse(is.na(vals), mv, vals)
-    precint <- ncdf4:::ncvar_type(ncid2use, varid2use)
-    if (verbose) 
-      print(paste("Putting var of type", precint, " (1=short, 2=int, 3=float, 4=double, 5=char, 6=byte, 7=ubyte, 8=ushort, 9=uint, 10=int64, 11=uint64, 12=string)"))
-    n2write <- prod(count)
-    if ((precint != 5) && (length(vals) != n2write)) {
-      if (length(vals) > n2write) 
-        print(paste("ncvar_put: warning: you asked to write", 
-                    n2write, "values, but the passed data array has", 
-                    length(vals), "entries!"))
-      else stop(paste("ncvar_put: error: you asked to write", 
-                      n2write, "values, but the passed data array only has", 
-                      length(vals), "entries!"))
-    }
-    rv <- list()
-    rv$error <- -1
-    if (verbose) {
-      print("ncvar_put: calling C routines with C-style count=")
-      print(c.count)
-      print("and C-style start=")
-      print(c.start)
-    }
-    if ((precint == 1) || (precint == 2) || (precint == 6) || 
-        (precint == 7) || (precint == 8) || (precint == 9)) {
-      rv <- .C("R_nc4_put_vara_int", as.integer(ncid2use), 
-               as.integer(varid2use), as.integer(c.start), as.integer(c.count), 
-               data = as.integer(vals), error = as.integer(rv$error), 
-               PACKAGE = "pbdNCDF4")
-      if (rv$error != 0) 
-        stop("C function R_nc4_put_var_int returned error")
-      if (verbose) 
-        print(paste("C function R_nc4_put_var_int returned", 
-                    rv$error))
-    }
-    else if ((precint == 3) || (precint == 4) || (precint == 
-                                                  10) || (precint == 11)) {
-      if ((precint == 10) || (precint == 11)) {
-        print(paste(">>>> WARNING <<<< You are attempting to write data to a 8-byte integer,"))
-        print(paste("but R does not have an 8-byte integer type.  This is a bad idea! I will"))
-        print(paste("TRY to write this by converting from double precision floating point, but"))
-        print(paste("this could lose precision in your data!"))
-      }
-      rv <- .C("R_nc4_put_vara_double", as.integer(ncid2use), 
-               as.integer(varid2use), as.integer(c.start), as.integer(c.count), 
-               data = as.double(vals), error = as.integer(rv$error), 
-               PACKAGE = "pbdNCDF4", NAOK = TRUE)
-      if (rv$error != 0) 
-        stop("C function R_nc4_put_var_double returned error")
-      if (verbose) 
-        print(paste("C function R_nc4_put_var_double returned", 
-                    rv$error))
-    }
-    else if (precint == 5) {
-      rv <- .C("R_nc4_put_vara_text", as.integer(ncid2use), 
-               as.integer(varid2use), as.integer(c.start), as.integer(c.count), 
-               data = as.character(vals), error = as.integer(rv$error), 
-               PACKAGE = "pbdNCDF4")
-      if (rv$error != 0) 
-        stop("C function R_nc4_put_var_double returned error")
-      if (verbose) 
-        print(paste("C function R_nc4_put_var_text returned", 
-                    rv$error))
-    }
-    else stop(paste("Internal error in ncvar_put: unhandled variable type=", 
-                    precint, ". Types I know: 1=short 2=int 3=float 4=double 5=char"))
-  }
+ # ncvar_put_MINE <- function (nc, varid = NA, vals = NULL, start = NA, count = NA, 
+ #            verbose = FALSE) {
+ #    if (class(nc) != "ncdf4") 
+ #      stop(paste("Error: first argument to ncvar_put must be an object of type ncdf,", 
+ #                 "as returned by a call to nc_open(...,write=TRUE) or nc_create"))
+ #    if ((mode(varid) != "character") && (class(varid) != "ncvar4") && 
+ #        (class(varid) != "ncdim4") && (!is.na(varid))) 
+ #      stop(paste("Error: second argument to ncvar_put must be either an object of type ncvar,", 
+ #                 "as returned by a call to ncvar_def, or the character-string name of a variable", 
+ #                 "in the file.  If there are multiple vars in the file with the same name (but", 
+ #                 "in different groups), then the fully qualified var name must be given, for", 
+ #                 "example, model1/run5/Temperature"))
+ #    if ((class(varid) == "ncvar4") || (class(varid) == "ncdim4")) {
+ #      varid = varid$name
+ #      if (verbose) 
+ #        print(paste("ncvar_put: converting passed ncvar4/ncdim4 object to the name:", 
+ #                    varid))
+ #    }
+ #    if (is.null(vals)) 
+ #      stop("requires a vals argument to be set")
+ #    if (verbose) {
+ #      if (mode(varid) == "character") 
+ #        vname <- varid
+ #      else vname <- varid$name
+ #      print(paste("ncvar_put: entering, filename=", nc$filename, 
+ #                  " varname=", vname))
+ #    }
+ #    idobj = vobjtovarid4(nc, varid, allowdimvar = TRUE, verbose = verbose)
+ #    ncid2use = idobj$group_id
+ #    varid2use = idobj$id
+ #    varidx2use = idobj$list_index
+ #    isdimvar = idobj$isdimvar
+ #    if (verbose) 
+ #      print(paste("ncvar_put: writing to var (or dimvar) with id=", 
+ #                  idobj$id, " group_id=", idobj$group_id))
+ #    sm <- storage.mode(start)
+ #    if ((sm != "double") && (sm != "integer") && (sm != "logical")) 
+ #      stop(paste("passed a start argument of storage mode", 
+ #                 sm, "; can only handle double or integer"))
+ #    sm <- storage.mode(count)
+ #    if ((sm != "double") && (sm != "integer") && (sm != "logical")) 
+ #      stop(paste("passed a 'count' argument with storage mode '", 
+ #                 sm, "'; can only handle double or integer", sep = ""))
+ #    if (!nc$writable) 
+ #      stop(paste("trying to write to file", nc$filename, "but it was not opened with write=TRUE"))
+ #    varsize <- ncdf4:::ncvar_size(ncid2use, varid2use)
+ #    ndims <- ncdf4:::ncvar_ndims(ncid2use, varid2use)
+ #    is_scalar = FALSE #(varsize == 1) && (ndims == 0)
+ #    if (verbose) {
+ #      print(paste("ncvar_put: varsize="))
+ #      print(varsize)
+ #      print(paste("ncvar_put: ndims=", ndims))
+ #      print(paste("ncvar_put: is_scalar=", is_scalar))
+ #    }
+ #    if ((length(start) == 1) && is.na(start)) {
+ #      if (is_scalar) 
+ #        start <- 1
+ #      else start <- rep(1, ndims)
+ #    }else {
+ #      if (length(start) != ndims) 
+ #        stop(paste("'start' should specify", ndims, "dims but actually specifies", 
+ #                   length(start)))
+ #    }
+ #    if (verbose) {
+ #      print("ncvar_put: using start=")
+ #      print(start)
+ #    }
+ #    if ((length(count) == 1) && is.na(count)) {
+ #      count <- varsize - start + 1
+ #    } else {
+ #      if (length(count) != ndims) 
+ #        stop(paste("'count' should specify", ndims, "dims but actually specifies", 
+ #                   length(count)))
+ #      count <- ifelse((count == -1), varsize - start + 1, count)
+ #    }
+ #    if (verbose) {
+ #      print("ncvar_put: using count=")
+ #      print(count)
+ #    }
+ #    c.start <- start[ndims:1] - 1
+ #    c.count <- count[ndims:1]
+ #    if (verbose) 
+ #      print("about to change NAs to variables missing value")
+ #    if (isdimvar) 
+ #      mv <- default_missval_ncdf4()
+ #    else mv <- nc$var[[varidx2use]]$missval
+ #    vals <- ifelse(is.na(vals), mv, vals)
+ #    precint <- ncdf4:::ncvar_type(ncid2use, varid2use)
+ #    if (verbose) 
+ #      print(paste("Putting var of type", precint, " (1=short, 2=int, 3=float, 4=double, 5=char, 6=byte, 7=ubyte, 8=ushort, 9=uint, 10=int64, 11=uint64, 12=string)"))
+ #    n2write <- prod(count)
+ #    if ((precint != 5) && (length(vals) != n2write)) {
+ #      if (length(vals) > n2write) 
+ #        print(paste("ncvar_put: warning: you asked to write", 
+ #                    n2write, "values, but the passed data array has", 
+ #                    length(vals), "entries!"))
+ #      else stop(paste("ncvar_put: error: you asked to write", 
+ #                      n2write, "values, but the passed data array only has", 
+ #                      length(vals), "entries!"))
+ #    }
+ #    rv <- list()
+ #    rv$error <- -1
+ #    if (verbose) {
+ #      print("ncvar_put: calling C routines with C-style count=")
+ #      print(c.count)
+ #      print("and C-style start=")
+ #      print(c.start)
+ #    }
+ #    if ((precint == 1) || (precint == 2) || (precint == 6) || 
+ #        (precint == 7) || (precint == 8) || (precint == 9)) {
+ #      rv <- .C("R_nc4_put_vara_int", as.integer(ncid2use), 
+ #               as.integer(varid2use), as.integer(c.start), as.integer(c.count), 
+ #               data = as.integer(vals), error = as.integer(rv$error), 
+ #               PACKAGE = "pbdNCDF4")
+ #      if (rv$error != 0) 
+ #        stop("C function R_nc4_put_var_int returned error")
+ #      if (verbose) 
+ #        print(paste("C function R_nc4_put_var_int returned", 
+ #                    rv$error))
+ #    }
+ #    else if ((precint == 3) || (precint == 4) || (precint == 
+ #                                                  10) || (precint == 11)) {
+ #      if ((precint == 10) || (precint == 11)) {
+ #        print(paste(">>>> WARNING <<<< You are attempting to write data to a 8-byte integer,"))
+ #        print(paste("but R does not have an 8-byte integer type.  This is a bad idea! I will"))
+ #        print(paste("TRY to write this by converting from double precision floating point, but"))
+ #        print(paste("this could lose precision in your data!"))
+ #      }
+ #      rv <- .C("R_nc4_put_vara_double", as.integer(ncid2use), 
+ #               as.integer(varid2use), as.integer(c.start), as.integer(c.count), 
+ #               data = as.double(vals), error = as.integer(rv$error), 
+ #               PACKAGE = "pbdNCDF4", NAOK = TRUE)
+ #      if (rv$error != 0) 
+ #        stop("C function R_nc4_put_var_double returned error")
+ #      if (verbose) 
+ #        print(paste("C function R_nc4_put_var_double returned", 
+ #                    rv$error))
+ #    }
+ #    else if (precint == 5) {
+ #      rv <- .C("R_nc4_put_vara_text", as.integer(ncid2use), 
+ #               as.integer(varid2use), as.integer(c.start), as.integer(c.count), 
+ #               data = as.character(vals), error = as.integer(rv$error), 
+ #               PACKAGE = "pbdNCDF4")
+ #      if (rv$error != 0) 
+ #        stop("C function R_nc4_put_var_double returned error")
+ #      if (verbose) 
+ #        print(paste("C function R_nc4_put_var_text returned", 
+ #                    rv$error))
+ #    }
+ #    else stop(paste("Internal error in ncvar_put: unhandled variable type=", 
+ #                    precint, ". Types I know: 1=short 2=int 3=float 4=double 5=char"))
+ #  }
 #-------------  
   #------ Write dimensional variable values ------
   if (is_gridded) {
