@@ -1110,6 +1110,58 @@ var_defs <- var_names
     ) 
     
     var_defs <- c(var_defs, xy_attributes[["name"]][1], xy_attributes[["name"]][2])
+  } else {
+    # define x and y variables if gridded 
+    # x var
+  RNetCDF::var.def.nc(
+    nc,
+    varname = xy_attributes[["name"]][1],
+    vartype = "NC_DOUBLE",
+    dimensions = "lon", 
+    deflate = nc_deflate, 
+    shuffle = nc_shuffle,
+    chunksizes = c( n_xvals)
+  )
+    # y var
+    RNetCDF::var.def.nc(
+      nc,
+      varname = xy_attributes[["name"]][2],
+      vartype = "NC_DOUBLE",
+      dimensions = "lat", 
+      deflate = nc_deflate, 
+      shuffle = nc_shuffle,
+      chunksizes = c(n_yvals)
+    )
+    if (has_Z_verticalAxis != "none") {
+      
+      RNetCDF::var.def.nc(
+        nc, 
+        varname = "vertical",
+        vartype = "NC_DOUBLE",
+        dimensions = c("vertical"),
+        deflate = nc_deflate, 
+        shuffle = nc_shuffle,
+        chunksizes = c(n_vertical)
+      )
+      
+      
+      nc_dimvars <- c(nc_dimvars, "vertical_bnds")
+    }
+    
+    if (has_T_timeAxis != "none") {
+      RNetCDF::var.def.nc(
+        nc, 
+        varname = "time",
+        vartype = "NC_DOUBLE",
+        dimensions = c("time"),
+        deflate = nc_deflate, 
+        shuffle = nc_shuffle,
+        chunksizes = if (time_unlim) c(1L) else c( n_time)
+      )
+      
+      
+      nc_dimvars <- c(nc_dimvars, varid_timebnds)
+    }
   }
   
   
@@ -1251,110 +1303,174 @@ var_defs <- var_names
     )
   }
   
-  #AES stopped here
   #------ Write attributes ------
   
   #--- add standard_name attribute of x/y variables
   if ("standard_name" %in% names(xy_attributes)) {
     for (k in seq_len(2)) {
-     ncdf4::ncatt_put(
-        nc,
-        varid = xy_attributes[["name"]][k],
-        attname = "standard_name",
-        attval = xy_attributes[["standard_name"]][k]
+      RNetCDF::att.put.nc(
+        nc, 
+        variable = xy_attributes[["name"]][k],
+        name = "standard_name", 
+        value = xy_attributes[["standard_name"]][k],
+        type = "NC_CHAR"
       )
     }
   }
   
   #--- add dimension attributes
   if (is_gridded) {
-    ncdf4::ncatt_put(nc, xy_attributes[["name"]][1], "axis", "X")
-    ncdf4::ncatt_put(nc, xy_attributes[["name"]][1], "bounds", bnds_name[1])
-    ncdf4::ncatt_put(nc, xy_attributes[["name"]][2], "axis", "Y")
-    ncdf4::ncatt_put(nc, xy_attributes[["name"]][2], "bounds", bnds_name[2])
+    RNetCDF::att.put.nc(
+      nc, 
+      variable = xy_attributes[["name"]][1], 
+      name = "axis", 
+      value = "X", 
+      type = "NC_CHAR"
+    )
+    RNetCDF::att.put.nc(
+      nc, 
+      variable = xy_attributes[["name"]][1], 
+      name = "bounds", 
+      value = bnds_name[1], 
+      type = "NC_CHAR"
+    )
+    RNetCDF::att.put.nc(
+      nc, 
+      variable = xy_attributes[["name"]][2], 
+      name = "axis", 
+      value = "Y", 
+      type = "NC_CHAR"
+    )
+    RNetCDF::att.put.nc(
+      nc, 
+      variable = xy_attributes[["name"]][2], 
+      name = "bounds", 
+      value = bnds_name[2], 
+      type = "NC_CHAR"
+    )
   }
   
   if (has_Z_verticalAxis != "none") {
-    ncdf4::ncatt_put(nc, "vertical", "axis", "Z")
-    ncdf4::ncatt_put(nc, "vertical", "bounds", "vertical_bnds")
-    
+    RNetCDF::att.put.nc(
+      nc, 
+      variable = "vertical", 
+      name = "axis", 
+      value = "Z", 
+      type = "NC_CHAR"
+    )
+    RNetCDF::att.put.nc(
+      nc, 
+      variable = "vertical", 
+      name = "bounds", 
+      value = "vertical_bnds", 
+      type = "NC_CHAR"
+    )
+   
     for (natt in ns_att_vert) {
-      ncdf4::ncatt_put(
-        nc,
-        varid = "vertical",
-        attname = natt,
-        attval = vertical_attributes[[natt]]
+      RNetCDF::att.put.nc(
+        nc, 
+        variable = "variable",
+        name = natt,
+        value = vertical_attributes[[natt]], 
+        type = "NC_CHAR"
       )
     }
   }
   
   if (has_T_timeAxis != "none") {
-    ncdf4::ncatt_put(nc, "time", "axis", "T")
-    ncdf4::ncatt_put(nc, "time", att_timebnds, varid_timebnds)
-    
+    RNetCDF::att.put.nc(
+      nc, 
+      variable = "time", 
+      name = "axis", 
+      value = "T", 
+      type = "NC_CHAR"
+    )
+    RNetCDF::att.put.nc(
+      nc, 
+      variable = "time", 
+      name = att_timebnds, 
+      value = varid_timebnds, 
+      type = "NC_CHAR"
+    )
+ 
     for (natt in ns_att_time) {
-      ncdf4::ncatt_put(
-        nc,
-        varid = "time",
-        attname = natt,
-        attval = time_attributes[[natt]]
+      RNetCDF::att.put.nc(
+        nc, 
+        variable = "time", 
+        name = natt,
+        value =  time_attributes[[natt]], 
+        type = "NC_CHAR"
       )
     }
   }
   
-  
   #--- add variable attributes
   for (k in seq_len(n_vars)) {
     for (natt in ns_att_vars) {
-      ncdf4::ncatt_put(
-        nc,
-        varid = var_names[k],
-        attname = natt,
-        attval = var_attributes[[natt]][k]
+      RNetCDF::att.put.nc(
+        nc, 
+        variable = var_names[k],
+        name = natt, 
+        value = var_attributes[[natt]][k],
+        type = "NC_CHAR"
       )
     }
   }
   
   #--- add coordinate system attributes
-  for (natt in ns_att_crs) {
-    ncdf4::ncatt_put(
-      nc,
-      varid = "crs",
-      attname = natt,
-      attval = crs_attributes[[natt]]
+  crs_types <- c("NC_CHAR", "NC_DOUBLE", "NC_FLOAT", "NC_FLOAT")
+  for (i in 1:length(ns_att_crs)) {
+    RNetCDF::att.put.nc(
+      nc, 
+      variable = "crs", 
+      name = ns_att_crs[i], 
+      value = crs_attributes[[ns_att_crs[i]]], 
+      type = crs_types[i]
     )
   }
   
-  ncdf4::ncatt_put(nc, "crs", attname = "crs_wkt", attval = crs_wkt$Wkt)
-  
+  RNetCDF::att.put.nc(
+    nc, 
+    variable = "crs", 
+    name = "crs_wkt", 
+    value = crs_wkt$Wkt,
+    type = "NC_CHAR")
   
   #--- add global attributes
-  ncdf4::ncatt_put(nc, varid = 0, attname = "Conventions", attval = "CF-1.8")
+  RNetCDF::att.put.nc(
+    nc, 
+    variable = "NC_GLOBAL", 
+    name = "Conventions", 
+    value = "CF-1.8",
+    type = "NC_CHAR"
+  )
   
   tmp_version_netcdf <- try(
     system2("nc-config", "--version", stdout = TRUE, stderr = TRUE),
     silent = TRUE
   )
   
-  ncdf4::ncatt_put(
-    nc,
-    varid = 0,
-    attname = "created_by",
-    attval = paste0(
+  RNetCDF::att.put.nc(
+    nc, 
+    variable = "NC_GLOBAL", 
+    name = "created_by", 
+    value =  paste0(
       R.version[["version.string"]],
       ", R package ",
-      "ncdf4 v", getNamespaceVersion("ncdf4"),
+      "RNetCDF v", getNamespaceVersion("RNetCDF"),
       if (!inherits(tmp_version_netcdf, "try-error")) {
         paste0(", and ", tmp_version_netcdf)
       }
-    )
+    ), 
+    type = "NC_CHAR"
   )
   
-  ncdf4::ncatt_put(
-    nc,
-    varid = 0,
-    attname = "creation_date",
-    attval = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+  RNetCDF::att.put.nc(
+    nc, 
+    variable = "NC_GLOBAL", 
+    name = "create_date", 
+    value = format(Sys.time(), "%Y-%m-%d %H:%M:%S"), 
+    type = "NC_CHAR"
   )
   
   if (!missing(global_attributes)) {
@@ -1375,22 +1491,30 @@ var_defs <- var_names
     }
     
     for (natt in ns_att_glob) {
-      ncdf4::ncatt_put(
-        nc,
-        varid = 0,
-        attname = natt,
-        attval = global_attributes[[natt]]
+      RNetCDF::att.put.nc(
+        nc, 
+        variable = "NC_GLOBAL", 
+        name = natt,
+        value = global_attributes[[natt]],  
+        type = "NC_CHAR"
       )
     }
   }
   
   if (has_T_timeAxis == "none") {
-    ncdf4::ncatt_put(nc, varid = 0, attname = "time_label", attval = "None")
-    ncdf4::ncatt_put(
-      nc,
-      varid = 0,
-      attname = "time_title",
-      attval = "No temporal dimensions ... fixed field"
+    RNetCDF::att.put.nc(
+      nc, 
+      variable = "NC_GLOBAL", 
+      name = "time_label", 
+      value = "None", 
+      type = "NC_CHAR"
+    )
+    RNetCDF::att.put.nc(
+      nc, 
+      variable = "NC_GLOBAL", 
+      name = "time_title", 
+      value = "No temporal dimensions ... fixed field", 
+      type = "NC_CHAR"
     )
   }
   
@@ -1398,11 +1522,11 @@ var_defs <- var_names
   
   
   #------ The end --------------------------------------------------------------
-  if (verbose) {
-    message(
-      "The netCDF has ", nc$nvars, " variables and ", nc$ndim, " dimensions"
-    )
-  }
+  # if (verbose) {
+  #   message(
+  #     "The netCDF has ", nc$nvars, " variables and ", nc$ndim, " dimensions"
+  #   )
+  # }
   
   return(nc)
   invisible(TRUE)
