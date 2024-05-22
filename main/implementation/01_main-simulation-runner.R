@@ -5,24 +5,26 @@ rm(list=ls(all=TRUE))
 #     LDFLAGS=-L/sw/lib LIBS=-lhdf5 --with-mpicc=mpicc --with-mpiexec=mpiexec" \
 # RNetCDF_2.9-1.tar.gz
 
+remotes::install_github("DrylandEcology/rSW2st")
+remotes::install_github("DrylandEcology/rSOILWAT2", build_vignettes = FALSE)
 suppressMessages(library(rSOILWAT2, quiet = TRUE))
 
 suppressMessages(library(rSW2data, quiet = TRUE))
 suppressMessages(library(RSQLite, quietly = TRUE))
 suppressMessages(library(DBI, quietly = TRUE))
-
+suppressMessages(library(rSW2st, quietly = TRUE))
 suppressMessages(library(raster, quietly = TRUE))
 suppressMessages(library(data.table, quietly = TRUE))
 suppressMessages(library(lubridate, quietly = TRUE))
 
-#suppressMessages(library(pbdMPI, quiet = TRUE))
+suppressMessages(library(pbdMPI, quiet = TRUE))
 
-suppressMessages(library(pbdNCDF4, quiet = TRUE))
+#suppressMessages(library(pbdNCDF4, quiet = TRUE))
 suppressMessages(library(RNetCDF, quiet = TRUE))
 suppressMessages(library(ncdf4, quiet = TRUE))
 
 # variables --------------------------------------------------------------------
-isParallel <- FALSE # set to FALSE if you dont want to use pbdMPI to execute runs in parallel 
+isParallel <- TRUE # set to FALSE if you dont want to use pbdMPI to execute runs in parallel 
 nRuns = 30 #is 30 for point based netCDF, but changed to 5 here for testing purposes (this is the number of simulations for each grid?? I think? )
 
 # Begin ------------------------------------------------------------------------
