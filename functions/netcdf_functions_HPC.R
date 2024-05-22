@@ -1006,7 +1006,7 @@ create_netCDF <- function(
     
     
    # var_dims <- list(xdim, ydim) #AES may regret commenting this out... can address later?
-    var_chunksizes <- if (has_chunks) c(n_xvals, n_yvals) else NA
+    #var_chunksizes <- if (has_chunks) c(n_xvals, n_yvals) else NA
     var_start <- c(1, 1)
     
   } else {
@@ -1016,56 +1016,53 @@ create_netCDF <- function(
       dimlength = seq_len(n_sites)
     )
     #var_dims <- list(idim)
-    var_chunksizes <- if (has_chunks) n_sites else NA
+    #var_chunksizes <- if (has_chunks) n_sites else NA
     var_start <- 1
   }
   
   # vertical dimension
   if (has_Z_verticalAxis != "none") {
-    zdim <- pbdNCDF4::ncdim_def(
-      name = "vertical",
-      units = vert_units,
-      vals = vertical_values
+    RNetCDF::dim.def.nc(
+      nc,
+      dimname = "vertical",
+      dimlength = length(vertical_values)
     )
-    
-    var_dims <- c(var_dims, list(zdim))
-    if (has_chunks && has_predet_chunks) {
-      var_chunksizes <- c(
-        var_chunksizes,
-        if (nc_chunks == "by_zt") 1 else n_vertical
-      )
-    }
+  
+    #var_dims <- c(var_dims, list(zdim))
+    # if (has_chunks && has_predet_chunks) {
+    #   var_chunksizes <- c(
+    #     var_chunksizes,
+    #     if (nc_chunks == "by_zt") 1 else n_vertical
+    #   )
+    # }
     var_start <- c(var_start, 1)
   }
   
   # time dimension
   if (has_T_timeAxis != "none") {
-    tdim <- pbdNCDF4::ncdim_def(
-      name = "time",
-      units = time_units,
-      calendar = time_cal,
-      unlim = time_unlim,
-      vals = time_values
+    RNetCDF::dim.def.nc(
+      nc,
+      dimname = "time",
+      dimlength = length(time_values)
     )
+  
     
-    var_dims <- c(var_dims, list(tdim))
-    if (has_chunks && has_predet_chunks) {
-      var_chunksizes <- c(
-        var_chunksizes,
-        if (nc_chunks %in% c("by_zt", "by_t")) 1 else n_time
-      )
-    }
+    #var_dims <- c(var_dims, list(tdim))
+    # if (has_chunks && has_predet_chunks) {
+    #   var_chunksizes <- c(
+    #     var_chunksizes,
+    #     if (nc_chunks %in% c("by_zt", "by_t")) 1 else n_time
+    #   )
+    # }
     var_start <- c(var_start, 1)
   }
   
   
-  
-  
   #------ 3) Define netCDF variables -------------------------------------------
-  if (has_chunks && !has_predet_chunks) {
-    stopifnot(length(nc_chunks) == length(var_dims))
-    var_chunksizes <- nc_chunks
-  }
+  # if (has_chunks && !has_predet_chunks) {
+  #   stopifnot(length(nc_chunks) == length(var_dims))
+  #   var_chunksizes <- nc_chunks
+  # }
   
   
   #------ Define data variables ------
