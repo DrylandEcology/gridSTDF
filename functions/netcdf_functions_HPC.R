@@ -969,7 +969,8 @@ create_netCDF <- function(
   
   if (!isParallel) {
     nc <- RNetCDF::create.nc(
-        filename = filename
+        filename = filename,
+        format="netcdf4"
     )
   } else {
     nc <- RNetCDF::create.nc(
@@ -979,43 +980,42 @@ create_netCDF <- function(
     
   }
   
-  #------ 2) Define netCDF dimensions ------------------------------------------
-  #--- bounds dimension (without dimensional variable)
-  bnddim <- pbdNCDF4::ncdim_def(
-    name = "bnds",
-    units = "",
-    vals = seq_len(2L),
-    create_dimvar = FALSE
-  )
-  
+  # 3) Define netCDF dimensions --------------------------
+  # bounds dimension (without dimensional variable)
+ RNetCDF::dim.def.nc(
+    nc, 
+    dimname = "bnds", 
+    dimlength = 2
+    )
+
   # x and y dimension
   if (is_gridded) {
-    xdim <- pbdNCDF4::ncdim_def(
-      name = xy_attributes[["name"]][1],
-      longname = xy_attributes[["long_name"]][1],
-      units = xy_attributes[["units"]][1],
-      vals = xvals
-    )
-    ydim <- pbdNCDF4::ncdim_def(
-      name = xy_attributes[["name"]][2],
-      longname = xy_attributes[["long_name"]][2],
-      units = xy_attributes[["units"]][2],
-      vals = yvals
+    # x dimension 
+    RNetCDF::dim.def.nc(
+      nc,
+      dimname = xy_attributes[["long_name"]][1], 
+      dimlength = length(xvals)
     )
     
-    var_dims <- list(xdim, ydim)
+    # y dimension
+    RNetCDF::dim.def.nc(
+      nc,
+      dimname = xy_attributes[["long_name"]][2], 
+      dimlength = length(yvals)
+    )
+    
+    
+   # var_dims <- list(xdim, ydim) #AES may regret commenting this out... can address later?
     var_chunksizes <- if (has_chunks) c(n_xvals, n_yvals) else NA
     var_start <- c(1, 1)
     
   } else {
-    idim <- pbdNCDF4::ncdim_def(
-      name = "site",
-      longname = "SOILWAT2 simulation sites",
-      units = "1",
-      vals = seq_len(n_sites)
+    RNetCDF::dim.def.nc(
+      nc,
+      dimname = "SOILWAT2 simulation sites",
+      dimlength = seq_len(n_sites)
     )
-    
-    var_dims <- list(idim)
+    #var_dims <- list(idim)
     var_chunksizes <- if (has_chunks) n_sites else NA
     var_start <- 1
   }
