@@ -425,7 +425,13 @@ create_netCDF <- function(
     double = -1.7e+308
   )
   
-  
+  # make the data type match the options from RNetCDF (NC_BYTE, NC_UBYTE,
+  # NC_CHAR, NC_SHORT, NC_USHORT, NC_INT, NC_UINT, NC_INT64, NC_UINT64,
+  # NC_FLOAT, NC_DOUBLE, NC_STRING)
+  temp <- data.frame("old" = c("double", "float", "integer", "short", "byte", "char"), 
+             "new" = c("NC_DOUBLE", "NC_FLOAT", "NC_INT", "NC_SHORT", "NC_BYTE", "NC_CHAR"))
+  data_type <- temp[temp$old == data_type,"new"]
+
   # Three data structure situations:
   #   i) one variable and vertical axis and time ("xyzt", "szt")
   #   ii) one variable and time OR vertical axis ("xyt", "xyz", "st", "sz")
@@ -993,19 +999,19 @@ create_netCDF <- function(
     # x dimension 
     RNetCDF::dim.def.nc(
       nc,
-      dimname = xy_attributes[["long_name"]][1], 
+      dimname = xy_attributes[["name"]][1], 
       dimlength = length(xvals)
     )
     
     # y dimension
     RNetCDF::dim.def.nc(
       nc,
-      dimname = xy_attributes[["long_name"]][2], 
+      dimname = xy_attributes[["name"]][2], 
       dimlength = length(yvals)
     )
     
     
-   # var_dims <- list(xdim, ydim) #AES may regret commenting this out... can address later?
+   var_dims <- c(xy_attributes[["name"]][1], xy_attributes[["name"]][2]) 
     #var_chunksizes <- if (has_chunks) c(n_xvals, n_yvals) else NA
     var_start <- c(1, 1)
     
@@ -1015,7 +1021,7 @@ create_netCDF <- function(
       dimname = "SOILWAT2 simulation sites",
       dimlength = seq_len(n_sites)
     )
-    #var_dims <- list(idim)
+    var_dims <- c("SOILWAT2 simulation sites")
     #var_chunksizes <- if (has_chunks) n_sites else NA
     var_start <- 1
   }
@@ -1028,7 +1034,7 @@ create_netCDF <- function(
       dimlength = length(vertical_values)
     )
   
-    #var_dims <- c(var_dims, list(zdim))
+    var_dims <- c(var_dims,"vertical")
     # if (has_chunks && has_predet_chunks) {
     #   var_chunksizes <- c(
     #     var_chunksizes,
@@ -1047,7 +1053,7 @@ create_netCDF <- function(
     )
   
     
-    #var_dims <- c(var_dims, list(tdim))
+    var_dims <- c(var_dims, "time")
     # if (has_chunks && has_predet_chunks) {
     #   var_chunksizes <- c(
     #     var_chunksizes,
@@ -1066,60 +1072,55 @@ create_netCDF <- function(
   
   
   #------ Define data variables ------
-  var_defs <- lapply(
+lapply(
     seq_len(n_vars),
     function(k) {
-      pbdNCDF4::ncvar_def(
-        name = var_names[k],
-        units = var_units[k],
-        dim = var_dims,
-        compression = nc_deflate,
-        shuffle = nc_shuffle,
-        chunksizes = if (has_chunks) var_chunksizes else NA,
-        missval = NAflag,
-        prec = data_type
+      RNetCDF::var.def.nc(
+        nc, 
+        varname = var_names[k],
+        vartype = data_type, 
+        dimensions = var_dims, 
+        deflate = nc_deflate, 
+        shuffle = nc_shuffle, 
       )
     }
   )
-  
+var_defs <- var_names
   
   #------ Define x and y as variables if not gridded ------
   if (!is_gridded) {
-    xvar <- pbdNCDF4::ncvar_def(
-      name = xy_attributes[["name"]][1],
-      longname = xy_attributes[["long_name"]][1],
-      units = xy_attributes[["units"]][1],
-      dim = list(idim),
-      compression = nc_deflate,
-      chunksizes = n_sites,
-      missval = NAflag,
-      prec = "double"
+    #x var
+    RNetCDF::var.def.nc(
+      nc, 
+      varname = xy_attributes[["name"]][1],
+      vartype = "NC_DOUBLE", 
+      dimensions = "SOILWAT2 simulation sites", 
+      deflate = nc_deflate, 
+      shuffle = nc_shuffle, 
     )
     
-    yvar <- pbdNCDF4::ncvar_def(
-      name = xy_attributes[["name"]][2],
-      longname = xy_attributes[["long_name"]][2],
-      units = xy_attributes[["units"]][2],
-      dim = list(idim),
-      compression = nc_deflate,
-      chunksizes = n_sites,
-      missval = NAflag,
-      prec = "double"
-    )
+    #y var
+    RNetCDF::var.def.nc(
+      nc, 
+      varname = xy_attributes[["name"]][2],
+      vartype = "NC_DOUBLE", 
+      dimensions = "SOILWAT2 simulation sites", 
+      deflate = nc_deflate, 
+      shuffle = nc_shuffle, 
+    ) 
     
-    var_defs <- c(var_defs, list(yvar, xvar))
+    var_defs <- c(var_defs, xy_attributes[["name"]][1], xy_attributes[["name"]][2])
   }
   
   
-  #------ Define CRS ------
-  crsdef <- pbdNCDF4::ncvar_def(
-    name = "crs",
-    units = "",
-    dim = list(),
-    missval = NULL,
-    prec = "integer"
+  #------ Define CRS ------ ###AES not too sure how this will work, may have to change
+  RNetCDF::var.def.nc(
+    nc, 
+    varname = "crs", 
+    vartype = "NC_INT", 
+    dimensions = NA
   )
-  
+
   
   #------ Define dimension bounds ------
   nc_dimvars <- if (is_gridded) {
