@@ -964,6 +964,20 @@ create_netCDF <- function(
   ns_att_vars <- names(var_attributes)
   
   
+  # 2) Define the netCDF ---------------------------------
+  dir.create(dirname(filename), recursive = TRUE, showWarnings = FALSE)
+  
+  if (!isParallel) {
+    nc <- RNetCDF::create.nc(
+        filename = filename
+    )
+  } else {
+    nc <- RNetCDF::create.nc(
+      filename = filename, 
+      format="netcdf4", mpi_comm=comm.c2f(), mpi_info=info.c2f()
+    )
+    
+  }
   
   #------ 2) Define netCDF dimensions ------------------------------------------
   #--- bounds dimension (without dimensional variable)
@@ -1181,26 +1195,7 @@ create_netCDF <- function(
   
   
   
-  #------ 4) Write dimensions and attributes to netCDF file --------------------
   
-  dir.create(dirname(filename), recursive = TRUE, showWarnings = FALSE)
-  
-  if (!isParallel) {
-    nc <- ncdf4::nc_create(
-      filename = filename,
-      vars = c(nc_dimvars, list(crsdef), var_defs),
-      force_v4 = TRUE
-    )
-  } else {
-    nc <- pbdNCDF4::nc_create_par(
-      filename = filename,
-      vars = c(nc_dimvars, list(crsdef), var_defs),
-      force_v4 = TRUE
-    )
-    
-    pbdNCDF4::nc_var_par_access(nc, var_names[1])
-    
-  }
 
 
 
