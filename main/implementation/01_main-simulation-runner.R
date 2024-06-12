@@ -5,24 +5,28 @@ rm(list=ls(all=TRUE))
 #     LDFLAGS=-L/sw/lib LIBS=-lhdf5 --with-mpicc=mpicc --with-mpiexec=mpiexec" \
 # RNetCDF_2.9-1.tar.gz
 
+remotes::install_github("DrylandEcology/rSW2st")
+remotes::install_github("DrylandEcology/rSOILWAT2", build_vignettes = FALSE)
+remotes::install_github("DrylandEcology/rSW2funs")
 suppressMessages(library(rSOILWAT2, quiet = TRUE))
 
 suppressMessages(library(rSW2data, quiet = TRUE))
 suppressMessages(library(RSQLite, quietly = TRUE))
 suppressMessages(library(DBI, quietly = TRUE))
-
+suppressMessages(library(rSW2st, quietly = TRUE))
+suppressMessages(library(rSW2funs, quietly = TRUE))
 suppressMessages(library(raster, quietly = TRUE))
 suppressMessages(library(data.table, quietly = TRUE))
 suppressMessages(library(lubridate, quietly = TRUE))
 
-#suppressMessages(library(pbdMPI, quiet = TRUE))
+suppressMessages(library(pbdMPI, quiet = TRUE))
 
-suppressMessages(library(pbdNCDF4, quiet = TRUE))
+#suppressMessages(library(pbdNCDF4, quiet = TRUE))
 suppressMessages(library(RNetCDF, quiet = TRUE))
 suppressMessages(library(ncdf4, quiet = TRUE))
 
 # variables --------------------------------------------------------------------
-isParallel <- FALSE # set to FALSE if you dont want to use pbdMPI to execute runs in parallel 
+isParallel <- TRUE # set to FALSE if you dont want to use pbdMPI to execute runs in parallel 
 nRuns = 30 #is 30 for point based netCDF, but changed to 5 here for testing purposes (this is the number of simulations for each grid?? I think? )
 
 # Begin ------------------------------------------------------------------------
@@ -59,6 +63,16 @@ Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestInde
 #Sites <- Sites[!is.na(Sites$region2),]
 
 sites <- dim(Sites)[1]
+
+# load gridded soils data from Daniel (currently an old version, will be updated w/ SOLUS100 data)
+soils_gridClay <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slclay_fx_SOILWAT2_wUS-gm_gn.nc") 
+soils_gridSand <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slsand_fx_SOILWAT2_wUS-gm_gn.nc") 
+soils_gridSilt <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slsilt_fx_SOILWAT2_wUS-gm_gn.nc") 
+soils_gridDensity <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slbdensity_fx_SOILWAT2_wUS-gm_gn.nc") 
+soils_gridThickness <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slthick_fx_SOILWAT2_wUS-gm_gn.nc") 
+soils_gridCoarse <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slcoarse_fx_SOILWAT2_wUS-gm_gn.nc")
+soilGridLats <- var.get.nc(soils_gridClay, "lat")
+soilGridLons <- var.get.nc(soils_gridClay, "lon")
 
 if(isParallel) {
   alljid <- get.jid(n = sites, method = "block", all = FALSE) 
@@ -132,9 +146,31 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   wdata_plus <-rSOILWAT2::dbW_dataframe_to_weatherData(
     wdata_plus[,c('Year', 'DOY', 'Tmax_C', 'Tmin_C', 'PPT_cm')])
    
-  clim <- rSOILWAT2::calc_SiteClimate(weatherList = wdata, year.start = 1991, 
+`clim` <- rSOILWAT2::calc_SiteClimate(weatherList = wdata, year.start = 1991, 
                                       year.end = 2020, do_C4vars = TRUE)
   wdata <- c(wdata, wdata_plus)
+  
+  ### get soils data for this gridcell
+  # get indices for soil grid Lat and Lon
+  soilLat_i <- which(round(soilGridLats,5)==round(Lat,5))
+  soilLon_i <- which(round(soilGridLons,5)==round(Long,5))
+  #clay
+  clay_i <- var.get.nc(soils_gridClay, "slclay", start = c(soilLon_i, soilLat_i,1), 
+             count = c(1,1,12))
+  #sand
+  sand_i <- var.get.nc(soils_gridSand, "slsand", start = c(soilLon_i, soilLat_i,1), 
+                       count = c(1,1,12))
+  #silt
+  silt_i <- var.get.nc(soils_gridSilt, "slsilt", start = c(soilLon_i, soilLat_i,1), 
+                       count = c(1,1,12))
+  #silt
+  coarse_i <- var.get.nc(soils_gridCoarse, "slcoarse", start = c(soilLon_i, soilLat_i,1), 
+                       count = c(1,1,12))
+  #thickness
+  thickness_i <- 100*var.get.nc(soils_gridThickness, "slthick", start = c(soilLon_i, soilLat_i,1), 
+                       count = c(1,1,12))   # also convert thickness to centimeters from meters
+  bulkdensity_i <- var.get.nc(soils_gridDensity, "slbdensity", start = c(soilLon_i, soilLat_i,1), 
+                       count = c(1,1,12))
   
   ################### ----------------------------------------------------------
   # Part 2 - Sets SW parameters besides weather
@@ -143,20 +179,22 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   #sw_in <- new("swInputData") # baseline data # new() creates an empty object of this class, but everything needs to be addedd manually... which may be cumbersome
   sw_in <- swInputData()
   sw_in <- setVeg(sw_in, AllProdInfo, i)
-  sw_in <- setSW(sw_in, Lat, Long, clim)
+  sw_in <- setSW(sw_in, Lat, Long, clim, 
+                 clay_i, sand_i, silt_i, coarse_i, thickness_i, bulkdensity_i)
   #sw_in <- set_soils(sw_in, 2, 35, 35) #AES is done elsewhere in the setSW() function
-  sw_in@site@SoilTemperatureFlag <- TRUE # turns off the soil temp option #AES follow-up with Caitlin why it was turned off? 
+  sw_in@site@SoilTemperatureFlag <- TRUE # turns on the soil temperature 
   swCarbon_Use_Bio(sw_in) <- FALSE # turns off carbon #turns off CO2 fertilization effects... something we could potentially change
   swCarbon_Use_WUE(sw_in) <- FALSE # turns off Water use efficiency 
   swYears_EndYear(sw_in) <- currYear - 1 # the setting for the historical simulation 
   
   # Soils info formatting ----------------------------------------------------
   # waiting on the proper soils data, this is sort of a placeholder
-    
+    #AES how do we define what the depths are?? -- double check 
   SoilsDF <- data.frame(depth_cm = c(1:250),
                         Depth = c(rep('Shallow', 15),
                                   rep('Intermediate', 50), #16 - 65
                                   rep('Deep',185))) # 66 - 250
+  # could be problematic if some soils are shallow--maybe should indicate how much depth is represented in each 
 
   Soils <- data.frame(sw_in@soils@Layers)[,c('depth_cm', 'sand_frac', 'clay_frac')]
   Soils$width <- diff(c(0, Soils$depth_cm))
@@ -189,7 +227,7 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   HistDataAll1 <- setorder(as.data.frame(HistDataAll[[1]]), Year, Day)
   HistDataRolling <- getRolling(HistDataAll1, TimePeriod = 'Historical')
   
-  # 2 - Get climatologies! Daily for 18 months 549  -----------------------------
+  # 2 - Get climatologies! Daily for 18 months (549 days)  -----------------------------
   
   # ---- Need to account for the 30-year baseline of the calc ...
   # ---- Each calc return 366 days. "get18MonthClimatologicalRecord" slices it all apart ...
@@ -228,7 +266,7 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
 
   Hist_GISSM <-  HistDataAll[[3]]
    
-  # Hist_OConnor2020 <- HistDataAll[[4]]
+  Hist_OConnor2020 <- HistDataAll[[4]]
   
   
   ################### ----------------------------------------------------------------
@@ -313,7 +351,8 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   Future_GISSM <- formatfutureGISSM(Future_GISSM)
   
   # TO DO: Need to discuss with group what this output is looks like as netCDf/map
-  # Oconnor_Stats <- formatOConnor2020(Hist_OConnor2020, Future_OConnor2020) 
+  Future_OConnor2020 <- dplyr::bind_rows(AnomalyData1[[4]])
+  Oconnor_Stats <- formatOConnor2020(Hist_OConnor2020, Future_OConnor2020) 
   
   ################### ----------------------------------------------------------
   # Part 6 - Insert into netCDFs!!!
@@ -322,6 +361,7 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   # TO DO: Another netCDF that tracks success and failure
   
   if(!interactive() & isParallel) comm.print('Inserting into netCDFs.', Sys.time())
+  
   
   #TO DO: Make this into a function not a script #AES not working as of 3/4/24
   source('./main/implementation/01.2_input-values-into-ncdfs.R') 
@@ -350,5 +390,4 @@ if(!interactive() & isParallel) {
          ncdf4::nc_close(get(x))
         })
 }
-
 

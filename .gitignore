@@ -14,3 +14,4 @@ projects/06_TestOutputs/*.csv
 projects/07_TestOutputForFRESC/*.zip
 projects/07_TestOutputForFRESC/full_netCDFs.zip
 ./projects/07_TestOutputForFRESC/trimmed_netCDFs.zip
+Main/Data/soilsDB/

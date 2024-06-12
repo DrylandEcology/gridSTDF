@@ -41,7 +41,8 @@ setVeg <- function(sw_in, AllProdInfo, i) {
   
 }
 
-setSW <- function(sw_in, Lat, Long, calc_SiteClimate) {
+setSW <- function(sw_in, Lat, Long, calc_SiteClimate, 
+                  clay_i, sand_i, silt_i, coarse_i, thickness_i, bulkdensity_i) {
   #print(paste('Setting SW parameters', Sys.time()))
     
   rSOILWAT2::swYears_StartYear(sw_in) <- 0
@@ -84,25 +85,42 @@ setSW <- function(sw_in, Lat, Long, calc_SiteClimate) {
   rSOILWAT2::swCloud_SkyCover(sw_in) <- sc
   
   ## Soils  --------------------------------------------------------------------
-  #AES another place to update... soils are hard-coded now, but should be getting info at the grid level
-    soils_fixed <- data.frame(
-      depth =c(5, 15, 30, 70), # AES updated se we have a deep layer... 
-      bulkd = 1.3,
-      gravel = 0.1,
+  # #AES another place to update... soils are hard-coded now, but should be getting info at the grid level
+  #   soils_fixed <- data.frame(
+  #     depth =c(5, 15, 30, 70), # AES updated so we have a deep layer... 
+  #     bulkd = 1.3,
+  #     gravel = 0.1,
+  #     evco = NA,
+  #     trco_grass = NA,
+  #     trco_shrub = NA,
+  #     trco_tree = NA,
+  #     trco_forb = NA,
+  #     sand = 0.65,
+  #     clay = 0.05,
+  #     impermeability = NA,
+  #     soil_temp = NA
+  #   )
+  # set soils from gridded input 
+  # clay_i, sand_i, silt_i, coarse_i, thickness_i, bulkdensity_i
+  
+    soil_gridded <- data.frame(
+      depth =thickness_i, # AES updated so we have a deep layer... 
+      bulkd = bulkdensity_i,
+      gravel = coarse_i, #?? don't have these data? 
       evco = NA,
-      trco_grass = NA,
+      trco_grass = NA, # transpiration coefficients--based on rooting distribution (from a review of rooting distributions) --
       trco_shrub = NA,
       trco_tree = NA,
       trco_forb = NA,
-      sand = 0.65,
-      clay = 0.05,
+      sand = sand_i,
+      clay = clay_i,
       impermeability = NA,
-      soil_temp = NA
+      soil_temp = NA # estimated in later code in this function
     )
-    
+  
     soil_new <- data.frame(rSOILWAT2::swSoils_Layers(sw_in)[0, ])
-    soil_new[seq_len(nrow(soils_fixed)), ] <- soils_fixed
-    soil_new[, "impermeability_frac"] <- 0
+    soil_new[seq_len(nrow(soil_gridded)), ] <- soil_gridded
+    soil_new[, "impermeability_frac"] <- 0 # is ok
     
     ##  Potential bare-soil evaporation rates --------------------------------------
     # not sure what this is for? because we don't actually have the data? 

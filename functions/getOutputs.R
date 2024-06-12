@@ -31,8 +31,8 @@ getOutputs <- function(sw_out, sw_in, SoilsDF, calc_EcoVars = TRUE,
     Shriver2018Vars <- getShriver2018Vars(Data, VWC1)
 
     #OConnor Vars
-    #Oconnor2020Vars <- getOConnor2020Vars(sTemp, VWC1, SoilsDF, TimePeriod,
-    #                                     currYear, currDate)
+    Oconnor2020Vars <- getOConnor2020Vars(sTemp, VWC1, SoilsDF, TimePeriod,
+                                         currYear, currDate)
 
     GISSM_1 <- suppressWarnings(rSW2funs::calc_GISSM(
       x = sw_out,
@@ -77,8 +77,8 @@ getOutputs <- function(sw_out, sw_in, SoilsDF, calc_EcoVars = TRUE,
   if(!calc_EcoVars) return(list(Data))
   if(calc_EcoVars) return(list(Data, 
                                Shriver2018Vars,
-                               data.table(GISSM_1[[1]])))
-                               #Oconnor2020Vars))
+                               data.table(GISSM_1[[1]]),#))
+                               Oconnor2020Vars))
 
 }
 

@@ -40,8 +40,8 @@ getOConnor2020Vars <- function(sTempDF, VWCDF, SoilsDF, TimePeriod,
                                currDate = currDate) {
   
   # Soil texture values
-  sand <- as.numeric(SoilsDF[1, 'sand_frac'])/100
-  clay <- as.numeric(SoilsDF[1, 'clay_frac'])/100
+  sand <- as.numeric(SoilsDF[1, 'sand_frac'])
+  clay <- as.numeric(SoilsDF[1, 'clay_frac'])
   
   if(TimePeriod == 'Future') {
     
@@ -71,7 +71,7 @@ getOConnor2020Vars <- function(sTempDF, VWCDF, SoilsDF, TimePeriod,
   # soil temp: 0 - 5cm, mean and std. error * 1.96
   # SWP: 0 -5cm, mean and SE * 1.96
   # all days
-  sTemp_top <- sTempDF[, c('Year', 'Day', 'Lyr_1', 'TP')]
+  sTemp_top <- sTempDF[, c('Year', 'Day', 'Lyr_1_avg_C', 'TP')] # do we want the average temp? (is basically the same)
   sTemp_top <- makeDateMonthDat(sTemp_top, 'Day')
   sTemp_top <- sTemp_top[sTemp_top$Date %in% c(paste0('03-0',1:9),paste0('03-',10:31)) ,]
   
@@ -81,13 +81,14 @@ getOConnor2020Vars <- function(sTempDF, VWCDF, SoilsDF, TimePeriod,
   VWC_top <- makeDateMonthDat(VWC_top, 'Day')
   VWC_top <- VWC_top[VWC_top$Date %in% c(paste0('03-0',1:9),paste0('03-',10:31)) ,]
   
-  VWC_top$SWP <- rSOILWAT2::VWCtoSWP(VWC_top$value, sand, clay)
+  VWC_top$SWP <- rSOILWAT2::swrc_vwc_to_swp(vwcBulk = VWC_top$value, sand = sand, clay = clay)
   VWC_top$SWP <- ifelse(VWC_top$SWP < -8, -8, VWC_top$SWP)
   
   # statistics taken in format step
-  vars <- merge(sTemp_top[,c('Date', 'Year', 'TP','Lyr_1')],
+  vars <- merge(sTemp_top[,c('Date', 'Year', 'TP','Lyr_1_avg_C')],
                 VWC_top[,c('Date', 'Year', 'TP', 'SWP')],  by = c('Year','Date', 'TP'))
   
   return(vars)
   
 }
+

@@ -3,9 +3,9 @@
 # and that both RNetCDF and pbdMPI are installed in R.
 # If the example code is stored in a file myexample.R,
 # run R under MPI using a command similar to:
-# SHELL> mpiexec -np 2 Rscript --vanilla myexample.R
-library(pbdMPI, quiet = TRUE)
-library(RNetCDF, quiet = TRUE)
+# SHELL> srun -A swbsc --reservation=dev -N2 -n2 -c2 Rscript RNetCDF_test.R
+library(pbdMPI)
+library(RNetCDF)
 # Get MPI parameters
 init()
 rank <- comm.rank()

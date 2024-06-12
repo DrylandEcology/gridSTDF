@@ -4,16 +4,16 @@
 #attributes <- data.table::fread('projects/05-Setup-futureMonthly-netCDFs/nc_atts-all.csv')
 
 # check for different depths and names
-valueName <- c(attributes$dataset_column_name)[1:100]
+valueName <- c(attributes$dataset_column_name)[1:106]
 #index <- valueName %in% names(AllVarData)
 
-netCDFnames <- c(attributes$short_name)[1:100] 
+netCDFnames <- c(attributes$short_name)[1:106] 
 
-varName <- c(attributes$var_name)[1:100]
+varName <- c(attributes$var_name)[1:106]
 
 valueName <- c(attributes$dataset_column_name)
 valueName_short <- c(attributes$short_name)
-tdim <- c(attributes$time_values_max)[1:100]
+tdim <- c(attributes$time_values_max)[1:106]
 
 
 for(n in seq_along(netCDFnames)){
@@ -35,8 +35,26 @@ for(n in seq_along(netCDFnames)){
     vals <- as.vector(AllVarData[ ,valueName[n]]) 
   } else if (tdim[n] == 352) {
     vals <- as.vector(AllVarData[(nrow(AllVarData)-351):nrow(AllVarData),valueName[n]])
-  } 
-  
+  } else if (tdim[n] == 31) { # for Oconnor variables
+    if (valueName_short[n] == "oconnor-swp_mean") {
+      vals <- c(Oconnor_Stats[TP == "Forecast",]$SWP_mean)
+    }
+    if (valueName_short[n] == "oconnor-swp_95CI_lower") {
+      vals <- c(Oconnor_Stats[TP == "Forecast",]$SWP_mean) - c(Oconnor_Stats[TP == "Forecast",]$SWP_CI95)
+    }
+     if (valueName_short[n] == "oconnor-swp_95CI_upper") {
+      vals <- c(Oconnor_Stats[TP == "Forecast",]$SWP_mean) + c(Oconnor_Stats[TP == "Forecast",]$SWP_CI95)
+     }
+    if (valueName_short[n] == "oconnor-stemp_mean") {
+      vals <- c(Oconnor_Stats[TP == "Forecast",]$sTemp_mean)
+    }
+    if (valueName_short[n] == "oconnor-stemp_95CI_lower") {
+      vals <- c(Oconnor_Stats[TP == "Forecast",]$sTemp_mean) - c(Oconnor_Stats[TP == "Forecast",]$sTemp_CI95)
+    }
+    if (valueName_short[n] == "oconnor-stemp_95CI_upper") {
+      vals <- c(Oconnor_Stats[TP == "Forecast",]$sTemp_mean) + c(Oconnor_Stats[TP == "Forecast",]$sTemp_CI95)
+    }
+  }
   if (valueName_short[n] == "shriver_historical") vals <- c(Shriver_Stats[TP == 'Historical', 'Prob'])[["Prob"]]
   if (valueName_short[n] == "shriver_prediction") {
     vals <- c(Shriver_Stats[TP != 'Historical', 'Prob'])$Prob

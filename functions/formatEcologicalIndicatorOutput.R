@@ -75,8 +75,8 @@ formatOConnor2020 <- function(Hist_OConnor2020, Future_OConnor2020) {
   All <- rbind(Hist_OConnor2020, Future_OConnor2020)
   
   # get stats
-  Outs <- setDT(All)[, .(sTemp_mean = mean(Lyr_1),
-                         sTemp_CI95 = std(Lyr_1 * 1.96),
+  Outs <- setDT(All)[, .(sTemp_mean = mean(Lyr_1_avg_C),
+                         sTemp_CI95 = std(Lyr_1_avg_C * 1.96),
                          SWP_mean = mean(SWP),
                          SWP_CI95 = std(SWP) * 1.96),
                      .(Date, TP)]
