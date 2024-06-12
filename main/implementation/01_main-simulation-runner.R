@@ -7,12 +7,14 @@ rm(list=ls(all=TRUE))
 
 remotes::install_github("DrylandEcology/rSW2st")
 remotes::install_github("DrylandEcology/rSOILWAT2", build_vignettes = FALSE)
+remotes::install_github("DrylandEcology/rSW2funs")
 suppressMessages(library(rSOILWAT2, quiet = TRUE))
 
 suppressMessages(library(rSW2data, quiet = TRUE))
 suppressMessages(library(RSQLite, quietly = TRUE))
 suppressMessages(library(DBI, quietly = TRUE))
 suppressMessages(library(rSW2st, quietly = TRUE))
+suppressMessages(library(rSW2funs, quietly = TRUE))
 suppressMessages(library(raster, quietly = TRUE))
 suppressMessages(library(data.table, quietly = TRUE))
 suppressMessages(library(lubridate, quietly = TRUE))
@@ -149,7 +151,7 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   wdata <- c(wdata, wdata_plus)
   
   ### get soils data for this gridcell
-  # git indices for soil grid Lat and Lon
+  # get indices for soil grid Lat and Lon
   soilLat_i <- which(round(soilGridLats,5)==round(Lat,5))
   soilLon_i <- which(round(soilGridLons,5)==round(Long,5))
   #clay
@@ -167,7 +169,6 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   #thickness
   thickness_i <- 100*var.get.nc(soils_gridThickness, "slthick", start = c(soilLon_i, soilLat_i,1), 
                        count = c(1,1,12))   # also convert thickness to centimeters from meters
-  #density
   bulkdensity_i <- var.get.nc(soils_gridDensity, "slbdensity", start = c(soilLon_i, soilLat_i,1), 
                        count = c(1,1,12))
   
