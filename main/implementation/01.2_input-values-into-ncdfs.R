@@ -18,8 +18,8 @@ tdim <- c(attributes$time_values_max)[1:106]
 
 for(n in seq_along(netCDFnames)){
   
-  #print(netCDFnames[n])
-  #print(valueName[n])
+  print(netCDFnames[n])
+  print(valueName[n])
 
   # where to start 
   # set count based on length of values data_dims_nc <- c(0, 739, 585, 0, nrow(time_bounds), 0)
@@ -66,7 +66,7 @@ for(n in seq_along(netCDFnames)){
     st_n <- c(st, 1)
     }
   
-  if (valueName_short[n] == "GISSM_historical") vals <- c(NA, Hist_GISSM$SeedlingSurvival_1stSeason)
+  if (valueName_short[n] == "GISSM_historical") vals <- as.numeric(c(NA, Hist_GISSM$SeedlingSurvival_1stSeason))
   if (valueName_short[n] == "GISSM_prediction") {
     vals <-  Future_GISSM$Prob
     # redefine tdim to have the number of time steps for this run 
@@ -77,15 +77,24 @@ for(n in seq_along(netCDFnames)){
     st_n <- c(st, 1)
 }
   #write!
-  if (isParallel) {
-    pbdNCDF4::ncvar_put(get(netCDFnames[n]), varName[n], vals, 
-                        start = st_n, count = co)
-    pbdNCDF4::nc_sync(get(netCDFnames[n])) 
-  } else {
-    ncdf4::ncvar_put(get(netCDFnames[n]), varName[n], vals, 
-                        start = st_n, count = co)
-    ncdf4::nc_sync(get(netCDFnames[n])) 
-  }
+  RNetCDF::var.put.nc(ncfile = get(netCDFnames[n]),
+                      variable = varName[n], 
+                      data = vals,
+                      start = st_n, 
+                      count = co)
+  RNetCDF::sync.nc(get(netCDFnames[n]))
+  # if (isParallel) {
+  #   RNetCDF::var.put.nc(ncfile = get(netCDFnames[n]),
+  #                       variable = varName[n], 
+  #                       data = vals,
+  #                       start = st_n, 
+  #                       count = co)
+  #   RNetCDF::sync.nc(get(netCDFnames[n]))
+  # } else {
+  #   ncdf4::ncvar_put(get(netCDFnames[n]), varName[n], vals, 
+  #                       start = st_n, count = co)
+  #   ncdf4::nc_sync(get(netCDFnames[n])) 
+  # }
 
 }
 
