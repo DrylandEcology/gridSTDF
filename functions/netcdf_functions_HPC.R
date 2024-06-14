@@ -323,7 +323,7 @@ NULL
 #' unlink(unlist(tmp_nc))
 #'
 #' @export
-create_netCDF <- function(
+create_netCDF_use <- function(
     filename,
     xyspace,
     data = NULL,
@@ -1145,7 +1145,7 @@ var_defs <- var_names
       )
       
       
-      nc_dimvars <- c(nc_dimvars, "vertical_bnds")
+      #nc_dimvars <- c(nc_dimvars, "vertical_bnds")
     }
     
     if (has_T_timeAxis != "none") {
@@ -1160,7 +1160,7 @@ var_defs <- var_names
       )
       
       
-      nc_dimvars <- c(nc_dimvars, varid_timebnds)
+     # nc_dimvars <- c(nc_dimvars, varid_timebnds)
     }
   }
   
@@ -1208,10 +1208,10 @@ var_defs <- var_names
         shuffle = nc_shuffle,
         chunksizes = c(2L, n_yvals)
       )
-    nc_dimvars <- c(bnds_name)
+    #nc_dimvars <- c(bnds_name)
 
   } else {
-    nc_dimvars <- c()
+    #nc_dimvars <- c()
   }
 
   if (has_Z_verticalAxis != "none") {
@@ -1227,7 +1227,7 @@ var_defs <- var_names
       )
 
 
-    nc_dimvars <- c(nc_dimvars, "vertical_bnds")
+    #nc_dimvars <- c(nc_dimvars, "vertical_bnds")
    }
 
   if (has_T_timeAxis != "none") {
@@ -1242,7 +1242,7 @@ var_defs <- var_names
     )
  
 
-    nc_dimvars <- c(nc_dimvars, varid_timebnds)
+    #nc_dimvars <- c(nc_dimvars, varid_timebnds)
   }
   
   #------ Write dimensional variable values ------
@@ -1287,7 +1287,8 @@ var_defs <- var_names
     RNetCDF::var.put.nc(
       nc, 
       variable =  "vertical_bnds",
-      data = t(vertical_bounds), 
+      data = #t(vertical_bounds), 
+        matrix(data = 1, nrow = nrow(t(vertical_bounds)), ncol = ncol(t(vertical_bounds))),
       start = c(1,1), 
       count = c(2L, n_vertical)
     )
@@ -1369,7 +1370,7 @@ var_defs <- var_names
     for (natt in ns_att_vert) {
       RNetCDF::att.put.nc(
         nc, 
-        variable = "variable",
+        variable = "vertical",
         name = natt,
         value = vertical_attributes[[natt]], 
         type = "NC_CHAR"
