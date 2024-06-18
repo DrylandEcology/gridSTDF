@@ -4,7 +4,7 @@
 
 
 # rm(list = ls(all = TRUE))
- #library(RNetCDF) # this package has parallel capabilities now, so replace pdbNCDF4??
+ library(RNetCDF) # this package has parallel capabilities now, so replace pdbNCDF4??
  library(ncdf4)
  #library(pbdNCDF4)
  #source('functions/netcdf_functions2.R')
@@ -12,13 +12,13 @@
 # source functions
  # Begin ------------------------------------------------------------------------
  #file_list <- list.files(path = "./functions/", full.names = TRUE)
- 
-  # Iterate over the file list and source each file. TO DO: package all these functions
- # for (file in file_list) {
- #   print(file)
- #   source(file)
- # }
- 
+
+ #Iterate over the file list and source each file. TO DO: package all these functions
+ for (file in file_list) {
+   print(file)
+   source(file)
+ }
+
 #devtools::install_github("r4ecology/rcdo", dependencies = TRUE, force = TRUE)
 #library(rcdo)
 # source('projects/03-Make-Climatologies-netCDF/nc_clip_edit.R')
@@ -296,7 +296,7 @@ for(nc in 1:106){
     names(data_dims_nc) <- c("ns", "nx", "ny", "nz", "nt", "nv")
     # create netCDF 
     # create netCDF 
-    assign(names[nc], create_netCDF(
+    assign(names[nc], create_netCDF_use(
       filename = file.path(Output_folder,
                            paste0(attributes$Name[nc], '_', format(currDate, "%m%Y"), '.nc')),
       overwrite = TRUE,
@@ -318,14 +318,15 @@ for(nc in 1:106){
       nc_shuffle = FALSE,
       nc_deflate = 5,
       global_attributes = nc_att_global, 
-      isParallel = isParallel # set in main runner file
+      isParallel = isParallel, # set in main runner file
+      data_type = "float"
     ))
   } else {
     ## data_dims ---------------------------------
     data_dims_nc <- c(0, 739, 585, 0, nrow(time_bounds), 0)
     names(data_dims_nc) <- c("ns", "nx", "ny", "nz", "nt", "nv")
     # create netCDF 
-    assign(names[nc], create_netCDF(
+    assign(names[nc], create_netCDF_use(
       filename = file.path(Output_folder,
                            paste0(attributes$Name[nc], '_', format(currDate, "%m%Y"), '.nc')),
       overwrite = TRUE,

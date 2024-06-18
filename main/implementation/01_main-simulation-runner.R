@@ -371,7 +371,7 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
 
 # Shut down MPI ---------------------------------------------------------------
 
-if(!interactive() & isParallel) {
+if (!interactive() & isParallel) {
   
   #   #info.free()
   comm.print('done')
@@ -387,7 +387,7 @@ if(!interactive() & isParallel) {
   
   apply(matrix(netCDFnames), MARGIN = 1, 
         FUN = function(x) {
-         ncdf4::nc_close(get(x))
+        RNetCDF::close.nc(get(x))
         })
 }
 
