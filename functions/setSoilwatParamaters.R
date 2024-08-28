@@ -104,9 +104,9 @@ setSW <- function(sw_in, Lat, Long, calc_SiteClimate,
   # clay_i, sand_i, silt_i, coarse_i, thickness_i, bulkdensity_i
   
     soil_gridded <- data.frame(
-      depth =thickness_i, # AES updated so we have a deep layer... 
+      depth = depths_i, # AES updated so we have a deep layer... 
       bulkd = bulkdensity_i,
-      gravel = coarse_i, #?? don't have these data? 
+      gravel = coarse_i, 
       evco = NA,
       trco_grass = NA, # transpiration coefficients--based on rooting distribution (from a review of rooting distributions) --
       trco_shrub = NA,
