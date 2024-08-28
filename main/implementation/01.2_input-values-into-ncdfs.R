@@ -54,7 +54,7 @@ for(n in seq_along(netCDFnames)){
     if (valueName_short[n] == "oconnor-stemp_95CI_upper") {
       vals <- c(Oconnor_Stats[TP == "Forecast",]$sTemp_mean) + c(Oconnor_Stats[TP == "Forecast",]$sTemp_CI95)
     }
-  }
+  } 
   if (valueName_short[n] == "shriver_historical") vals <- c(Shriver_Stats[TP == 'Historical', 'Prob'])[["Prob"]]
   if (valueName_short[n] == "shriver_prediction") {
     vals <- c(Shriver_Stats[TP != 'Historical', 'Prob'])$Prob

@@ -5,9 +5,9 @@ rm(list=ls(all=TRUE))
 #     LDFLAGS=-L/sw/lib LIBS=-lhdf5 --with-mpicc=mpicc --with-mpiexec=mpiexec" \
 # RNetCDF_2.9-1.tar.gz
 
-remotes::install_github("DrylandEcology/rSW2st")
-remotes::install_github("DrylandEcology/rSOILWAT2", build_vignettes = FALSE)
-remotes::install_github("DrylandEcology/rSW2funs")
+#remotes::install_github("DrylandEcology/rSW2st")
+#remotes::install_github("DrylandEcology/rSOILWAT2", build_vignettes = FALSE)
+#remotes::install_github("DrylandEcology/rSW2funs")
 suppressMessages(library(rSOILWAT2, quiet = TRUE))
 
 suppressMessages(library(rSW2data, quiet = TRUE))
@@ -26,7 +26,7 @@ suppressMessages(library(RNetCDF, quiet = TRUE))
 suppressMessages(library(ncdf4, quiet = TRUE))
 
 # variables --------------------------------------------------------------------
-isParallel <- TRUE # set to FALSE if you dont want to use pbdMPI to execute runs in parallel 
+isParallel <- FALSE # set to FALSE if you dont want to use pbdMPI to execute runs in parallel 
 nRuns = 30 #is 30 for point based netCDF, but changed to 5 here for testing purposes (this is the number of simulations for each grid?? I think? )
 
 # Begin ------------------------------------------------------------------------
@@ -65,14 +65,14 @@ Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestInde
 sites <- dim(Sites)[1]
 
 # load gridded soils data from Daniel (currently an old version, will be updated w/ SOLUS100 data)
-soils_gridClay <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slclay_fx_SOILWAT2_wUS-gm_gn.nc") 
-soils_gridSand <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slsand_fx_SOILWAT2_wUS-gm_gn.nc") 
-soils_gridSilt <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slsilt_fx_SOILWAT2_wUS-gm_gn.nc") 
-soils_gridDensity <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slbdensity_fx_SOILWAT2_wUS-gm_gn.nc") 
-soils_gridThickness <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slthick_fx_SOILWAT2_wUS-gm_gn.nc") 
-soils_gridCoarse <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slcoarse_fx_SOILWAT2_wUS-gm_gn.nc")
-soilGridLats <- var.get.nc(soils_gridClay, "lat")
-soilGridLons <- var.get.nc(soils_gridClay, "lon")
+soils_gridClay <- RNetCDF::open.nc(con = "./main/Data/soilsDB_new/claytotal_PED-CONUS4km_SOLUS100.nc") 
+soils_gridSand <- RNetCDF::open.nc(con = "./main/Data/soilsDB_new/sandtotal_PED-CONUS4km_SOLUS100.nc") 
+soils_gridSilt <- RNetCDF::open.nc(con = "./main/Data/soilsDB_new/silttotal_PED-CONUS4km_SOLUS100.nc") 
+soils_gridDensity <- RNetCDF::open.nc(con = "./main/Data/soilsDB_new/dbovendry_PED-CONUS4km_SOLUS100.nc") 
+soils_gridThickness <- RNetCDF::open.nc(con = "./main/Data/soilsDB_new/hzthk_PED-CONUS4km_SOLUS100.nc") 
+soils_gridCoarse <- RNetCDF::open.nc(con = "./main/Data/soilsDB_new/fragvol_PED-CONUS4km_SOLUS100.nc")
+soilGridLats <- var.get.nc(soils_gridClay, "latitude")
+soilGridLons <- var.get.nc(soils_gridClay, "longitude")
 
 if(isParallel) {
   alljid <- get.jid(n = sites, method = "block", all = FALSE) 
@@ -152,23 +152,28 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   
   ### get soils data for this gridcell
   # get indices for soil grid Lat and Lon
-  soilLat_i <- which(round(soilGridLats,5)==round(Lat,5))
-  soilLon_i <- which(round(soilGridLons,5)==round(Long,5))
+  # the closest latitude
+  soilLat_i <- which((soilGridLats-Lat) == min(abs(soilGridLats - Lat)))
+    
+  # the closest longitude 
+  soilLon_i <- which((soilGridLons-Long) == min(abs(soilGridLons-Long)))
+    #round(soilGridLons,2)==round(Long,2))
   #clay
-  clay_i <- var.get.nc(soils_gridClay, "slclay", start = c(soilLon_i, soilLat_i,1), 
-             count = c(1,1,12))
+  clay_i <- var.get.nc(soils_gridClay, "claytotal", start = c(soilLon_i, soilLat_i,1), 
+             count = c(1,1,dim.inq.nc(soils_gridClay, "vertical")$length))
   #sand
-  sand_i <- var.get.nc(soils_gridSand, "slsand", start = c(soilLon_i, soilLat_i,1), 
-                       count = c(1,1,12))
+  sand_i <- var.get.nc(soils_gridSand, "sandtotal", start = c(soilLon_i, soilLat_i,1), 
+                       count = c(1,1,dim.inq.nc(soils_gridSand, "vertical")$length))
   #silt
-  silt_i <- var.get.nc(soils_gridSilt, "slsilt", start = c(soilLon_i, soilLat_i,1), 
-                       count = c(1,1,12))
-  #silt
-  coarse_i <- var.get.nc(soils_gridCoarse, "slcoarse", start = c(soilLon_i, soilLat_i,1), 
-                       count = c(1,1,12))
+  silt_i <- var.get.nc(soils_gridSilt, "silttotal", start = c(soilLon_i, soilLat_i,1), 
+                       count = c(1,1,dim.inq.nc(soils_gridSilt, "vertical")$length))
+  #coarse material
+  coarse_i <- var.get.nc(soils_gridCoarse, "fragvol", start = c(soilLon_i, soilLat_i,1), 
+                       count = c(1,1,dim.inq.nc(soils_gridCoarse, "vertical")$length))
   #thickness
   thickness_i <- 100*var.get.nc(soils_gridThickness, "slthick", start = c(soilLon_i, soilLat_i,1), 
                        count = c(1,1,12))   # also convert thickness to centimeters from meters
+  # bulk density 
   bulkdensity_i <- var.get.nc(soils_gridDensity, "slbdensity", start = c(soilLon_i, soilLat_i,1), 
                        count = c(1,1,12))
   
@@ -363,7 +368,7 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   if(!interactive() & isParallel) comm.print('Inserting into netCDFs.', Sys.time())
   
   
-  #TO DO: Make this into a function not a script #AES not working as of 3/4/24
+  #TO DO: Make this into a function not a script 
   source('./main/implementation/01.2_input-values-into-ncdfs.R') 
   
 }
