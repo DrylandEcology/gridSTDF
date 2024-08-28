@@ -1133,6 +1133,22 @@ var_defs <- var_names
       shuffle = nc_shuffle,
       chunksizes = c(n_yvals)
     )
+    
+    
+    ## actually put data in the dimensions 
+    RNetCDF::var.put.nc(
+      nc, 
+      variable = "lon",
+      data = xvals
+    )
+    
+    RNetCDF::var.put.nc(
+      nc, 
+      variable = "lat",
+      data = yvals
+    )
+    
+    
     if (has_Z_simAxis != "none") {
       
       RNetCDF::var.def.nc(
@@ -1145,6 +1161,11 @@ var_defs <- var_names
         chunksizes = c(n_simAxis)
       )
       
+      RNetCDF::var.put.nc(
+        nc, 
+        variable = "simulation", 
+        data = 1:30
+      )
       
       #nc_dimvars <- c(nc_dimvars, "simAxis_bnds")
     }
@@ -1160,11 +1181,18 @@ var_defs <- var_names
         chunksizes = if (time_unlim) c(1L) else c( n_time)
       )
       
+      RNetCDF::var.put.nc(
+        nc, 
+        variable = "time", 
+        data = time_values
+      )
       
      # nc_dimvars <- c(nc_dimvars, varid_timebnds)
     }
   }
   
+## actually put data into dimension variables?? AES I think this is correct?? 
+
   
   #------ Define CRS ------ ###AES not too sure how this will work, may have to change
   RNetCDF::var.def.nc(
@@ -1210,7 +1238,7 @@ var_defs <- var_names
         chunksizes = c(2L, n_yvals)
       )
     #nc_dimvars <- c(bnds_name)
-
+     
   } else {
     #nc_dimvars <- c()
   }
