@@ -19,4 +19,7 @@ gissm_pred_nc <- open.nc("./outputs/20240827/GISSM_yr_gridSTDF_prediction_082024
 # get the data in the netcdf
 test <- var.get.nc(gissm_pred_nc, variable = "probability")#, start = c(194, 435, 1, 1), count = c(10, 1, 30, 2))
 
+LonDat<- RNetCDF::var.get.nc(gissm_pred_nc, variable = "simulation")
+
 RNetCDF::print.nc(gissm_pred_nc)
+
