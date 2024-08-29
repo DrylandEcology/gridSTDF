@@ -77,14 +77,15 @@ Sites <- whichSites
 sites <- dim(Sites)[1]
 
 # load gridded soils data from Daniel (currently an old version, will be updated w/ SOLUS100 data)
-soils_gridClay <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slclay_fx_SOILWAT2_wUS-gm_gn.nc") 
-soils_gridSand <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slsand_fx_SOILWAT2_wUS-gm_gn.nc") 
-soils_gridSilt <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slsilt_fx_SOILWAT2_wUS-gm_gn.nc") 
-soils_gridDensity <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slbdensity_fx_SOILWAT2_wUS-gm_gn.nc") 
-soils_gridThickness <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slthick_fx_SOILWAT2_wUS-gm_gn.nc") 
-soils_gridCoarse <- RNetCDF::open.nc(con = "./main/Data/soilsDB/slcoarse_fx_SOILWAT2_wUS-gm_gn.nc")
-soilGridLats <- var.get.nc(soils_gridClay, "lat")
-soilGridLons <- var.get.nc(soils_gridClay, "lon")
+soils_gridClay <- RNetCDF::open.nc(con = "./main/Data/soilsDB_new/claytotal_PED-CONUS4km_SOLUS100.nc") 
+soils_gridSand <- RNetCDF::open.nc(con = "./main/Data/soilsDB_new/sandtotal_PED-CONUS4km_SOLUS100.nc") 
+soils_gridSilt <- RNetCDF::open.nc(con = "./main/Data/soilsDB_new/silttotal_PED-CONUS4km_SOLUS100.nc") 
+soils_gridDensity <- RNetCDF::open.nc(con = "./main/Data/soilsDB_new/dbovendry_PED-CONUS4km_SOLUS100.nc") 
+soils_gridThickness <- RNetCDF::open.nc(con = "./main/Data/soilsDB_new/hzthk_PED-CONUS4km_SOLUS100.nc") 
+soils_gridCoarse <- RNetCDF::open.nc(con = "./main/Data/soilsDB_new/fragvol_PED-CONUS4km_SOLUS100.nc")
+soilGridLats <- var.get.nc(soils_gridClay, "latitude")
+soilGridLons <- var.get.nc(soils_gridClay, "longitude")
+
 
   alljid <- sites
 
@@ -121,7 +122,7 @@ suppressWarnings(source('./main/implementation/01.1_create-netcdfs.R')) # TO DO:
 ################### ------------------------------------------------------------
 # Run simulation --------------------------------------------------------------
 
-for (j in 1:10){#alljid){#1:alljid) { # TO DO: use "while" not "for"
+for (j in 1:alljid){#1:alljid) { # TO DO: use "while" not "for"
   i <- j
   
   ################### ------------------------------------------------------------
@@ -164,27 +165,50 @@ for (j in 1:10){#alljid){#1:alljid) { # TO DO: use "while" not "for"
   }
   
   ### get soils data for this gridcell
+  ### get soils data for this gridcell
   # get indices for soil grid Lat and Lon
-  soilLat_i <- which(round(soilGridLats,5)==round(Lat,5))
-  soilLon_i <- which(round(soilGridLons,5)==round(Long,5))
-  #clay
-  clay_i <- var.get.nc(soils_gridClay, "slclay", start = c(soilLon_i, soilLat_i,1), 
-                       count = c(1,1,12))
-  #sand
-  sand_i <- var.get.nc(soils_gridSand, "slsand", start = c(soilLon_i, soilLat_i,1), 
-                       count = c(1,1,12))
-  #silt
-  silt_i <- var.get.nc(soils_gridSilt, "slsilt", start = c(soilLon_i, soilLat_i,1), 
-                       count = c(1,1,12))
-  #silt
-  coarse_i <- var.get.nc(soils_gridCoarse, "slcoarse", start = c(soilLon_i, soilLat_i,1), 
-                         count = c(1,1,12))
-  #thickness
-  thickness_i <- 100*var.get.nc(soils_gridThickness, "slthick", start = c(soilLon_i, soilLat_i,1), 
-                                count = c(1,1,12))   # also convert thickness to centimeters from meters
-  bulkdensity_i <- var.get.nc(soils_gridDensity, "slbdensity", start = c(soilLon_i, soilLat_i,1), 
-                              count = c(1,1,12))
+  # the closest latitude
+  soilLat_i <- which((soilGridLats-Lat) == min(abs(soilGridLats - Lat)))
   
+  # the closest longitude 
+  soilLon_i <- which((soilGridLons-Long) == min(abs(soilGridLons-Long)))
+  #round(soilGridLons,2)==round(Long,2))
+  #clay (as a percentage...convert to a fraction by dividing by 100)
+  clay_i <- var.get.nc(soils_gridClay, "claytotal", start = c(soilLon_i, soilLat_i,1), 
+                       count = c(1,1,dim.inq.nc(soils_gridClay, "vertical")$length))/100
+  #sand (as a percentage...convert to a fraction by dividing by 100)
+  sand_i <- var.get.nc(soils_gridSand, "sandtotal", start = c(soilLon_i, soilLat_i,1), 
+                       count = c(1,1,dim.inq.nc(soils_gridSand, "vertical")$length))/100
+  #silt (as a percentage...convert to a fraction by dividing by 100)
+  silt_i <- var.get.nc(soils_gridSilt, "silttotal", start = c(soilLon_i, soilLat_i,1), 
+                       count = c(1,1,dim.inq.nc(soils_gridSilt, "vertical")$length))/100
+  #coarse material (as a percentage...convert to a fraction by dividing by 100)
+  coarse_i <- var.get.nc(soils_gridCoarse, "fragvol", start = c(soilLon_i, soilLat_i,1), 
+                         count = c(1,1,dim.inq.nc(soils_gridCoarse, "vertical")$length))/100
+  #thickness
+  thickness_i <- var.get.nc(soils_gridThickness, "hzthk", start = c(soilLon_i, soilLat_i,1), 
+                            count = c(1,1,dim.inq.nc(soils_gridThickness, "vertical")$length))   
+  # units are in cm
+  
+  bulkdensity_i <- var.get.nc(soils_gridDensity, "dbovendry", start = c(soilLon_i, soilLat_i,1), 
+                              count = c(1,1,dim.inq.nc(soils_gridDensity, "vertical")$length)) # units = g/cm3
+  
+  ## get the depths also (the "vertical_bnds" dimension contains a matrix with 
+  # the upper and lower bounds of each depth band--we want the lower bounds)
+  
+  depths_i <- var.get.nc(soils_gridThickness, "vertical_bnds")[2,]
+  ##AES this part below is a test... see what other folks think about this...
+  # trim soils data so that there are not NAs (the data stops at the depth for which we have data)
+  # also get the depths for the layers included
+  depths_i <- depths_i[!is.na(clay_i)]
+  clay_i <- clay_i[!is.na(clay_i)] 
+  sand_i <- sand_i[!is.na(sand_i)]
+  silt_i <- silt_i[!is.na(silt_i)]
+  coarse_i <- coarse_i[!is.na(coarse_i)]
+  thickness_i <- thickness_i[!is.na(thickness_i)]
+  bulkdensity_i <- bulkdensity_i[!is.na(bulkdensity_i)]
+  
+  # depths 
   ################### ----------------------------------------------------------
   # Part 2 - Sets SW parameters besides weather
   ################### ----------------------------------------------------------
@@ -202,14 +226,15 @@ for (j in 1:10){#alljid){#1:alljid) { # TO DO: use "while" not "for"
   
   # Soils info formatting ----------------------------------------------------
   # waiting on the proper soils data, this is sort of a placeholder
-  
+  #AES how do we define what the depths are?? -- double check 
   SoilsDF <- data.frame(depth_cm = c(1:250),
                         Depth = c(rep('Shallow', 15),
                                   rep('Intermediate', 50), #16 - 65
                                   rep('Deep',185))) # 66 - 250
+  # could be problematic if some soils are shallow--maybe should indicate how much depth is represented in each 
   
   Soils <- data.frame(sw_in@soils@Layers)[,c('depth_cm', 'sand_frac', 'clay_frac')]
-  Soils$width <- diff(c(0, Soils$depth_cm))
+  Soils$width <- thickness_i#diff(c(0, Soils$depth_cm))
   SoilsDF <- merge(Soils, SoilsDF, by = 'depth_cm')
   SoilsDF$variable <- paste0('Lyr_',1:dim(SoilsDF)[1])
   
