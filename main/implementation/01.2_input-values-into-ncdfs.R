@@ -75,8 +75,12 @@ for(n in seq_along(netCDFnames)){
     co <- c(1, 1, 30, tdim[n]) 
     # ammend the 'st' vecotr, which tells the ncvar_put function where to start writing the data 
     st_n <- c(st, 1)
-}
-  #write!
+  }
+  ## add something to deal w/ the fact that there may not be a "deep" soil layer
+  #value if the soil isn't deep enough in a given location write!
+  if (n %in% grep("Deep", valueName)) {
+    vals <- rep_len(-9999, length.out = co[3])
+  }
   RNetCDF::var.put.nc(ncfile = get(netCDFnames[n]),
                       variable = varName[n], 
                       data = vals,
