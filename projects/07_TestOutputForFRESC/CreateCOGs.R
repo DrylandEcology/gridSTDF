@@ -62,13 +62,60 @@ terra::writeRaster(shriver_predAnom_currentYear,
 terra::writeRaster(shriver_predAnom_nextYear, 
                    filename = paste0(outLoc,"ShriverPredictedMedianRelativeToHistoricalData_for_",shriver_hist_time[2],".tif"), gdal = "COG")
 
-# OConnor: Predicted of days in March w/ SWP > 2.5MPa & soil temp > 0 C  -----------------------------------------------------------------
+# OConnor: Predicted # of days in March w/ SWP > -2.5MPa & soil temp > 0 C  -----------------------------------------------------------------
 # (get from oconnor-swp_dy_gridSTDF_mean-prediction.nc and oconnor-soiltemp_dy_gridSTDF_mean-prediction.nc files) 
+# get SWP data
+OConnor_swp <- rast(paste0(fileLoc, "oconnor-swp_dy_gridSTDF_mean-prediction_", format(currDate, "%m%Y"), ".nc"))
+# each layer is a day in March 
+# find the IDs of days in a cell where SWP is < -2.5MPa 
+OConnor_swp_goodIDs <- terra::app(OConnor_swp, 
+                              function(x) x>-2.5)
+
+# get temp data
+OConnor_temp <- rast(paste0(fileLoc, "oconnor-soiltemp_dy_gridSTDF_mean-prediction_", format(currDate, "%m%Y"), ".nc"))
+# each layer is a day in March
+# find the IDs of days in a cell where temp > 0 C
+OConnor_temp_goodIDs <- terra::app(OConnor_temp, 
+                                  function(x) x>0)
+
+# find days where soil is moist enough and temp is high enough 
+goodDays <- OConnor_swp_goodIDs * OConnor_temp_goodIDs
+#plot(OConnor_swp_goodIDs)
+#plot(OConnor_temp_goodIDs) 
+#plot(goodDays)
+# find the total number of days w/in each cell 
+goodDaysPerCell <- sum(goodDays)
+#plot(goodDaysPerCell)
+# get the year that the "march" values correspond to 
+OConnor_year <- min(1970 + round(var.get.nc(ncfile = open.nc(paste0(fileLoc, "oconnor-soiltemp_dy_gridSTDF_mean-prediction_",  format(currDate, "%m%Y"), ".nc")), variable = "time")/365))
+
+# save the prediction data as a COG
+terra::writeRaster(goodDaysPerCell, 
+                   filename = paste0(outLoc,"OConnorPredicted_NumberOfMoistAndWarmDays_March_",OConnor_year,".tif"), gdal = "COG")
 
 
 #OConnor: Predicted of days soil MPa was between 0.5 and 0 in March --------------------------------------------------------------- 
 #(get from oconnor-swp_dy_gridSTDF_mean-prediction.nc file) # both for for
 #current year prior to cutoff month; for next year after cutoff month (?) #
+## the year for data shown is indicated in the file name 
+# get SWP data (from above)
+# each layer is a day in March 
+# find the IDs of days in a cell where SWP is between -.5 and 0
+OConnor_swp_goodIDs_2 <- terra::app(OConnor_swp, 
+                                  function(x) x>-.5 & x<0)
+
+# get the total number of days with the conditions we want 
+goodDaysPerCell_2 <- sum(OConnor_swp_goodIDs_2)
+#plot(goodDaysPerCell)
+# get the year that the "march" values correspond to 
+OConnor_year <- min(1970 + round(var.get.nc(ncfile = open.nc(paste0(fileLoc, "oconnor-soiltemp_dy_gridSTDF_mean-prediction_",  format(currDate, "%m%Y"), ".nc")), variable = "time")/365))
+
+# save the prediction data as a COG
+terra::writeRaster(goodDaysPerCell, 
+                   filename = paste0(outLoc,"OConnorPredicted_NumberOfVeryMoistDays_March_",OConnor_year,".tif"), gdal = "COG")
+
+
+
 #Idea: could we somehow indicate which cells have values for these variables
 #whose CIs don’t overlap with the threshold values? (i.e. when the predicted
 #values overlap with the blue line from the figure, are substantially above it,
