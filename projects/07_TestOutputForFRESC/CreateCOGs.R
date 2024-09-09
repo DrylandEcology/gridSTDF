@@ -1,0 +1,127 @@
+rm(list=ls(all = TRUE))
+#library(rgdal)
+library(terra)
+library(lubridate)
+#  -of COG -co BLOCKSIZE=512 -co RESAMPLING=BILINEAR -co COMPRESS=DEFLATE -co NUM-THREADS=25 -co BIGTIFF=YES
+
+# need to decide which year of ecological variable are being shown (show 
+# current year until a certain point, then switch to the next year)--just need to 
+# document clearly which data is being used Blue text is actual list of COGs 
+# (rather than text that describes what we want) (green text indicates names of 
+# netCDFs to calculate variables required) 
+
+
+# Get date information and prep for loading files ----------------------------------------------------
+currDOY <- lubridate::yday(Sys.Date())
+currMonth <- lubridate::month(Sys.Date())
+currYear <- lubridate::year(Sys.Date())
+currDate <- Sys.Date()
+todayMonthDay <- format(Sys.Date() , format="%m-%d")
+
+## get the location of netCDFs output from this model run
+fileLoc <-  paste0('./outputs/', format(currDate, "%Y%m%d"))
+## get the location for saving the COGs output from this model run
+outLoc <- paste0("./outputs/", format(currDate,  "%Y%m%d"),"/COGs/")
+if(!dir.exists(outLoc)) {
+  dir.create(paste0("./outputs/", format(currDate,  "%Y%m%d"),"/COGs/"))
+}
+
+# Shriver model: Median of values across the historical period -------------------------------------------------------
+# (average of values in each cell of shriver_yr_gridSTDF_historical.nc)
+# load data
+shriver_hist_probs <- rast(paste0(fileLoc, "shriver_yr_gridSTDF_historical_",  format(currDate, "%m%Y"), ".nc"))
+# calculate medians
+shriver_hist_meds <- median(shriver_hist_probs, na.rm = TRUE)
+# get the information from the time axis 
+shriver_hist_time <- 1970 + round(var.get.nc(ncfile = open.nc(paste0(fileLoc, "shriver_yr_gridSTDF_historical_",  format(currDate, "%m%Y"), ".nc")), variable = "time")/365)
+# save the median data as a COG
+terra::writeRaster(shriver_hist_meds, filename = paste0(outLoc,"ShriverHistoricalPreds_medians_from_", shriver_hist_time[1],"_to_",shriver_hist_time[length(shriver_hist_time)],".tif"), gdal = "COG")
+
+# Shriver model: Probability of establishment for the next year relative to median values ---------------------------------------------------------
+# (median calculated from shriver_yr_gridSTDF_historical.nc;
+# probability for this year calculated from shriver_yr_gridSTDF_prediction.nc
+# (average of all 30 values for a year)) (need to have a cutoff month prior to
+# which we calculate the average probability for the current year, and after
+# which we calculate the average probability for the next year)
+
+shriver_pred_probs <- rast(paste0(fileLoc, "shriver_yr_gridSTDF_prediction_", format(currDate, "%m%Y"), ".nc"))
+# get the median of predictions for the current year 
+shriver_predMedian_currentYear <- median(subset(shriver_pred_probs, sub = 1:30))
+# get the median of predictions for the next year 
+shriver_predMedian_nextYear <- median(subset(shriver_pred_probs, sub = 31:60))
+# get the time data for this layer
+shriver_hist_time <- 1970 + round(var.get.nc(ncfile = open.nc(paste0(fileLoc, "shriver_yr_gridSTDF_prediction_",  format(currDate, "%m%Y"), ".nc")), variable = "time")/365)
+
+# calculate the anomalies for each real relative to the historical median (calculated above)
+shriver_predAnom_currentYear <- shriver_predMedian_currentYear - shriver_hist_meds 
+shriver_predAnom_nextYear <- shriver_predMedian_nextYear - shriver_hist_meds
+
+# save the prediction data as a COG
+terra::writeRaster(shriver_predAnom_currentYear, 
+                   filename = paste0(outLoc,"ShriverPredictedMedianRelativeToHistoricalData_for_",shriver_hist_time[1],".tif"), gdal = "COG")
+terra::writeRaster(shriver_predAnom_nextYear, 
+                   filename = paste0(outLoc,"ShriverPredictedMedianRelativeToHistoricalData_for_",shriver_hist_time[2],".tif"), gdal = "COG")
+
+# OConnor: Predicted of days in March w/ SWP > 2.5MPa & soil temp > 0 C  -----------------------------------------------------------------
+# (get from oconnor-swp_dy_gridSTDF_mean-prediction.nc and oconnor-soiltemp_dy_gridSTDF_mean-prediction.nc files) 
+
+
+#OConnor: Predicted of days soil MPa was between 0.5 and 0 in March --------------------------------------------------------------- 
+#(get from oconnor-swp_dy_gridSTDF_mean-prediction.nc file) # both for for
+#current year prior to cutoff month; for next year after cutoff month (?) #
+#Idea: could we somehow indicate which cells have values for these variables
+#whose CIs don’t overlap with the threshold values? (i.e. when the predicted
+#values overlap with the blue line from the figure, are substantially above it,
+#or substantially below it)
+
+
+# GISSM: Median of values across the historical period -----------------------------------------------------------------
+# (average of values in each cell of GISSM_yr_gridSTDF_historical.nc) 
+
+
+# GISSM: Median of values across the historical period -----------------------------------------------------------------
+# (median calculated from GISSM_yr_gridSTDF_historical.nc; probability for this
+# year calculated from GISSM_yr_gridSTDF_prediction.nc (average of all 30 values
+# for a year)) (need to have a cutoff month prior to which we calculate the
+# average probability for the current year, and after which we calculate the
+# average probability for the next year)
+
+
+# Soil Moisture: Mean predicted surface (?) soil moisture for growing season -----------------------------------------------------------
+# (define differently for different regions?) (from vwc-shallow_dy_gridSTDF_median-prediction.nc) 
+
+
+# Soil Moisture: Deltas (comparison of mean to normal period for the same period) for mean surface (?) soil moisture for growing season --------------------------------------------------------------------
+# (define differently for different regions?) (from vwc-shallow_dy_gridSTDF_median-diffs-prediction.nc) 
+
+
+# Soil Moisture: Mean surface (?) soil moisture for Fall (?)-------------------------------------------------------------
+# (from vwc-shallow_dy_gridSTDF_median-prediction.nc) 
+
+
+# Soil Moisture: Deltas for mean surface (?) soil moisture for Fall  (?) ----------------------------------------------------------
+# (from vwc-shallow_dy_gridSTDF_median-diffs-prediction.nc) 
+
+## could maybe use some sort of stippling/shading to indicate when predictions
+## are “significantly different” from the normal period (i.e. CIs don’t
+## overlap)--especially for deltas
+
+
+# Precip: Mean predicted precip values over the next three months--------------------------------------------------------------------
+
+# (or could do growing season... depends on what we think this information would
+# be useful for) (from ppt_dy_gridSTDF_median-prediction.nc)
+
+
+# Precip: Deltas for precip over the next three months  -----------------------------------------------------------------
+# (comparison of mean to normal period for the same period) (from ppt_dy_gridSTDF_median-diffs-prediction.nc) 
+
+
+# Temp: Mean predicted temp values over the next three months ----------------------------------------------------------------
+# (from tmean_dy_gridSTDF_median-prediction.nc) 
+
+
+# Temp: Deltas for temp over the next three months ------------------------------------------------------------------
+# (comparison of mean to normal period for the same period) (from tmean_dy_gridSTDF_median-diffs-prediction.nc) 
+
+###Idea: could use some sort of stippling/shading to indicate when predictions are “significantly different” from the normal period (i.e. CIs don’t overlap)--especially for deltas 
