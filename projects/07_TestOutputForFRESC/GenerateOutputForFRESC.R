@@ -324,10 +324,11 @@ for (j in 1:alljid){#1:alljid) { # TO DO: use "while" not "for"
   PPTAnoms <- PPTAnoms[1:Nleads,]
   
   # function in "weatherFunctions.R"
-  AnomalyData1 <- runFutureSWwithAnomalies(sw_in0 = sw_in, wdata, SoilsDF, 
+AnomalyData1 <- runFutureSWwithAnomalies(sw_in0 = sw_in, wdata, SoilsDF, 
                                            TempAnoms, PPTAnoms,
                                            Nleads, n = nRuns,
                                            currDOY, currMonth, currYear, currDate)
+  
   
   
   ################ -------------------------------------------------------------
