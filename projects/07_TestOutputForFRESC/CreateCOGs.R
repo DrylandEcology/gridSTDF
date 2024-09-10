@@ -180,9 +180,9 @@ VWC_pred_time <- var.get.nc(ncfile = open.nc(paste0(fileLoc, "vwc-shallow_dy_gri
 VWC_pred_time <- lubridate::as_date(VWC_pred_time[2:length(VWC_pred_time)], origin = "1970-01-01")
 # get the indices of values that are within the 'growing season' window (months 5 through 9)
 # from the current year
-goodMonths_currYear <- which(month(VWC_pred_time) %in% c(5:9) & year(VWC_pred_time) == currYear)
+goodMonths_currYear <- which((month(VWC_pred_time) %in% c(5:9)) & year(VWC_pred_time) == currYear)
 # from the next year
-goodMonths_nextYear <- which(month(VWC_pred_time) %in% c(5:9) & year(VWC_pred_time) == currYear+1)
+goodMonths_nextYear <- which((month(VWC_pred_time) %in% c(5:9) )& year(VWC_pred_time) == currYear+1)
 
 ## get data for the first year growing season
 VWC_pred_yr1 <- terra::subset(VWC_pred, goodMonths_currYear)
@@ -193,8 +193,8 @@ VWC_pred_yr2 <- terra::subset(VWC_pred, goodMonths_nextYear)
 VWC_pred_mean_yr2 <- mean(VWC_pred_yr2, na.rm = TRUE)
 
 # save the mean data as a COG
-terra::writeRaster(VWC_pred_mean_yr1, filename = paste0(outLoc,"VWC_surface_prediction_growingSeasonMeans_for_",  currYear,".tif"), gdal = "COG")
-terra::writeRaster(VWC_pred_mean_yr2, filename = paste0(outLoc,"VWC_surface_prediction_growingSeasonMeans_for_",  currYear+1,".tif"), gdal = "COG")
+terra::writeRaster(VWC_pred_mean_yr1, filename = paste0(outLoc,"VWC_surface_prediction_growingSeasonMeans_for_",  currYear,".tif"), gdal = "COG", overwrite = TRUE)
+terra::writeRaster(VWC_pred_mean_yr2, filename = paste0(outLoc,"VWC_surface_prediction_growingSeasonMeans_for_",  currYear+1,".tif"), gdal = "COG", overwrite = TRUE)
 
 # Soil Moisture: Deltas (comparison of mean to normal period for the same period) for mean surface (?) soil moisture for growing season --------------------------------------------------------------------
 # diff (future predictions - historical)
@@ -211,7 +211,7 @@ VWC_delta_time <- lubridate::as_date(VWC_delta_time[2:length(VWC_delta_time)], o
 # from the current year
 goodMonths_currYear <- which((month(VWC_delta_time) %in% c(5:9) )&( year(VWC_delta_time) == currYear))
 # from the next year
-goodMonths_nextYear <- which(month(VWC_delta_time) %in% c(5:9) & year(VWC_delta_time) == currYear+1)
+goodMonths_nextYear <- which((month(VWC_delta_time) %in% c(5:9)) & (year(VWC_delta_time) == currYear+1))
 
 ## get data for the first year growing season
 VWC_delta_yr1 <- terra::subset(VWC_delta, goodMonths_currYear)
@@ -220,18 +220,53 @@ VWC_delta_mean_yr1 <- mean(VWC_delta_yr1, na.rm = TRUE)
 VWC_delta_yr2 <- terra::subset(VWC_delta, goodMonths_nextYear)
 VWC_delta_mean_yr2 <- mean(VWC_delta_yr2, na.rm = TRUE)
 
+# save the mean data as a COG
+terra::writeRaster(VWC_delta_mean_yr1, filename = paste0(outLoc,"VWC_surface_predictionDiffFromNormalPeriod_growingSeason_for_",  currYear,".tif"), gdal = "COG", overwrite = TRUE)
+terra::writeRaster(VWC_delta_mean_yr2, filename = paste0(outLoc,"VWC_surface_predictionDiffFromNormalPeriod_growingSeason_for_",  currYear+1,".tif"), gdal = "COG", overwrite = TRUE)
 
 # Soil Moisture: Mean surface (?) soil moisture for Fall (?)-------------------------------------------------------------
 # (from vwc-shallow_dy_gridSTDF_median-prediction.nc) 
+## currently, defined "Fall" as September through November 
+# use "VWC_pred" and "VWC_pred_time" from above 
+# get the indices of values that are within the "fall" window (months 9 through 11)
+# from the current year
+goodMonths_currYear <- which((month(VWC_pred_time) %in% c(9:11)) & (year(VWC_pred_time) == currYear))
+# from the next year
+goodMonths_nextYear <- which((month(VWC_pred_time) %in% c(9:11)) & (year(VWC_pred_time) == currYear+1))
+
+## get data for the first year Fall season
+VWC_pred_yr1 <- terra::subset(VWC_pred, goodMonths_currYear)
+VWC_pred_mean_yr1 <- mean(VWC_pred_yr1, na.rm = TRUE)
+
+## get data for the next year Fall season
+VWC_pred_yr2 <- terra::subset(VWC_pred, goodMonths_nextYear)
+VWC_pred_mean_yr2 <- mean(VWC_pred_yr2, na.rm = TRUE)
+
+# save the mean data as a COG
+terra::writeRaster(VWC_pred_mean_yr1, filename = paste0(outLoc,"VWC_surface_prediction_FallMeans_for_",  currYear,".tif"), gdal = "COG")
+terra::writeRaster(VWC_pred_mean_yr2, filename = paste0(outLoc,"VWC_surface_prediction_FallMeans_for_",  currYear+1,".tif"), gdal = "COG")
 
 
 # Soil Moisture: Deltas for mean surface (?) soil moisture for Fall  (?) ----------------------------------------------------------
 # (from vwc-shallow_dy_gridSTDF_median-diffs-prediction.nc) 
+## currently, defined "Fall" as September through November 
+## use "VWC_delta" and "VWC_delta_time" from above
+# get the indices of values that are within the 'Fall' window (months 9 through 11 )
+# from the current year
+goodMonths_currYear <- which((month(VWC_delta_time) %in% c(9:11) )&( year(VWC_delta_time) == currYear))
+# from the next year
+goodMonths_nextYear <- which((month(VWC_delta_time) %in% c(9:11)) & (year(VWC_delta_time) == currYear+1))
 
-## could maybe use some sort of stippling/shading to indicate when predictions
-## are “significantly different” from the normal period (i.e. CIs don’t
-## overlap)--especially for deltas
+## get data for the first year growing season
+VWC_delta_yr1 <- terra::subset(VWC_delta, goodMonths_currYear)
+VWC_delta_mean_yr1 <- mean(VWC_delta_yr1, na.rm = TRUE)
+## get data for the second year growing season
+VWC_delta_yr2 <- terra::subset(VWC_delta, goodMonths_nextYear)
+VWC_delta_mean_yr2 <- mean(VWC_delta_yr2, na.rm = TRUE)
 
+# save the mean data as a COG
+terra::writeRaster(VWC_delta_mean_yr1, filename = paste0(outLoc,"VWC_surface_predictionDiffFromNormalPeriod_growingSeason_for_",  currYear,".tif"), gdal = "COG", overwrite = TRUE)
+terra::writeRaster(VWC_delta_mean_yr2, filename = paste0(outLoc,"VWC_surface_predictionDiffFromNormalPeriod_growingSeason_for_",  currYear+1,".tif"), gdal = "COG", overwrite = TRUE)
 
 # Precip: Mean predicted precip values over the next three months--------------------------------------------------------------------
 
