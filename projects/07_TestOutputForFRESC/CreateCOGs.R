@@ -94,6 +94,11 @@ terra::writeRaster(goodDaysPerCell,
                    filename = paste0(outLoc,"OConnorPredicted_NumberOfMoistAndWarmDays_March_",OConnor_year,".tif"), gdal = "COG")
 
 
+#Idea: could we somehow indicate which cells have values for these variables
+#whose CIs don’t overlap with the threshold values? (i.e. when the predicted
+#values overlap with the blue line from the figure, are substantially above it,
+#or substantially below it)
+
 #OConnor: Predicted of days soil MPa was between 0.5 and 0 in March --------------------------------------------------------------- 
 #(get from oconnor-swp_dy_gridSTDF_mean-prediction.nc file) # both for for
 #current year prior to cutoff month; for next year after cutoff month (?) #
@@ -114,25 +119,51 @@ OConnor_year <- min(1970 + round(var.get.nc(ncfile = open.nc(paste0(fileLoc, "oc
 terra::writeRaster(goodDaysPerCell, 
                    filename = paste0(outLoc,"OConnorPredicted_NumberOfVeryMoistDays_March_",OConnor_year,".tif"), gdal = "COG")
 
-
-
-#Idea: could we somehow indicate which cells have values for these variables
-#whose CIs don’t overlap with the threshold values? (i.e. when the predicted
-#values overlap with the blue line from the figure, are substantially above it,
-#or substantially below it)
-
-
-# GISSM: Median of values across the historical period -----------------------------------------------------------------
+# GISSM: Mean of values across the historical period -----------------------------------------------------------------
 # (average of values in each cell of GISSM_yr_gridSTDF_historical.nc) 
+# load data
+GISSM_hist_probs <- rast(paste0(fileLoc, "GISSM_yr_gridSTDF_historical_",  format(currDate, "%m%Y"), ".nc"))
+# calculate means
+GISSM_hist_means <- mean(GISSM_hist_probs, na.rm = TRUE)
+# get the information from the time axis 
+GISSM_hist_time <- 1970 + round(var.get.nc(ncfile = open.nc(paste0(fileLoc, "GISSM_yr_gridSTDF_historical_",  format(currDate, "%m%Y"), ".nc")), variable = "time")/365)
+# save the median data as a COG
+terra::writeRaster(GISSM_hist_means, filename = paste0(outLoc,"GISSM_HistoricalPreds_means_from_", GISSM_hist_time[1],"_to_",GISSM_hist_time[length(shriver_hist_time)],".tif"), gdal = "COG")
 
+# GISSM: Probability of seedling survival for the next year relative to median values -----------------------------------------------------------------
 
-# GISSM: Median of values across the historical period -----------------------------------------------------------------
+# Probability of seedling survival for the next year relative to median values
 # (median calculated from GISSM_yr_gridSTDF_historical.nc; probability for this
 # year calculated from GISSM_yr_gridSTDF_prediction.nc (average of all 30 values
 # for a year)) (need to have a cutoff month prior to which we calculate the
 # average probability for the current year, and after which we calculate the
 # average probability for the next year)
+# load data
+GISSM_preds <- rast(paste0(fileLoc, "GISSM_yr_gridSTDF_prediction_",  format(currDate, "%m%Y"), ".nc"))
 
+## get data for year 1
+GISSM_preds_1 <- terra::subset(GISSM_preds, 1:30)
+# calculate medians
+GISSM_preds_mean_1 <- mean(GISSM_preds_1, na.rm = TRUE)
+# get the information from the time axis 
+GISSM_preds_time_1 <- 1970 + round(var.get.nc(ncfile = open.nc(paste0(fileLoc, "GISSM_yr_gridSTDF_prediction_",  format(currDate, "%m%Y"), ".nc")), variable = "time")/365)[1]
+# compare the predictions to the historical values 
+GISSM_preds_anoms_1 <- GISSM_preds_mean_1 - GISSM_hist_means
+# save the median data as a COG
+terra::writeRaster(GISSM_preds_anoms_1, 
+                   filename = paste0(outLoc,"GISSM_MeanPredictedAnomaliesRelativeToHistoricalMeans_from_", GISSM_preds_time_1,".tif"), gdal = "COG")
+
+## get data for year 2
+GISSM_preds_2 <- terra::subset(GISSM_preds, 31:60)
+# calculate medians
+GISSM_preds_mean_2 <- mean(GISSM_preds_2, na.rm = TRUE)
+# get the information from the time axis 
+GISSM_preds_time_2 <- 1970 + round(var.get.nc(ncfile = open.nc(paste0(fileLoc, "GISSM_yr_gridSTDF_prediction_",  format(currDate, "%m%Y"), ".nc")), variable = "time")/365)[2]
+# compare the predictions to the historical values 
+GISSM_preds_anoms_2 <- GISSM_preds_mean_2 - GISSM_hist_means
+# save the median data as a COG
+terra::writeRaster(GISSM_preds_anoms_2, 
+                   filename = paste0(outLoc,"GISSM_MeanPredictedAnomaliesRelativeToHistoricalMeans_from_", GISSM_preds_time_2,".tif"), gdal = "COG")
 
 # Soil Moisture: Mean predicted surface (?) soil moisture for growing season -----------------------------------------------------------
 # (define differently for different regions?) (from vwc-shallow_dy_gridSTDF_median-prediction.nc) 
