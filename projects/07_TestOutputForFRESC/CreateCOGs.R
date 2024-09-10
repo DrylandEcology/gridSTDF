@@ -30,12 +30,14 @@ if(!dir.exists(outLoc)) {
 # (average of values in each cell of shriver_yr_gridSTDF_historical.nc)
 # load data
 shriver_hist_probs <- rast(paste0(fileLoc, "shriver_yr_gridSTDF_historical_",  format(currDate, "%m%Y"), ".nc"))
-# calculate medians
-shriver_hist_meds <- median(shriver_hist_probs, na.rm = TRUE)
 # get the information from the time axis 
 shriver_hist_time <- 1970 + round(var.get.nc(ncfile = open.nc(paste0(fileLoc, "shriver_yr_gridSTDF_historical_",  format(currDate, "%m%Y"), ".nc")), variable = "time")/365)
+# subset for the values just from the normal period (1991 to 2020, so recruitment in 1992-2021)
+shriver_hist_probsNorm <- subset(shriver_hist_probs, 1:30)
+# calculate medians
+shriver_hist_meds <- median(shriver_hist_probsNorm, na.rm = TRUE)
 # save the median data as a COG
-terra::writeRaster(shriver_hist_meds, filename = paste0(outLoc,"ShriverHistoricalPreds_medians_from_", shriver_hist_time[1],"_to_",shriver_hist_time[length(shriver_hist_time)],".tif"), gdal = "COG")
+terra::writeRaster(shriver_hist_meds, filename = paste0(outLoc,"ShriverHistoricalPreds_medians_from_", shriver_hist_time[1],"_to_",shriver_hist_time[30],".tif"), gdal = "COG")
 
 # Shriver model: Probability of establishment for the next year relative to median values ---------------------------------------------------------
 # (median calculated from shriver_yr_gridSTDF_historical.nc;
@@ -123,22 +125,24 @@ terra::writeRaster(goodDaysPerCell,
 # (average of values in each cell of GISSM_yr_gridSTDF_historical.nc) 
 # load data
 GISSM_hist_probs <- rast(paste0(fileLoc, "GISSM_yr_gridSTDF_historical_",  format(currDate, "%m%Y"), ".nc"))
-# calculate means
-GISSM_hist_means <- mean(GISSM_hist_probs, na.rm = TRUE)
 # get the information from the time axis 
 GISSM_hist_time <- 1970 + round(var.get.nc(ncfile = open.nc(paste0(fileLoc, "GISSM_yr_gridSTDF_historical_",  format(currDate, "%m%Y"), ".nc")), variable = "time")/365)
+# get the values just for the normal period (1991 - 2020, which is 1992-2021 for the GISSM output)
+GISSM_hist_probsNorm <- subset(GISSM_hist_probs, which(GISSM_hist_time %in% c(1992:2021)))
+# calculate means
+GISSM_hist_means <- mean(GISSM_hist_probsNorm, na.rm = TRUE)
+
 # save the median data as a COG
-terra::writeRaster(GISSM_hist_means, filename = paste0(outLoc,"GISSM_HistoricalPreds_means_from_", GISSM_hist_time[1],"_to_",GISSM_hist_time[length(shriver_hist_time)],".tif"), gdal = "COG")
+terra::writeRaster(GISSM_hist_means, filename = paste0(outLoc,"GISSM_HistoricalPreds_means_from_", GISSM_hist_time[1],"_to_",GISSM_hist_time[30],".tif"), gdal = "COG", overwrite = TRUE)
 
-# GISSM: Probability of seedling survival for the next year relative to median values -----------------------------------------------------------------
+# GISSM: Probability of seedling survival for the next year relative to median historical values -----------------------------------------------------------------
 
-# Probability of seedling survival for the next year relative to median values
-# (median calculated from GISSM_yr_gridSTDF_historical.nc; probability for this
-# year calculated from GISSM_yr_gridSTDF_prediction.nc (average of all 30 values
-# for a year)) (need to have a cutoff month prior to which we calculate the
-# average probability for the current year, and after which we calculate the
-# average probability for the next year)
-# load data
+# Probability of seedling survival for the next year relative to median
+# historical values (median calculated from GISSM_yr_gridSTDF_historical.nc;
+# probability for this year calculated from GISSM_yr_gridSTDF_prediction.nc
+# (average of all 30 values for a year)) (need to have a cutoff month prior to
+# which we calculate the average probability for the current year, and after
+# which we calculate the average probability for the next year) load data
 GISSM_preds <- rast(paste0(fileLoc, "GISSM_yr_gridSTDF_prediction_",  format(currDate, "%m%Y"), ".nc"))
 
 ## get data for year 1
@@ -167,6 +171,18 @@ terra::writeRaster(GISSM_preds_anoms_2,
 
 # Soil Moisture: Mean predicted surface (?) soil moisture for growing season -----------------------------------------------------------
 # (define differently for different regions?) (from vwc-shallow_dy_gridSTDF_median-prediction.nc) 
+## currently, defined growing season uniformly as May to September, but will need to make site-specific
+VWC_pred <- rast(paste0(fileLoc, "vwc-shallow_dy_gridSTDF_median-prediction_",  format(currDate, "%m%Y"), ".nc"))
+# get the information from the time axis 
+VWC_pred_time <- var.get.nc(ncfile = open.nc(paste0(fileLoc, "vwc-shallow_dy_gridSTDF_median-prediction_",  format(currDate, "%m%Y"), ".nc")), variable = "time")
+# calculate the dates (were previously # of days since 1-1-1970)
+VWC_pred_time <- lubridate::as_date(VWC_pred_time, origin = "1970-01-01")
+# get the indicies of values that are within the 'growing season' window (months 5 through 9)
+goodMonths_currYear <- which(month(VWC_pred_time) %in% c(5:9) & year(VWC_pred_time) == currYear)
+goodMonths_nextYear <- which(month(VWC_pred_time) %in% c(5:9) & year(VWC_pred_time) == currYear+1)
+
+# save the median data as a COG
+terra::writeRaster(GISSM_hist_means, filename = paste0(outLoc,"GISSM_HistoricalPreds_means_from_", GISSM_hist_time[1],"_to_",GISSM_hist_time[length(shriver_hist_time)],".tif"), gdal = "COG")
 
 
 # Soil Moisture: Deltas (comparison of mean to normal period for the same period) for mean surface (?) soil moisture for growing season --------------------------------------------------------------------
