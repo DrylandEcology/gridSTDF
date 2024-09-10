@@ -257,29 +257,94 @@ goodMonths_currYear <- which((month(VWC_delta_time) %in% c(9:11) )&( year(VWC_de
 # from the next year
 goodMonths_nextYear <- which((month(VWC_delta_time) %in% c(9:11)) & (year(VWC_delta_time) == currYear+1))
 
-## get data for the first year growing season
+## get data for the first year Fall season
 VWC_delta_yr1 <- terra::subset(VWC_delta, goodMonths_currYear)
 VWC_delta_mean_yr1 <- mean(VWC_delta_yr1, na.rm = TRUE)
-## get data for the second year growing season
+## get data for the second year Fall season
 VWC_delta_yr2 <- terra::subset(VWC_delta, goodMonths_nextYear)
 VWC_delta_mean_yr2 <- mean(VWC_delta_yr2, na.rm = TRUE)
 
 # save the mean data as a COG
-terra::writeRaster(VWC_delta_mean_yr1, filename = paste0(outLoc,"VWC_surface_predictionDiffFromNormalPeriod_growingSeason_for_",  currYear,".tif"), gdal = "COG", overwrite = TRUE)
-terra::writeRaster(VWC_delta_mean_yr2, filename = paste0(outLoc,"VWC_surface_predictionDiffFromNormalPeriod_growingSeason_for_",  currYear+1,".tif"), gdal = "COG", overwrite = TRUE)
+terra::writeRaster(VWC_delta_mean_yr1, filename = paste0(outLoc,"VWC_surface_predictionDiffFromNormalPeriod_Fall_for_",  currYear,".tif"), gdal = "COG", overwrite = TRUE)
+terra::writeRaster(VWC_delta_mean_yr2, filename = paste0(outLoc,"VWC_surface_predictionDiffFromNormalPeriod_Fall_for_",  currYear+1,".tif"), gdal = "COG", overwrite = TRUE)
 
 # Precip: Mean predicted precip values over the next three months--------------------------------------------------------------------
-
 # (or could do growing season... depends on what we think this information would
 # be useful for) (from ppt_dy_gridSTDF_median-prediction.nc)
+## currently just the next 3 months 
+# get data
+precip_preds<- rast(paste0(fileLoc, "ppt_dy_gridSTDF_median-prediction_",  format(currDate, "%m%Y"), ".nc"))
 
+# get the information from the time axis 
+precip_pred_time <- var.get.nc(ncfile = open.nc(paste0(fileLoc, "ppt_dy_gridSTDF_median-prediction_",  format(currDate, "%m%Y"), ".nc")), variable = "time")
+# calculate the dates (were previously # of days since 1-1-1970)
+precip_pred_time <- lubridate::as_date(precip_pred_time, origin = "1970-01-01")
+
+# get the indices of values that are within the next three months (next 90 days)
+goodDates <- which(precip_pred_time %in% as_date(c(currDate:(currDate+90))))
+
+## get data for the next three months
+precip_pred_90days <- terra::subset(precip_preds, goodDates)
+precip_pred_mean_90days <- mean(precip_pred_90days, na.rm = TRUE)
+
+# save the mean data as a COG
+terra::writeRaster(precip_pred_mean_90days, filename = paste0(outLoc,"Precip_prediction_MeanOverNext90Days_from_", precip_pred_time[goodDates][1],"_to_",currDate+90, ".tif"), gdal = "COG", overwrite = TRUE)
 
 # Precip: Deltas for precip over the next three months  -----------------------------------------------------------------
 # (comparison of mean to normal period for the same period) (from ppt_dy_gridSTDF_median-diffs-prediction.nc) 
+## currently just the next 3 months 
+# get data
+#precip_deltas <- rast(paste0(fileLoc, "ppt_dy_gridSTDF_median-diffs-prediction_",  format(currDate, "%m%Y"), ".nc"))
+precip_hist <- rast(paste0(fileLoc, "ppt_dy_gridSTDF_historical_19910101-20201231-median_",  format(currDate, "%m%Y"), ".nc"))
+# get the information from the time axis 
+precip_hist_time <- var.get.nc(ncfile = open.nc(paste0(fileLoc, "ppt_dy_gridSTDF_historical_19910101-20201231-median_",  format(currDate, "%m%Y"), ".nc")), variable = "time")
+# calculate the dates (were previously # of days since 1-1-1970)
+precip_hist_time <- lubridate::as_date(precip_hist_time, origin = "1970-01-01")
+
+# get the indices of values that are within the next three months (next 90 days)
+goodDates_preds <- which(precip_pred_time %in% as_date(c(currDate:(currDate+90))))
+goodDates_hist <- which(precip_hist_time  %in%  as_date(c(precip_pred_time[1]:(currDate+90))))
+# make sure the range of dates is the same
+sum(precip_pred_time[goodDates_preds] != precip_hist_time[goodDates_hist]) # should be zero
+length(goodDates_preds) == length(goodDates_hist) # should be true 
+
+## get data for the next three months
+# for prediction data
+precip_pred_90days <- terra::subset(precip_preds, goodDates_preds)
+# for historical data 
+precip_hist_90days <- terra::subset(precip_hist, goodDates_hist)
+# calculate diffs between each day (prediction - normal)
+diffList <- lapply(X = 1:length(goodDates_preds), FUN = function(x) {
+  temp <- subset(precip_pred_90days, x) - subset(precip_hist_90days, x)
+  return(temp)
+})
+diffs <- rast(diffList)
+# average across all days to get the mean diff over the next 90 days 
+precip_diff_means <- mean(diffs, na.rm = TRUE)
+# save the mean data as a COG
+terra::writeRaster(precip_diff_means, filename = paste0(outLoc,"Precip_predictionDiffFromNormalPeriod_MeanOverNext90Days_from_", precip_pred_time[goodDates_preds][1],"_to_",currDate+90, ".tif"), gdal = "COG", overwrite = TRUE)
 
 
 # Temp: Mean predicted temp values over the next three months ----------------------------------------------------------------
 # (from tmean_dy_gridSTDF_median-prediction.nc) 
+## currently just the next 3 months 
+# get data
+precip_preds<- rast(paste0(fileLoc, "ppt_dy_gridSTDF_median-prediction_",  format(currDate, "%m%Y"), ".nc"))
+
+# get the information from the time axis 
+precip_pred_time <- var.get.nc(ncfile = open.nc(paste0(fileLoc, "ppt_dy_gridSTDF_median-prediction_",  format(currDate, "%m%Y"), ".nc")), variable = "time")
+# calculate the dates (were previously # of days since 1-1-1970)
+precip_pred_time <- lubridate::as_date(precip_pred_time, origin = "1970-01-01")
+
+# get the indices of values that are within the next three months (next 90 days)
+goodDates <- which(precip_pred_time %in% as_date(c(currDate:(currDate+90))))
+
+## get data for the next three months
+precip_pred_90days <- terra::subset(precip_preds, goodDates)
+precip_pred_mean_90days <- mean(precip_pred_90days, na.rm = TRUE)
+
+# save the mean data as a COG
+terra::writeRaster(precip_pred_mean_90days, filename = paste0(outLoc,"Precip_prediction_MeanOverNext90Days_from_", precip_pred_time[goodDates][1],"_to_",currDate+90, ".tif"), gdal = "COG", overwrite = TRUE)
 
 
 # Temp: Deltas for temp over the next three months ------------------------------------------------------------------
