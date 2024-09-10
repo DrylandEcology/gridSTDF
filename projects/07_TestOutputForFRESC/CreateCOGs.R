@@ -329,25 +329,53 @@ terra::writeRaster(precip_diff_means, filename = paste0(outLoc,"Precip_predictio
 # (from tmean_dy_gridSTDF_median-prediction.nc) 
 ## currently just the next 3 months 
 # get data
-precip_preds<- rast(paste0(fileLoc, "ppt_dy_gridSTDF_median-prediction_",  format(currDate, "%m%Y"), ".nc"))
+temp_preds<- rast(paste0(fileLoc, "tmean_dy_gridSTDF_median-prediction_",  format(currDate, "%m%Y"), ".nc"))
 
 # get the information from the time axis 
-precip_pred_time <- var.get.nc(ncfile = open.nc(paste0(fileLoc, "ppt_dy_gridSTDF_median-prediction_",  format(currDate, "%m%Y"), ".nc")), variable = "time")
+temp_pred_time <- var.get.nc(ncfile = open.nc(paste0(fileLoc, "tmean_dy_gridSTDF_median-prediction_",  format(currDate, "%m%Y"), ".nc")), variable = "time")
 # calculate the dates (were previously # of days since 1-1-1970)
-precip_pred_time <- lubridate::as_date(precip_pred_time, origin = "1970-01-01")
+temp_pred_time <- lubridate::as_date(temp_pred_time, origin = "1970-01-01")
 
 # get the indices of values that are within the next three months (next 90 days)
-goodDates <- which(precip_pred_time %in% as_date(c(currDate:(currDate+90))))
+goodDates_temp <- which(temp_pred_time %in% as_date(c(currDate:(currDate+90))))
 
 ## get data for the next three months
-precip_pred_90days <- terra::subset(precip_preds, goodDates)
-precip_pred_mean_90days <- mean(precip_pred_90days, na.rm = TRUE)
+temp_pred_90days <- terra::subset(temp_preds, goodDates_temp)
+temp_pred_mean_90days <- mean(temp_pred_90days, na.rm = TRUE)
 
 # save the mean data as a COG
-terra::writeRaster(precip_pred_mean_90days, filename = paste0(outLoc,"Precip_prediction_MeanOverNext90Days_from_", precip_pred_time[goodDates][1],"_to_",currDate+90, ".tif"), gdal = "COG", overwrite = TRUE)
-
+terra::writeRaster(temp_pred_mean_90days, filename = paste0(outLoc,"TMean_prediction_MeanOverNext90Days_from_", temp_pred_time[goodDates][1],"_to_",currDate+90, ".tif"), gdal = "COG", overwrite = TRUE)
 
 # Temp: Deltas for temp over the next three months ------------------------------------------------------------------
 # (comparison of mean to normal period for the same period) (from tmean_dy_gridSTDF_median-diffs-prediction.nc) 
+# get data
+temp_hist <- rast(paste0(fileLoc, "tmean_dy_gridSTDF_historical_19910101-20201231-median_",  format(currDate, "%m%Y"), ".nc"))
+# get the information from the time axis 
+temp_hist_time <- var.get.nc(ncfile = open.nc(paste0(fileLoc, "tmean_dy_gridSTDF_historical_19910101-20201231-median_",  format(currDate, "%m%Y"), ".nc")), variable = "time")
+# calculate the dates (were previously # of days since 1-1-1970)
+temp_hist_time <- lubridate::as_date(temp_hist_time, origin = "1970-01-01")
+
+# get the indices of values that are within the next three months (next 90 days)
+goodDates_preds <- which(temp_pred_time %in% as_date(c(currDate:(currDate+90))))
+goodDates_hist <- which(temp_hist_time  %in%  as_date(c(temp_pred_time[1]:(currDate+90))))
+# make sure the range of dates is the same
+sum(temp_pred_time[goodDates_preds] != temp_hist_time[goodDates_hist]) # should be zero
+length(goodDates_preds) == length(goodDates_hist) # should be true 
+
+## get data for the next three months
+# for prediction data
+temp_pred_90days <- terra::subset(temp_preds, goodDates_preds)
+# for historical data 
+temp_hist_90days <- terra::subset(temp_hist, goodDates_hist)
+# calculate diffs between each day (prediction - normal)
+diffList <- lapply(X = 1:length(goodDates_preds), FUN = function(x) {
+  temp <- subset(temp_pred_90days, x) - subset(temp_hist_90days, x)
+  return(temp)
+})
+diffs <- rast(diffList)
+# average across all days to get the mean diff over the next 90 days 
+temp_diff_means <- mean(diffs, na.rm = TRUE)
+# save the mean data as a COG
+terra::writeRaster(temp_diff_means, filename = paste0(outLoc,"TMean_predictionDiffFromNormalPeriod_MeanOverNext90Days_from_", temp_pred_time[goodDates_preds][1],"_to_",currDate+90, ".tif"), gdal = "COG", overwrite = TRUE)
 
 ###Idea: could use some sort of stippling/shading to indicate when predictions are “significantly different” from the normal period (i.e. CIs don’t overlap)--especially for deltas 
