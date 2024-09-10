@@ -173,20 +173,52 @@ terra::writeRaster(GISSM_preds_anoms_2,
 # (define differently for different regions?) (from vwc-shallow_dy_gridSTDF_median-prediction.nc) 
 ## currently, defined growing season uniformly as May to September, but will need to make site-specific
 VWC_pred <- rast(paste0(fileLoc, "vwc-shallow_dy_gridSTDF_median-prediction_",  format(currDate, "%m%Y"), ".nc"))
+VWC_pred <- terra::subset(VWC_pred, 2:length(levels(VWC_pred)))
 # get the information from the time axis 
 VWC_pred_time <- var.get.nc(ncfile = open.nc(paste0(fileLoc, "vwc-shallow_dy_gridSTDF_median-prediction_",  format(currDate, "%m%Y"), ".nc")), variable = "time")
 # calculate the dates (were previously # of days since 1-1-1970)
-VWC_pred_time <- lubridate::as_date(VWC_pred_time, origin = "1970-01-01")
-# get the indicies of values that are within the 'growing season' window (months 5 through 9)
+VWC_pred_time <- lubridate::as_date(VWC_pred_time[2:length(VWC_pred_time)], origin = "1970-01-01")
+# get the indices of values that are within the 'growing season' window (months 5 through 9)
+# from the current year
 goodMonths_currYear <- which(month(VWC_pred_time) %in% c(5:9) & year(VWC_pred_time) == currYear)
+# from the next year
 goodMonths_nextYear <- which(month(VWC_pred_time) %in% c(5:9) & year(VWC_pred_time) == currYear+1)
 
-# save the median data as a COG
-terra::writeRaster(GISSM_hist_means, filename = paste0(outLoc,"GISSM_HistoricalPreds_means_from_", GISSM_hist_time[1],"_to_",GISSM_hist_time[length(shriver_hist_time)],".tif"), gdal = "COG")
+## get data for the first year growing season
+VWC_pred_yr1 <- terra::subset(VWC_pred, goodMonths_currYear)
+VWC_pred_mean_yr1 <- mean(VWC_pred_yr1, na.rm = TRUE)
 
+## get data for the next year growing season
+VWC_pred_yr2 <- terra::subset(VWC_pred, goodMonths_nextYear)
+VWC_pred_mean_yr2 <- mean(VWC_pred_yr2, na.rm = TRUE)
+
+# save the mean data as a COG
+terra::writeRaster(VWC_pred_mean_yr1, filename = paste0(outLoc,"VWC_surface_prediction_growingSeasonMeans_for_",  currYear,".tif"), gdal = "COG")
+terra::writeRaster(VWC_pred_mean_yr2, filename = paste0(outLoc,"VWC_surface_prediction_growingSeasonMeans_for_",  currYear+1,".tif"), gdal = "COG")
 
 # Soil Moisture: Deltas (comparison of mean to normal period for the same period) for mean surface (?) soil moisture for growing season --------------------------------------------------------------------
+# diff (future predictions - historical)
 # (define differently for different regions?) (from vwc-shallow_dy_gridSTDF_median-diffs-prediction.nc) 
+## currently, defined growing season uniformly as May to September, but will need to make site-specific
+# get data
+VWC_delta <- rast(paste0(fileLoc, "vwc-shallow_dy_gridSTDF_median-diffs-prediction_",  format(currDate, "%m%Y"), ".nc"))
+
+# get the information from the time axis 
+VWC_delta_time <- var.get.nc(ncfile = open.nc(paste0(fileLoc, "vwc-shallow_dy_gridSTDF_median-diffs-prediction_",  format(currDate, "%m%Y"), ".nc")), variable = "time")
+# calculate the dates (were previously # of days since 1-1-1970)
+VWC_delta_time <- lubridate::as_date(VWC_delta_time[2:length(VWC_delta_time)], origin = "1970-01-01")
+# get the indices of values that are within the 'growing season' window (months 5 through 9)
+# from the current year
+goodMonths_currYear <- which((month(VWC_delta_time) %in% c(5:9) )&( year(VWC_delta_time) == currYear))
+# from the next year
+goodMonths_nextYear <- which(month(VWC_delta_time) %in% c(5:9) & year(VWC_delta_time) == currYear+1)
+
+## get data for the first year growing season
+VWC_delta_yr1 <- terra::subset(VWC_delta, goodMonths_currYear)
+VWC_delta_mean_yr1 <- mean(VWC_delta_yr1, na.rm = TRUE)
+## get data for the second year growing season
+VWC_delta_yr2 <- terra::subset(VWC_delta, goodMonths_nextYear)
+VWC_delta_mean_yr2 <- mean(VWC_delta_yr2, na.rm = TRUE)
 
 
 # Soil Moisture: Mean surface (?) soil moisture for Fall (?)-------------------------------------------------------------
