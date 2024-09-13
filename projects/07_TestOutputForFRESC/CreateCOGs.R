@@ -2,14 +2,6 @@ rm(list=ls(all = TRUE))
 #library(rgdal)
 library(terra)
 library(lubridate)
-#  -of COG -co BLOCKSIZE=512 -co RESAMPLING=BILINEAR -co COMPRESS=DEFLATE -co NUM-THREADS=25 -co BIGTIFF=YES
-
-# need to decide which year of ecological variable are being shown (show 
-# current year until a certain point, then switch to the next year)--just need to 
-# document clearly which data is being used Blue text is actual list of COGs 
-# (rather than text that describes what we want) (green text indicates names of 
-# netCDFs to calculate variables required) 
-
 
 # Get date information and prep for loading files ----------------------------------------------------
 currDOY <- lubridate::yday(Sys.Date())
@@ -37,7 +29,7 @@ shriver_hist_probsNorm <- subset(shriver_hist_probs, 1:30)
 # calculate medians
 shriver_hist_meds <- median(shriver_hist_probsNorm, na.rm = TRUE)
 # save the median data as a COG
-terra::writeRaster(shriver_hist_meds, filename = paste0(outLoc,"ShriverHistoricalPreds_medians_from_", shriver_hist_time[1],"_to_",shriver_hist_time[30],".tif"), gdal = "COG")
+terra::writeRaster(shriver_hist_meds, filename = paste0(outLoc,"ShriverHistoricalPreds_medians_from_1991_to_2020.tif"), gdal = "COG")
 
 # Shriver model: Probability of establishment for the next year relative to median values ---------------------------------------------------------
 # (median calculated from shriver_yr_gridSTDF_historical.nc;
@@ -101,7 +93,7 @@ terra::writeRaster(goodDaysPerCell,
 #values overlap with the blue line from the figure, are substantially above it,
 #or substantially below it)
 
-#OConnor: Predicted of days soil MPa was between 0.5 and 0 in March --------------------------------------------------------------- 
+#OConnor: Predicted of days soil MPa was between -0.5 and 0 in March --------------------------------------------------------------- 
 #(get from oconnor-swp_dy_gridSTDF_mean-prediction.nc file) # both for for
 #current year prior to cutoff month; for next year after cutoff month (?) #
 ## the year for data shown is indicated in the file name 
@@ -133,7 +125,7 @@ GISSM_hist_probsNorm <- subset(GISSM_hist_probs, which(GISSM_hist_time %in% c(19
 GISSM_hist_means <- mean(GISSM_hist_probsNorm, na.rm = TRUE)
 
 # save the median data as a COG
-terra::writeRaster(GISSM_hist_means, filename = paste0(outLoc,"GISSM_HistoricalPreds_means_from_", GISSM_hist_time[1],"_to_",GISSM_hist_time[30],".tif"), gdal = "COG", overwrite = TRUE)
+terra::writeRaster(GISSM_hist_means, filename = paste0(outLoc,"GISSM_HistoricalPreds_means_from_", GISSM_hist_time[1]-1,"_to_",GISSM_hist_time[30]-1,".tif"), gdal = "COG", overwrite = TRUE)
 
 # GISSM: Probability of seedling survival for the next year relative to median historical values -----------------------------------------------------------------
 
@@ -155,7 +147,7 @@ GISSM_preds_time_1 <- 1970 + round(var.get.nc(ncfile = open.nc(paste0(fileLoc, "
 GISSM_preds_anoms_1 <- GISSM_preds_mean_1 - GISSM_hist_means
 # save the median data as a COG
 terra::writeRaster(GISSM_preds_anoms_1, 
-                   filename = paste0(outLoc,"GISSM_MeanPredictedAnomaliesRelativeToHistoricalMeans_from_", GISSM_preds_time_1,".tif"), gdal = "COG")
+                   filename = paste0(outLoc,"GISSM_MeanPredictedAnomaliesRelativeToHistoricalMeans_for_", GISSM_preds_time_1,".tif"), gdal = "COG")
 
 ## get data for year 2
 GISSM_preds_2 <- terra::subset(GISSM_preds, 31:60)
@@ -167,7 +159,7 @@ GISSM_preds_time_2 <- 1970 + round(var.get.nc(ncfile = open.nc(paste0(fileLoc, "
 GISSM_preds_anoms_2 <- GISSM_preds_mean_2 - GISSM_hist_means
 # save the median data as a COG
 terra::writeRaster(GISSM_preds_anoms_2, 
-                   filename = paste0(outLoc,"GISSM_MeanPredictedAnomaliesRelativeToHistoricalMeans_from_", GISSM_preds_time_2,".tif"), gdal = "COG")
+                   filename = paste0(outLoc,"GISSM_MeanPredictedAnomaliesRelativeToHistoricalMeans_for_", GISSM_preds_time_2,".tif"), gdal = "COG")
 
 # Soil Moisture: Mean predicted surface (?) soil moisture for growing season -----------------------------------------------------------
 # (define differently for different regions?) (from vwc-shallow_dy_gridSTDF_median-prediction.nc) 
