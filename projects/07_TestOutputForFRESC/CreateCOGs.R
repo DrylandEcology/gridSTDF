@@ -39,7 +39,7 @@ shriver_hist_probsNorm <- subset(shriver_hist_probs, 1:30)
 # calculate medians
 shriver_hist_meds <- median(shriver_hist_probsNorm, na.rm = TRUE)
 # save the median data as a COG
-terra::writeRaster(shriver_hist_meds, filename = paste0(outLoc,"ShriverHistoricalPreds_medians_from_1991_to_2020.tif"), gdal = "COG")
+terra::writeRaster(shriver_hist_meds, filename = paste0(outLoc,"shriver_historical_medianOfHindscastsFrom1991to2020.tif"), gdal = "COG")
 
 # Shriver model: Probability of establishment for the next year---------------------------------------------------------
 # Note that this is just straight median of predictions, not the anomaly!
@@ -57,15 +57,11 @@ shriver_predMedian_nextYear <- median(subset(shriver_pred_probs, sub = 31:60))
 # get the time data for this layer
 shriver_hist_time <- 1970 + round(var.get.nc(ncfile = open.nc(paste0(fileLoc, "shriver_yr_gridSTDF_prediction_",  format(currDate, "%m%Y"), ".nc")), variable = "time")/365)
 
-# calculate the anomalies for each real relative to the historical median (calculated above)
-shriver_predAnom_currentYear <- shriver_predMedian_currentYear - shriver_hist_meds 
-shriver_predAnom_nextYear <- shriver_predMedian_nextYear - shriver_hist_meds
-
 # save the prediction data as a COG
-terra::writeRaster(shriver_predAnom_currentYear, 
-                   filename = paste0(outLoc,"ShriverPredictedMedianRelativeToHistoricalData_for_",shriver_hist_time[1],".tif"), gdal = "COG")
-terra::writeRaster(shriver_predAnom_nextYear, 
-                   filename = paste0(outLoc,"ShriverPredictedMedianRelativeToHistoricalData_for_",shriver_hist_time[2],".tif"), gdal = "COG")
+terra::writeRaster(shriver_predMedian_currentYear, 
+                   filename = paste0(outLoc,"shriver_prediction_medianOfPredictionsFor",shriver_hist_time[1],".tif"), gdal = "COG")
+terra::writeRaster(shriver_predMedian_nextYear, 
+                   filename = paste0(outLoc,"shriver_prediction_medianOfPredictionsFor",shriver_hist_time[2],".tif"), gdal = "COG")
 
 # OConnor: Predicted # of days in March w/ SWP > -2.5MPa & soil temp > 0 C  -----------------------------------------------------------------
 # (get from oconnor-swp_dy_gridSTDF_mean-prediction.nc and oconnor-soiltemp_dy_gridSTDF_mean-prediction.nc files) 
@@ -96,7 +92,7 @@ OConnor_year <- min(1970 + round(var.get.nc(ncfile = open.nc(paste0(fileLoc, "oc
 
 # save the prediction data as a COG
 terra::writeRaster(goodDaysPerCell, 
-                   filename = paste0(outLoc,"OConnorPredicted_NumberOfMoistAndWarmDays_March_",OConnor_year,".tif"), gdal = "COG")
+                   filename = paste0(outLoc,"oconnor_predicted_NumberOfMoistAndWarmDays_March_",OConnor_year,".tif"), gdal = "COG")
 
 
 #Idea: could we somehow indicate which cells have values for these variables
@@ -121,8 +117,8 @@ goodDaysPerCell_2 <- sum(OConnor_swp_goodIDs_2)
 OConnor_year <- min(1970 + round(var.get.nc(ncfile = open.nc(paste0(fileLoc, "oconnor-soiltemp_dy_gridSTDF_mean-prediction_",  format(currDate, "%m%Y"), ".nc")), variable = "time")/365))
 
 # save the prediction data as a COG
-terra::writeRaster(goodDaysPerCell, 
-                   filename = paste0(outLoc,"OConnorPredicted_NumberOfVeryMoistDays_March_",OConnor_year,".tif"), gdal = "COG")
+terra::writeRaster(goodDaysPerCell_2, 
+                   filename = paste0(outLoc,"oconnor_predicted_NumberOfVeryMoistDays_March_",OConnor_year,".tif"), gdal = "COG")
 
 # GISSM: Mean of values across the historical period -----------------------------------------------------------------
 # (average of values in each cell of GISSM_yr_gridSTDF_historical.nc) 
@@ -135,11 +131,11 @@ GISSM_hist_probsNorm <- subset(GISSM_hist_probs, which(GISSM_hist_time %in% c(19
 # calculate means
 GISSM_hist_means <- mean(GISSM_hist_probsNorm, na.rm = TRUE)
 
-# save the median data as a COG
-terra::writeRaster(GISSM_hist_means, filename = paste0(outLoc,"GISSM_HistoricalPreds_means_from_", GISSM_hist_time[1]-1,"_to_",GISSM_hist_time[30]-1,".tif"), gdal = "COG", overwrite = TRUE)
+# save the mean data as a COG
+terra::writeRaster(GISSM_hist_means, filename = paste0(outLoc,"GISSM_historical_meanOfHindscastsFrom", GISSM_hist_time[1]-1,"to",GISSM_hist_time[30]-1,".tif"), gdal = "COG", overwrite = TRUE)
 
-# GISSM: Probability of seedling survival for the next year relative to median historical values -----------------------------------------------------------------
-
+# GISSM: Mean Predicted probability of seedling survival for the next year-----------------------------------------------------------------
+# Note: this is teh true mean, not the anomaly! 
 # Probability of seedling survival for the next year relative to median
 # historical values (median calculated from GISSM_yr_gridSTDF_historical.nc;
 # probability for this year calculated from GISSM_yr_gridSTDF_prediction.nc
@@ -150,126 +146,25 @@ GISSM_preds <- rast(paste0(fileLoc, "GISSM_yr_gridSTDF_prediction_",  format(cur
 
 ## get data for year 1
 GISSM_preds_1 <- terra::subset(GISSM_preds, 1:30)
-# calculate medians
+# calculate mean
 GISSM_preds_mean_1 <- mean(GISSM_preds_1, na.rm = TRUE)
 # get the information from the time axis 
 GISSM_preds_time_1 <- 1970 + round(var.get.nc(ncfile = open.nc(paste0(fileLoc, "GISSM_yr_gridSTDF_prediction_",  format(currDate, "%m%Y"), ".nc")), variable = "time")/365)[1]
-# compare the predictions to the historical values 
-GISSM_preds_anoms_1 <- GISSM_preds_mean_1 - GISSM_hist_means
+
 # save the median data as a COG
-terra::writeRaster(GISSM_preds_anoms_1, 
-                   filename = paste0(outLoc,"GISSM_MeanPredictedAnomaliesRelativeToHistoricalMeans_for_", GISSM_preds_time_1,".tif"), gdal = "COG")
+terra::writeRaster(GISSM_preds_mean_1, 
+                   filename = paste0(outLoc,"GISSM_prediction_meanOfPredictionsFor", GISSM_preds_time_1,".tif"), gdal = "COG")
 
 ## get data for year 2
 GISSM_preds_2 <- terra::subset(GISSM_preds, 31:60)
-# calculate medians
+# calculate means
 GISSM_preds_mean_2 <- mean(GISSM_preds_2, na.rm = TRUE)
 # get the information from the time axis 
 GISSM_preds_time_2 <- 1970 + round(var.get.nc(ncfile = open.nc(paste0(fileLoc, "GISSM_yr_gridSTDF_prediction_",  format(currDate, "%m%Y"), ".nc")), variable = "time")/365)[2]
-# compare the predictions to the historical values 
-GISSM_preds_anoms_2 <- GISSM_preds_mean_2 - GISSM_hist_means
-# save the median data as a COG
-terra::writeRaster(GISSM_preds_anoms_2, 
-                   filename = paste0(outLoc,"GISSM_MeanPredictedAnomaliesRelativeToHistoricalMeans_for_", GISSM_preds_time_2,".tif"), gdal = "COG")
+# save the means data as a COG
+terra::writeRaster(GISSM_preds_mean_2, 
+                   filename = paste0(outLoc,"GISSM_prediction_meanOfPredictionsFor", GISSM_preds_time_2,".tif"), gdal = "COG")
 
-# Soil Moisture: Mean predicted surface (?) soil moisture for growing season -----------------------------------------------------------
-# (define differently for different regions?) (from vwc-shallow_dy_gridSTDF_median-prediction.nc) 
-## currently, defined growing season uniformly as May to September, but will need to make site-specific
-VWC_pred <- rast(paste0(fileLoc, "vwc-shallow_dy_gridSTDF_median-prediction_",  format(currDate, "%m%Y"), ".nc"))
-VWC_pred <- terra::subset(VWC_pred, 2:length(levels(VWC_pred)))
-# get the information from the time axis 
-VWC_pred_time <- var.get.nc(ncfile = open.nc(paste0(fileLoc, "vwc-shallow_dy_gridSTDF_median-prediction_",  format(currDate, "%m%Y"), ".nc")), variable = "time")
-# calculate the dates (were previously # of days since 1-1-1970)
-VWC_pred_time <- lubridate::as_date(VWC_pred_time[2:length(VWC_pred_time)], origin = "1970-01-01")
-# get the indices of values that are within the 'growing season' window (months 5 through 9)
-# from the current year
-goodMonths_currYear <- which((month(VWC_pred_time) %in% c(5:9)) & year(VWC_pred_time) == currYear)
-# from the next year
-goodMonths_nextYear <- which((month(VWC_pred_time) %in% c(5:9) )& year(VWC_pred_time) == currYear+1)
-
-## get data for the first year growing season
-VWC_pred_yr1 <- terra::subset(VWC_pred, goodMonths_currYear)
-VWC_pred_mean_yr1 <- mean(VWC_pred_yr1, na.rm = TRUE)
-
-## get data for the next year growing season
-VWC_pred_yr2 <- terra::subset(VWC_pred, goodMonths_nextYear)
-VWC_pred_mean_yr2 <- mean(VWC_pred_yr2, na.rm = TRUE)
-
-# save the mean data as a COG
-terra::writeRaster(VWC_pred_mean_yr1, filename = paste0(outLoc,"VWC_surface_prediction_growingSeasonMeans_for_",  currYear,".tif"), gdal = "COG", overwrite = TRUE)
-terra::writeRaster(VWC_pred_mean_yr2, filename = paste0(outLoc,"VWC_surface_prediction_growingSeasonMeans_for_",  currYear+1,".tif"), gdal = "COG", overwrite = TRUE)
-
-# Soil Moisture: Deltas (comparison of mean to normal period for the same period) for mean surface (?) soil moisture for growing season --------------------------------------------------------------------
-# diff (future predictions - historical)
-# (define differently for different regions?) (from vwc-shallow_dy_gridSTDF_median-diffs-prediction.nc) 
-## currently, defined growing season uniformly as May to September, but will need to make site-specific
-# get data
-VWC_delta <- rast(paste0(fileLoc, "vwc-shallow_dy_gridSTDF_median-diffs-prediction_",  format(currDate, "%m%Y"), ".nc"))
-
-# get the information from the time axis 
-VWC_delta_time <- var.get.nc(ncfile = open.nc(paste0(fileLoc, "vwc-shallow_dy_gridSTDF_median-diffs-prediction_",  format(currDate, "%m%Y"), ".nc")), variable = "time")
-# calculate the dates (were previously # of days since 1-1-1970)
-VWC_delta_time <- lubridate::as_date(VWC_delta_time[2:length(VWC_delta_time)], origin = "1970-01-01")
-# get the indices of values that are within the 'growing season' window (months 5 through 9)
-# from the current year
-goodMonths_currYear <- which((month(VWC_delta_time) %in% c(5:9) )&( year(VWC_delta_time) == currYear))
-# from the next year
-goodMonths_nextYear <- which((month(VWC_delta_time) %in% c(5:9)) & (year(VWC_delta_time) == currYear+1))
-
-## get data for the first year growing season
-VWC_delta_yr1 <- terra::subset(VWC_delta, goodMonths_currYear)
-VWC_delta_mean_yr1 <- mean(VWC_delta_yr1, na.rm = TRUE)
-## get data for the second year growing season
-VWC_delta_yr2 <- terra::subset(VWC_delta, goodMonths_nextYear)
-VWC_delta_mean_yr2 <- mean(VWC_delta_yr2, na.rm = TRUE)
-
-# save the mean data as a COG
-terra::writeRaster(VWC_delta_mean_yr1, filename = paste0(outLoc,"VWC_surface_predictionDiffFromNormalPeriod_growingSeason_for_",  currYear,".tif"), gdal = "COG", overwrite = TRUE)
-terra::writeRaster(VWC_delta_mean_yr2, filename = paste0(outLoc,"VWC_surface_predictionDiffFromNormalPeriod_growingSeason_for_",  currYear+1,".tif"), gdal = "COG", overwrite = TRUE)
-
-# Soil Moisture: Mean surface (?) soil moisture for Fall (?)-------------------------------------------------------------
-# (from vwc-shallow_dy_gridSTDF_median-prediction.nc) 
-## currently, defined "Fall" as September through November 
-# use "VWC_pred" and "VWC_pred_time" from above 
-# get the indices of values that are within the "fall" window (months 9 through 11)
-# from the current year
-goodMonths_currYear <- which((month(VWC_pred_time) %in% c(9:11)) & (year(VWC_pred_time) == currYear))
-# from the next year
-goodMonths_nextYear <- which((month(VWC_pred_time) %in% c(9:11)) & (year(VWC_pred_time) == currYear+1))
-
-## get data for the first year Fall season
-VWC_pred_yr1 <- terra::subset(VWC_pred, goodMonths_currYear)
-VWC_pred_mean_yr1 <- mean(VWC_pred_yr1, na.rm = TRUE)
-
-## get data for the next year Fall season
-VWC_pred_yr2 <- terra::subset(VWC_pred, goodMonths_nextYear)
-VWC_pred_mean_yr2 <- mean(VWC_pred_yr2, na.rm = TRUE)
-
-# save the mean data as a COG
-terra::writeRaster(VWC_pred_mean_yr1, filename = paste0(outLoc,"VWC_surface_prediction_FallMeans_for_",  currYear,".tif"), gdal = "COG")
-terra::writeRaster(VWC_pred_mean_yr2, filename = paste0(outLoc,"VWC_surface_prediction_FallMeans_for_",  currYear+1,".tif"), gdal = "COG")
-
-
-# Soil Moisture: Deltas for mean surface (?) soil moisture for Fall  (?) ----------------------------------------------------------
-# (from vwc-shallow_dy_gridSTDF_median-diffs-prediction.nc) 
-## currently, defined "Fall" as September through November 
-## use "VWC_delta" and "VWC_delta_time" from above
-# get the indices of values that are within the 'Fall' window (months 9 through 11 )
-# from the current year
-goodMonths_currYear <- which((month(VWC_delta_time) %in% c(9:11) )&( year(VWC_delta_time) == currYear))
-# from the next year
-goodMonths_nextYear <- which((month(VWC_delta_time) %in% c(9:11)) & (year(VWC_delta_time) == currYear+1))
-
-## get data for the first year Fall season
-VWC_delta_yr1 <- terra::subset(VWC_delta, goodMonths_currYear)
-VWC_delta_mean_yr1 <- mean(VWC_delta_yr1, na.rm = TRUE)
-## get data for the second year Fall season
-VWC_delta_yr2 <- terra::subset(VWC_delta, goodMonths_nextYear)
-VWC_delta_mean_yr2 <- mean(VWC_delta_yr2, na.rm = TRUE)
-
-# save the mean data as a COG
-terra::writeRaster(VWC_delta_mean_yr1, filename = paste0(outLoc,"VWC_surface_predictionDiffFromNormalPeriod_Fall_for_",  currYear,".tif"), gdal = "COG", overwrite = TRUE)
-terra::writeRaster(VWC_delta_mean_yr2, filename = paste0(outLoc,"VWC_surface_predictionDiffFromNormalPeriod_Fall_for_",  currYear+1,".tif"), gdal = "COG", overwrite = TRUE)
 
 # Precip: Mean predicted precip values over the next three months--------------------------------------------------------------------
 # (or could do growing season... depends on what we think this information would
