@@ -2,6 +2,7 @@ rm(list=ls(all = TRUE))
 #library(rgdal)
 library(terra)
 library(lubridate)
+library(RNetCDF)
 
 # Get date information and prep for loading files ----------------------------------------------------
 currDOY <- lubridate::yday(Sys.Date())
@@ -12,6 +13,15 @@ todayMonthDay <- format(Sys.Date() , format="%m-%d")
 
 ## get the location of netCDFs output from this model run
 fileLoc <-  paste0('./outputs/', format(currDate, "%Y%m%d"))
+
+# Get Dates For Current Test Iteration -----------------------------------------
+currDOY <-  lubridate::yday("2024-09-03")
+currMonth <- lubridate::month("2024-09-03")
+currYear <- lubridate::year("2024-09-03")
+currDate <- as.Date("2024-09-03")
+todayMonthDay <- format("2024-09-03" , format="%m-%d")
+fileLoc <- "./projects/07_TestOutputForFRESC/trimmed_netCDFs/" 
+
 ## get the location for saving the COGs output from this model run
 outLoc <- paste0("./outputs/", format(currDate,  "%Y%m%d"),"/COGs/")
 if(!dir.exists(outLoc)) {
@@ -371,3 +381,4 @@ temp_diff_means <- mean(diffs, na.rm = TRUE)
 terra::writeRaster(temp_diff_means, filename = paste0(outLoc,"TMean_predictionDiffFromNormalPeriod_MeanOverNext90Days_from_", temp_pred_time[goodDates_preds][1],"_to_",currDate+90, ".tif"), gdal = "COG", overwrite = TRUE)
 
 ###Idea: could use some sort of stippling/shading to indicate when predictions are “significantly different” from the normal period (i.e. CIs don’t overlap)--especially for deltas 
+
