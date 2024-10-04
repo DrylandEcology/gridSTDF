@@ -187,7 +187,8 @@ precip_pred_90days <- terra::subset(precip_preds, goodDates)
 precip_pred_median_90days <- median(precip_pred_90days, na.rm = TRUE)
 
 # save the mean data as a COG
-terra::writeRaster(precip_pred_median_90days, filename = paste0(outLoc,"ppt_median-prediction_MedianOfMedianDailyValuesOverNext90Days_from", precip_pred_time[goodDates][1],"_to_",currDate+90, ".tif"), gdal = "COG", overwrite = TRUE)
+terra::writeRaster(precip_pred_median_90days, filename = paste0(outLoc,
+                                                                "ppt_median-prediction_MedianOfMedianDailyValuesOverNext90Days_from", precip_pred_time[goodDates][1],"_to_",currDate+90, ".tif"), gdal = "COG", overwrite = TRUE)
 
 # Precip: Deltas for precip over the next three months  -----------------------------------------------------------------
 # (comparison of mean to normal period for the same period) (from ppt_dy_gridSTDF_median-diffs-prediction.nc) 
@@ -220,9 +221,9 @@ diffList <- lapply(X = 1:length(goodDates_preds), FUN = function(x) {
 diffs <- rast(diffList)
 # average across all days to get the mean diff over the next 90 days 
 precip_diff_means <- mean(diffs, na.rm = TRUE)
+#precip_diff_medians <- median(diffs, na.rm = TRUE)
 # save the mean data as a COG
-terra::writeRaster(precip_diff_means, filename = paste0(outLoc,"Precip_predictionDiffFromNormalPeriod_MeanOverNext90Days_from_", precip_pred_time[goodDates_preds][1],"_to_",currDate+90, ".tif"), gdal = "COG", overwrite = TRUE)
-
+terra::writeRaster(precip_diff_means, filename = paste0(outLoc,"ppt_median-diffs-prediction_MeanOfMedianDailyDiffsOverNext90Days_from", precip_pred_time[goodDates_preds][1],"_to_",currDate+90, ".tif"), gdal = "COG", overwrite = TRUE)
 
 # Temp: Mean predicted temp values over the next three months ----------------------------------------------------------------
 # (from tmean_dy_gridSTDF_median-prediction.nc) 
@@ -243,7 +244,7 @@ temp_pred_90days <- terra::subset(temp_preds, goodDates_temp)
 temp_pred_mean_90days <- mean(temp_pred_90days, na.rm = TRUE)
 
 # save the mean data as a COG
-terra::writeRaster(temp_pred_mean_90days, filename = paste0(outLoc,"TMean_prediction_MeanOverNext90Days_from_", temp_pred_time[goodDates][1],"_to_",currDate+90, ".tif"), gdal = "COG", overwrite = TRUE)
+terra::writeRaster(temp_pred_mean_90days, filename = paste0(outLoc,"tmean_median-prediction_MeanOfDailyMedianTempOverNext90Days_from", temp_pred_time[goodDates][1],"_to_",currDate+90, ".tif"), gdal = "COG", overwrite = TRUE)
 
 # Temp: Deltas for temp over the next three months ------------------------------------------------------------------
 # (comparison of mean to normal period for the same period) (from tmean_dy_gridSTDF_median-diffs-prediction.nc) 
@@ -275,7 +276,7 @@ diffs <- rast(diffList)
 # average across all days to get the mean diff over the next 90 days 
 temp_diff_means <- mean(diffs, na.rm = TRUE)
 # save the mean data as a COG
-terra::writeRaster(temp_diff_means, filename = paste0(outLoc,"TMean_predictionDiffFromNormalPeriod_MeanOverNext90Days_from_", temp_pred_time[goodDates_preds][1],"_to_",currDate+90, ".tif"), gdal = "COG", overwrite = TRUE)
+terra::writeRaster(temp_diff_means, filename = paste0(outLoc,"tmean_median-diffs-prediction_MeanOfDailyDiffOVerNext90Days_from", temp_pred_time[goodDates_preds][1],"_to_",currDate+90, ".tif"), gdal = "COG", overwrite = TRUE)
 
 ###Idea: could use some sort of stippling/shading to indicate when predictions are “significantly different” from the normal period (i.e. CIs don’t overlap)--especially for deltas 
 
