@@ -166,7 +166,7 @@ terra::writeRaster(GISSM_preds_mean_2,
                    filename = paste0(outLoc,"GISSM_prediction_meanOfPredictionsFor", GISSM_preds_time_2,".tif"), gdal = "COG")
 
 
-# Precip: Mean predicted precip values over the next three months--------------------------------------------------------------------
+# Precip: Median predicted precip values over the next three months--------------------------------------------------------------------
 # (or could do growing season... depends on what we think this information would
 # be useful for) (from ppt_dy_gridSTDF_median-prediction.nc)
 ## currently just the next 3 months 
@@ -183,10 +183,11 @@ goodDates <- which(precip_pred_time %in% as_date(c(currDate:(currDate+90))))
 
 ## get data for the next three months
 precip_pred_90days <- terra::subset(precip_preds, goodDates)
-precip_pred_mean_90days <- mean(precip_pred_90days, na.rm = TRUE)
+#precip_pred_mean_90days <- mean(precip_pred_90days, na.rm = TRUE)
+precip_pred_median_90days <- median(precip_pred_90days, na.rm = TRUE)
 
 # save the mean data as a COG
-terra::writeRaster(precip_pred_mean_90days, filename = paste0(outLoc,"Precip_prediction_MeanOverNext90Days_from_", precip_pred_time[goodDates][1],"_to_",currDate+90, ".tif"), gdal = "COG", overwrite = TRUE)
+terra::writeRaster(precip_pred_median_90days, filename = paste0(outLoc,"ppt_median-prediction_MedianOfMedianDailyValuesOverNext90Days_from", precip_pred_time[goodDates][1],"_to_",currDate+90, ".tif"), gdal = "COG", overwrite = TRUE)
 
 # Precip: Deltas for precip over the next three months  -----------------------------------------------------------------
 # (comparison of mean to normal period for the same period) (from ppt_dy_gridSTDF_median-diffs-prediction.nc) 
