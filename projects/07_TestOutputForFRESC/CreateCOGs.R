@@ -41,7 +41,8 @@ shriver_hist_meds <- median(shriver_hist_probsNorm, na.rm = TRUE)
 # save the median data as a COG
 terra::writeRaster(shriver_hist_meds, filename = paste0(outLoc,"ShriverHistoricalPreds_medians_from_1991_to_2020.tif"), gdal = "COG")
 
-# Shriver model: Probability of establishment for the next year relative to median values ---------------------------------------------------------
+# Shriver model: Probability of establishment for the next year---------------------------------------------------------
+# Note that this is just straight median of predictions, not the anomaly!
 # (median calculated from shriver_yr_gridSTDF_historical.nc;
 # probability for this year calculated from shriver_yr_gridSTDF_prediction.nc
 # (average of all 30 values for a year)) (need to have a cutoff month prior to
