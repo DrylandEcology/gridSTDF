@@ -27,7 +27,7 @@ suppressMessages(library(ncdf4, quiet = TRUE))
 
 # variables --------------------------------------------------------------------
 isParallel <- FALSE # set to FALSE if you dont want to use pbdMPI to execute runs in parallel 
-nRuns = 30 #is 30 for point based netCDF, but changed to 5 here for testing purposes (this is the number of simulations for each grid?? I think? )
+nRuns = 30 #is 30 for point based netCDF, but changed to 5 here for testing purposes (this is the number of simulations for each grid)
 
 # Begin ------------------------------------------------------------------------
 file_list <- list.files(path = "./functions/", full.names = TRUE)
