@@ -112,15 +112,16 @@ if(today_julian <= 183) {
 
   year(c2[year(c2) == lastYear]) <- 2023
   year(c2[year(c2) == currYear]) <- 2024
-  year(c2[year(c2) == nextYear]) <- 2025
+  year(c2[year(c2) == nextYear]) <- 2025 ##AES change to not be hard coded?? (along w/ other year values))
 
 } else {
 
   year(c1[year(c1) == currYear]) <- 1991
-  year(c1[year(c1) == nextYear]) <- 1992
+  year(c1[year(c1) == nextYear & !is.na(c1)])  <- 1992
+  
   
   year(c2[year(c2) == currYear]) <- 2023
-  year(c2[year(c2) == nextYear]) <- 2024
+  year(c2[year(c2) == nextYear & !is.na(c2)]) <- 2024
   
 }
 
@@ -240,15 +241,15 @@ for(nc in 1:106){
   )
   
   ## time bounds --------------------------------
-  time_bounds <- if(nc_time$units == "days since 1970-01-01" && attributes$TP[nc] == 'P') {
+  time_bounds <- if (nc_time$units == "days since 1970-01-01" && attributes$TP[nc] == 'P') {
     time_bounds_daily_p
-  } else if(nc_time$units == "days since 1970-01-01" && attributes$TP[nc] == 'H') {
+  } else if (nc_time$units == "days since 1970-01-01" && attributes$TP[nc] == 'H') {
     time_bounds_daily_h
-  } else if(nc_time$units == "days since 1970-01-01" && attributes$TP[nc] == 'RP') {
+  } else if (nc_time$units == "days since 1970-01-01" && attributes$TP[nc] == 'RP') {
     time_bounds_daily_rp
-  } else if(nc_time$units == "days since 1970-01-01"  && attributes$TP[nc] == 'EH') {
+  } else if (nc_time$units == "days since 1970-01-01"  && attributes$TP[nc] == 'EH') {
     time_bounds_annually_h
-  } else if(nc_time$units == "days since 1970-01-01"  && attributes$TP[nc] == 'EP') {
+  } else if (nc_time$units == "days since 1970-01-01"  && attributes$TP[nc] == 'EP') {
     time_bounds_annually_p
   } else if (nc_time$units == 'days since 1970-01-01' && attributes$TP[nc] == 'OC') {
     time_bounds_March
@@ -304,8 +305,8 @@ for(nc in 1:106){
       data = western_region.nc1[["data"]],
       data_str = "xyzt",
       data_dims = data_dims_nc,
-      vertical_values = 1:30, 
-      vertical_attributes = list(units = "simulationNumber", positive = "up"),
+      simAxis_values = 1:30, 
+      simAxis_attributes = list(units = "simulationNumber", positive = "up"),
       var_attributes = nc_vars,
       xy_attributes = nc_att_xy,
       crs_attributes = nc_att_crs,
