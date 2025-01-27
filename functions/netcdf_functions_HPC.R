@@ -30,7 +30,7 @@
 #'   if the spatial structure is gridded,
 #'   while \var{"s"} stands for \var{site} if the spatial structure are
 #'   discrete points;
-#'   \var{z} stands for a vertical dimension; and \var{t} stands for a
+#'   \var{z} stands for a simulation dimension; and \var{t} stands for a
 #'   temporal dimension.
 #'
 #' @param xy_names A vector with two character strings. The names of the
@@ -44,7 +44,7 @@ NULL
 #' Create a \var{netCDF} file (with or without data)
 #'
 #' The user describes a data array and specifies
-#' spatial, vertical, and time information,
+#' spatial, simulation, and time information,
 #' and metadata to create a \var{netCDF} in \var{netcdf-4 format}
 #' according to \var{CF-1.8} standards.
 #'
@@ -84,14 +84,15 @@ NULL
 #'   Elements \var{calendar}, \var{units}, and \var{unlim} are required.
 #' @param time_bounds A numeric vector or two-dimensional matrix.
 #'   The start and end of each time (or climatological) unit.
-#' @param vertical_values A numeric vector or \code{NULL}. The values along the
-#'   vertical dimension (if present).
-#'   In units as described by \code{vertical_attributes}.
-#' @param vertical_attributes A list of named character strings defining the
-#'   \var{netCDF} vertical dimension, e.g., soil depth.
+#' @param simAxis_values A numeric vector or \code{NULL}. The values along the
+#'   "simulation axis" dimension (if present).
+#'   In units as described by \code{simAxis__attributes}.
+#' @param simAxis_attributes A list of named character strings defining the
+#'   \var{netCDF} simulation dimension, .
 #'   Elements \var{units} and \var{positive} are required.
-#' @param vertical_bounds A numeric vector or two-dimensional matrix.
-#'   The upper/lower limits of each vertical unit.
+#' @param simAxis_bounds A numeric vector or two-dimensional matrix.
+#'   The upper/lower limits of the number of simulations that make up the 
+#'   simulation axis.
 #' @param global_attributes A list of named character strings defining the
 #'   global attributes of the \var{netCDF}.
 #' @param overwrite A logical value. If \code{TRUE}, file will be overwritten
@@ -108,7 +109,7 @@ NULL
 #'   Used only if \code{nc_compression} is activated \code{TRUE}.
 #' @param nc_chunks A character string, \code{NA}, or an integer vector.
 #'   See details. The default \var{"by_zt"} is to create chunks for the
-#'   entire \var{xy-space} and for each vertical and each time step.
+#'   entire \var{xy-space} and for each simulation and each time step.
 #'   Used only if \code{nc_compression} is activated \code{TRUE}.
 #' @param verbose A logical value.
 #'
@@ -123,10 +124,10 @@ NULL
 #'
 #' The created \var{netCDF} is suitable for three data situations:
 #' \enumerate{
-#'    \item one variable and \var{xy-space}, time and vertical dimensions
-#'    \item one variable and \var{xy-space} and time or vertical dimensions
+#'    \item one variable and \var{xy-space}, time and simulation dimensions
+#'    \item one variable and \var{xy-space} and time or simulation dimensions
 #'    \item one or multiple variables and \var{xy-space} dimensions
-#'          without time/vertical dimensions
+#'          without time/simulation dimensions
 #' }
 #'
 #'
@@ -197,14 +198,14 @@ NULL
 #' \itemize{
 #'   \item multiple variables, if \code{data_str} is \var{"xy"} or \var{"s"}
 #'   \item time dimension, if \code{data_str} is \var{"xyt"} or \var{"st"}
-#'   \item vertical dimension, if \code{data_str} is
+#'   \item simulation dimension, if \code{data_str} is
 #'         \var{"xyzt"}, \var{"xyz"}, \var{"szt"}, or \var{"sz"}
 #' }
 #'
 #' The second non-spatial dimension of the \code{data} array, if present,
 #' corresponds to the time dimension;
 #' this situation arises only in the presence of
-#' both a time and vertical dimension,
+#' both a time and simulation dimension,
 #' i.e., \code{data_str} is \var{"xyzt"} or \var{"szt"}.
 #'
 #'
@@ -220,10 +221,10 @@ NULL
 #' \describe{
 #'   \item{"by_zt"}{
 #'     create chunks for the entire \var{xy-space} and
-#'     for each vertical and each time step
+#'     for each simulation and each time step
 #'   }
 #'   \item{"by_t"}{
-#'     create chunks for the entire \var{xy-space} and all vertical steps
+#'     create chunks for the entire \var{xy-space} and all simulation steps
 #'     (if present) and for each time step
 #'   }
 #' }
@@ -310,8 +311,8 @@ NULL
 #'   crs_attributes = nc_att_crs,
 #'   time_values = data_szt[["time_values"]],
 #'   type_timeaxis = "timeseries",
-#'   vertical_values = data_szt[["vertical_values"]],
-#'   vertical_attributes = list(units = "m", positive = "down"),
+#'   simAxis_values = data_szt[["simAxis_values"]],
+#'   simAxis_attributes = list(units = "m", positive = "down"),
 #'   global_attributes = nc_att_global
 #' )
 #'
@@ -361,12 +362,12 @@ create_netCDF_use <- function(
       unlim = FALSE
     ),
     time_bounds = matrix(NA, nrow = length(time_values), ncol = 2),
-    vertical_values = NULL,
-    vertical_attributes = list(
+    simAxis_values = NULL,
+    simAxis_attributes = list(
       units = "",
       positive = "down"
     ),
-    vertical_bounds = matrix(NA, nrow = length(vertical_values), ncol = 2),
+    simAxis_bounds = matrix(NA, nrow = length(simAxis_values), ncol = 2),
     global_attributes = list(title = "Title"),
     overwrite = FALSE,
     nc_compression = FALSE,
@@ -433,9 +434,9 @@ create_netCDF_use <- function(
   data_type <- temp[temp$old == data_type,"new"]
 
   # Three data structure situations:
-  #   i) one variable and vertical axis and time ("xyzt", "szt")
-  #   ii) one variable and time OR vertical axis ("xyt", "xyz", "st", "sz")
-  #   iii) one/multiple variables and no time/vertical axis ("xy", "s")
+  #   i) one variable and simulation axis and time ("xyzt", "szt")
+  #   ii) one variable and time OR simulation axis ("xyt", "xyz", "st", "sz")
+  #   iii) one/multiple variables and no time/simulation axis ("xy", "s")
   data_str <- match.arg(data_str)
   is_gridded <- isTRUE(substr(data_str, 1, 2) == "xy")
   
@@ -784,93 +785,93 @@ create_netCDF_use <- function(
   }
   
   
-  #------ vertical axis ------
-  n_vertical <- length(vertical_values)
+  #------ simulation axis ------
+  n_simAxis <- length(simAxis_values)
   
-  has_Z_verticalAxis <- if (data_dims["nz"] > 0) {
+  has_Z_simAxis <- if (data_dims["nz"] > 0) {
     "explicit"
-  } else if (n_vertical > 0) {
+  } else if (n_simAxis > 0) {
     "implicit"
   } else {
     "none"
   }
   
-  if (has_Z_verticalAxis %in% c("explicit", "implicit")) {
+  if (has_Z_simAxis %in% c("explicit", "implicit")) {
     
     #--- Check time values/dimension match
-    if (has_Z_verticalAxis == "explicit" && data_dims["nz"] != n_vertical) {
+    if (has_Z_simAxis == "explicit" && data_dims["nz"] != n_simAxis) {
       stop(
         "`data_dims[\"nz\"]` must match ",
-        "the number of elements in `vertical_values`."
+        "the number of elements in `simAxis_values`."
       )
     }
     
-    if (has_Z_verticalAxis == "implicit" && n_vertical != 1) {
+    if (has_Z_simAxis == "implicit" && n_simAxis != 1) {
       stop(
         "If `data_dims[\"nz\"]` is zero, ",
-        "then `vertical_values` can only have one value."
+        "then `simAxis_values` can only have one value."
       )
     }
     
-    #--- Check and conform vertical_bounds
-    if (length(dim(vertical_bounds)) == 0) {
-      if (n_vertical * 2 != length(vertical_bounds)) {
+    #--- Check and conform simulation_bounds
+    if (length(dim(simAxis_bounds)) == 0) {
+      if (n_simAxis * 2 != length(simAxis_bounds)) {
         stop(
-          "Start and end values required for each `vertical_values` ",
-          "to define `vertical_bounds`"
+          "Start and end values required for each `simAxis_values` ",
+          "to define `simAxis_bounds`"
         )
       }
       
-      vertical_bounds <- matrix(
-        vertical_bounds,
-        nrow = n_vertical,
+      simAxis_bounds <- matrix(
+        simAxis_bounds,
+        nrow = n_simAxis,
         ncol = 2,
         byrow = TRUE
       )
       
     } else {
-      if (!identical(dim(vertical_bounds), c(as.integer(n_vertical), 2L))) {
+      if (!identical(dim(simAxis_bounds), c(as.integer(n_simAxis), 2L))) {
         stop(
-          "Start and end values required for each `vertical_values` ",
-          "to define `vertical_bounds`"
+          "Start and end values required for each `simAxis_values` ",
+          "to define `simAxis_bounds`"
         )
       }
     }
     
     
-    #--- Check vertical attributes
-    if ("units" %in% names(vertical_attributes)) {
-      vert_units <- vertical_attributes[["units"]]
-      vertical_attributes[["units"]] <- NULL
+    #--- Check simAxis attributes
+    if ("units" %in% names(simAxis_attributes)) {
+      simAxis_units <- simAxis_attributes[["units"]]
+      simAxis_attributes[["units"]] <- NULL
     } else {
-      stop("Need `units` attribute in vertical attribute list")
+      stop("Need `units` attribute in simAxis attribute list")
     }
     
-    if (!("positive" %in% names(vertical_attributes))) {
-      stop("Need `positive` attribute in vertical attribute list")
+    if (!("positive" %in% names(simAxis_attributes))) {
+      stop("Need `positive` attribute in simAxis attribute list")
     }
     
-    if ("axis" %in% names(vertical_attributes)) {
-      if ("Z" != toupper(vertical_attributes[["axis"]])) {
+    if ("axis" %in% names(simAxis_attributes)) {
+      if ("Z" != toupper(simAxis_attributes[["axis"]])) {
         stop(
-          "`vertical_attributes`: ",
+          "`simAxis_attributes`: ",
           "if `axis` is included, then its value must be `Z`"
         )
       }
-      vertical_attributes[["axis"]] <- NULL
+      simAxis_attributes[["axis"]] <- NULL
     }
     
-    if ("bounds" %in% names(vertical_attributes)) {
-      if ("vertical_bnds" != vertical_attributes[["bounds"]]) {
+    if ("bounds" %in% names(simAxis_attributes)) {
+      if ("simAxis_bnds" != simAxis_attributes[["bounds"]]) {
         stop(
-          "`vertical_attributes`: ",
-          "if `bounds` is included, then its value must be `vertical_bnds`"
+          "`simAxis_attributes`: ",
+          "if `bounds` is included, then its value must be `simAxis_bnds`"
         )
       }
-      vertical_attributes[["bounds"]] <- NULL
+      simAxis_attributes[["bounds"]] <- NULL
     }
     
-    ns_att_vert <- names(vertical_attributes)
+    ns_att_vert <- names(simAxis_attributes)
   }
   
   
@@ -933,7 +934,7 @@ create_netCDF_use <- function(
     if (!("coordinates" %in% names(var_attributes))) {
       tmp <- paste(xy_attributes[["name"]][2], xy_attributes[["name"]][1])
       if (has_T_timeAxis != "none") tmp <- paste("time", tmp)
-      if (has_Z_verticalAxis != "none") tmp <- paste(tmp, "vertical")
+      if (has_Z_simAxis != "none") tmp <- paste(tmp, "simAxis")
       var_attributes[["coordinates"]] <- tmp
       
       if (verbose) {
@@ -1026,19 +1027,19 @@ create_netCDF_use <- function(
     var_start <- 1
   }
   
-  # vertical dimension
-  if (has_Z_verticalAxis != "none") {
+  # simAxis dimension
+  if (has_Z_simAxis != "none") {
     RNetCDF::dim.def.nc(
       nc,
-      dimname = "vertical",
-      dimlength = length(vertical_values)
+      dimname = "simulation",
+      dimlength = length(simAxis_values)
     )
   
-    var_dims <- c(var_dims,"vertical")
+    var_dims <- c(var_dims,"simulation")
     # if (has_chunks && has_predet_chunks) {
     #   var_chunksizes <- c(
     #     var_chunksizes,
-    #     if (nc_chunks == "by_zt") 1 else n_vertical
+    #     if (nc_chunks == "by_zt") 1 else n_simAxis
     #   )
     # }
     var_start <- c(var_start, 1)
@@ -1132,20 +1133,41 @@ var_defs <- var_names
       shuffle = nc_shuffle,
       chunksizes = c(n_yvals)
     )
-    if (has_Z_verticalAxis != "none") {
+    
+    
+    ## actually put data in the dimensions 
+    RNetCDF::var.put.nc(
+      nc, 
+      variable = "lon",
+      data = xvals
+    )
+    
+    RNetCDF::var.put.nc(
+      nc, 
+      variable = "lat",
+      data = yvals
+    )
+    
+    
+    if (has_Z_simAxis != "none") {
       
       RNetCDF::var.def.nc(
         nc, 
-        varname = "vertical",
+        varname = "simulation",
         vartype = "NC_DOUBLE",
-        dimensions = c("vertical"),
+        dimensions = c("simulation"),
         deflate = nc_deflate, 
         shuffle = nc_shuffle,
-        chunksizes = c(n_vertical)
+        chunksizes = c(n_simAxis)
       )
       
+      RNetCDF::var.put.nc(
+        nc, 
+        variable = "simulation", 
+        data = 1:30
+      )
       
-      #nc_dimvars <- c(nc_dimvars, "vertical_bnds")
+      #nc_dimvars <- c(nc_dimvars, "simAxis_bnds")
     }
     
     if (has_T_timeAxis != "none") {
@@ -1159,11 +1181,18 @@ var_defs <- var_names
         chunksizes = if (time_unlim) c(1L) else c( n_time)
       )
       
+      RNetCDF::var.put.nc(
+        nc, 
+        variable = "time", 
+        data = time_values
+      )
       
      # nc_dimvars <- c(nc_dimvars, varid_timebnds)
     }
   }
   
+## actually put data into dimension variables?? AES I think this is correct?? 
+
   
   #------ Define CRS ------ ###AES not too sure how this will work, may have to change
   RNetCDF::var.def.nc(
@@ -1209,25 +1238,25 @@ var_defs <- var_names
         chunksizes = c(2L, n_yvals)
       )
     #nc_dimvars <- c(bnds_name)
-
+     
   } else {
     #nc_dimvars <- c()
   }
 
-  if (has_Z_verticalAxis != "none") {
+  if (has_Z_simAxis != "none") {
   
       RNetCDF::var.def.nc(
         nc, 
-        varname = "vertical_bnds",
+        varname = "simulation_bnds",
         vartype = "NC_DOUBLE",
-        dimensions = c("bnds", "vertical"),
+        dimensions = c("bnds", "simulation"),
         deflate = nc_deflate, 
         shuffle = nc_shuffle,
-        chunksizes = c(2L, n_vertical)
+        chunksizes = c(2L, n_simAxis)
       )
 
 
-    #nc_dimvars <- c(nc_dimvars, "vertical_bnds")
+    #nc_dimvars <- c(nc_dimvars, "simAxis_bnds")
    }
 
   if (has_T_timeAxis != "none") {
@@ -1283,14 +1312,14 @@ var_defs <- var_names
     )
   }
   
-  if (has_Z_verticalAxis != "none") {
+  if (has_Z_simAxis != "none") {
     RNetCDF::var.put.nc(
       nc, 
-      variable =  "vertical_bnds",
-      data = #t(vertical_bounds), 
-        matrix(data = 1, nrow = nrow(t(vertical_bounds)), ncol = ncol(t(vertical_bounds))),
+      variable =  "simulation_bnds",
+      data = #t(simAxis_bounds), 
+        matrix(data = 1, nrow = nrow(t(simAxis_bounds)), ncol = ncol(t(simAxis_bounds))),
       start = c(1,1), 
-      count = c(2L, n_vertical)
+      count = c(2L, n_simAxis)
     )
   }
   
@@ -1351,28 +1380,28 @@ var_defs <- var_names
     )
   }
   
-  if (has_Z_verticalAxis != "none") {
+  if (has_Z_simAxis != "none") {
     RNetCDF::att.put.nc(
       nc, 
-      variable = "vertical", 
+      variable = "simulation", 
       name = "axis", 
       value = "Z", 
       type = "NC_CHAR"
     )
     RNetCDF::att.put.nc(
       nc, 
-      variable = "vertical", 
+      variable = "simulation", 
       name = "bounds", 
-      value = "vertical_bnds", 
+      value = "simAxis_bnds", 
       type = "NC_CHAR"
     )
    
     for (natt in ns_att_vert) {
       RNetCDF::att.put.nc(
         nc, 
-        variable = "vertical",
+        variable = "simulation",
         name = natt,
-        value = vertical_attributes[[natt]], 
+        value = simAxis_attributes[[natt]], 
         type = "NC_CHAR"
       )
     }

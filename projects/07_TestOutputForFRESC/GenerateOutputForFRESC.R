@@ -76,6 +76,17 @@ Sites <- whichSites
 
 sites <- dim(Sites)[1]
 
+# load gridded soils data from Daniel (currently an old version, will be updated w/ SOLUS100 data)
+soils_gridClay <- RNetCDF::open.nc(con = "./main/Data/soilsDB_new/claytotal_PED-CONUS4km_SOLUS100.nc") 
+soils_gridSand <- RNetCDF::open.nc(con = "./main/Data/soilsDB_new/sandtotal_PED-CONUS4km_SOLUS100.nc") 
+soils_gridSilt <- RNetCDF::open.nc(con = "./main/Data/soilsDB_new/silttotal_PED-CONUS4km_SOLUS100.nc") 
+soils_gridDensity <- RNetCDF::open.nc(con = "./main/Data/soilsDB_new/dbovendry_PED-CONUS4km_SOLUS100.nc") 
+soils_gridThickness <- RNetCDF::open.nc(con = "./main/Data/soilsDB_new/hzthk_PED-CONUS4km_SOLUS100.nc") 
+soils_gridCoarse <- RNetCDF::open.nc(con = "./main/Data/soilsDB_new/fragvol_PED-CONUS4km_SOLUS100.nc")
+soilGridLats <- var.get.nc(soils_gridClay, "latitude")
+soilGridLons <- var.get.nc(soils_gridClay, "longitude")
+
+
   alljid <- sites
 
 
@@ -152,6 +163,52 @@ for (j in 1:alljid){#1:alljid) { # TO DO: use "while" not "for"
         wdata[[names(wdata)[k]]]@data[wdata[[names(wdata)[k]]]@data[, "Tmax_C"] < wdata[[names(wdata)[k]]]@data[, "Tmin_C"], "Tmax_C"]
     }
   }
+  
+  ### get soils data for this gridcell
+  ### get soils data for this gridcell
+  # get indices for soil grid Lat and Lon
+  # the closest latitude
+  soilLat_i <- which((soilGridLats-Lat) == min(abs(soilGridLats - Lat)))
+  
+  # the closest longitude 
+  soilLon_i <- which((soilGridLons-Long) == min(abs(soilGridLons-Long)))
+  #round(soilGridLons,2)==round(Long,2))
+  #clay (as a percentage...convert to a fraction by dividing by 100)
+  clay_i <- var.get.nc(soils_gridClay, "claytotal", start = c(soilLon_i, soilLat_i,1), 
+                       count = c(1,1,dim.inq.nc(soils_gridClay, "vertical")$length))/100
+  #sand (as a percentage...convert to a fraction by dividing by 100)
+  sand_i <- var.get.nc(soils_gridSand, "sandtotal", start = c(soilLon_i, soilLat_i,1), 
+                       count = c(1,1,dim.inq.nc(soils_gridSand, "vertical")$length))/100
+  #silt (as a percentage...convert to a fraction by dividing by 100)
+  silt_i <- var.get.nc(soils_gridSilt, "silttotal", start = c(soilLon_i, soilLat_i,1), 
+                       count = c(1,1,dim.inq.nc(soils_gridSilt, "vertical")$length))/100
+  #coarse material (as a percentage...convert to a fraction by dividing by 100)
+  coarse_i <- var.get.nc(soils_gridCoarse, "fragvol", start = c(soilLon_i, soilLat_i,1), 
+                         count = c(1,1,dim.inq.nc(soils_gridCoarse, "vertical")$length))/100
+  #thickness
+  thickness_i <- var.get.nc(soils_gridThickness, "hzthk", start = c(soilLon_i, soilLat_i,1), 
+                            count = c(1,1,dim.inq.nc(soils_gridThickness, "vertical")$length))   
+  # units are in cm
+  
+  bulkdensity_i <- var.get.nc(soils_gridDensity, "dbovendry", start = c(soilLon_i, soilLat_i,1), 
+                              count = c(1,1,dim.inq.nc(soils_gridDensity, "vertical")$length)) # units = g/cm3
+  
+  ## get the depths also (the "vertical_bnds" dimension contains a matrix with 
+  # the upper and lower bounds of each depth band--we want the lower bounds)
+  
+  depths_i <- var.get.nc(soils_gridThickness, "vertical_bnds")[2,]
+  ##AES this part below is a test... see what other folks think about this...
+  # trim soils data so that there are not NAs (the data stops at the depth for which we have data)
+  # also get the depths for the layers included
+  depths_i <- depths_i[!is.na(clay_i)]
+  clay_i <- clay_i[!is.na(clay_i)] 
+  sand_i <- sand_i[!is.na(sand_i)]
+  silt_i <- silt_i[!is.na(silt_i)]
+  coarse_i <- coarse_i[!is.na(coarse_i)]
+  thickness_i <- thickness_i[!is.na(thickness_i)]
+  bulkdensity_i <- bulkdensity_i[!is.na(bulkdensity_i)]
+  
+  # depths 
   ################### ----------------------------------------------------------
   # Part 2 - Sets SW parameters besides weather
   ################### ----------------------------------------------------------
@@ -159,23 +216,25 @@ for (j in 1:alljid){#1:alljid) { # TO DO: use "while" not "for"
   #sw_in <- new("swInputData") # baseline data # new() creates an empty object of this class, but everything needs to be addedd manually... which may be cumbersome
   sw_in <- swInputData()
   sw_in <- setVeg(sw_in, AllProdInfo, i)
-  sw_in <- setSW(sw_in, Lat, Long, clim)
+  sw_in <- setSW(sw_in, Lat, Long, clim, 
+                 clay_i, sand_i, silt_i, coarse_i, thickness_i, bulkdensity_i)
   #sw_in <- set_soils(sw_in, 2, 35, 35) #AES is done elsewhere in the setSW() function
-  sw_in@site@SoilTemperatureFlag <- TRUE # turns off the soil temp option #AES follow-up with Caitlin why it was turned off? 
+  sw_in@site@SoilTemperatureFlag <- TRUE # turns on the soil temperature 
   swCarbon_Use_Bio(sw_in) <- FALSE # turns off carbon #turns off CO2 fertilization effects... something we could potentially change
   swCarbon_Use_WUE(sw_in) <- FALSE # turns off Water use efficiency 
   swYears_EndYear(sw_in) <- currYear - 1 # the setting for the historical simulation 
   
   # Soils info formatting ----------------------------------------------------
   # waiting on the proper soils data, this is sort of a placeholder
-  
+  #AES how do we define what the depths are?? -- double check 
   SoilsDF <- data.frame(depth_cm = c(1:250),
                         Depth = c(rep('Shallow', 15),
                                   rep('Intermediate', 50), #16 - 65
                                   rep('Deep',185))) # 66 - 250
+  # could be problematic if some soils are shallow--maybe should indicate how much depth is represented in each 
   
   Soils <- data.frame(sw_in@soils@Layers)[,c('depth_cm', 'sand_frac', 'clay_frac')]
-  Soils$width <- diff(c(0, Soils$depth_cm))
+  Soils$width <- thickness_i#diff(c(0, Soils$depth_cm))
   SoilsDF <- merge(Soils, SoilsDF, by = 'depth_cm')
   SoilsDF$variable <- paste0('Lyr_',1:dim(SoilsDF)[1])
   
@@ -265,10 +324,11 @@ for (j in 1:alljid){#1:alljid) { # TO DO: use "while" not "for"
   PPTAnoms <- PPTAnoms[1:Nleads,]
   
   # function in "weatherFunctions.R"
-  AnomalyData1 <- runFutureSWwithAnomalies(sw_in0 = sw_in, wdata, SoilsDF, 
+AnomalyData1 <- runFutureSWwithAnomalies(sw_in0 = sw_in, wdata, SoilsDF, 
                                            TempAnoms, PPTAnoms,
                                            Nleads, n = nRuns,
                                            currDOY, currMonth, currYear, currDate)
+  
   
   
   ################ -------------------------------------------------------------
