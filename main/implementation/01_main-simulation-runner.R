@@ -5,9 +5,10 @@ rm(list=ls(all=TRUE))
 #     LDFLAGS=-L/sw/lib LIBS=-lhdf5 --with-mpicc=mpicc --with-mpiexec=mpiexec" \
 # RNetCDF_2.9-1.tar.gz
 
-#remotes::install_github("DrylandEcology/rSW2st")
-#remotes::install_github("DrylandEcology/rSOILWAT2", build_vignettes = FALSE)
-#remotes::install_github("DrylandEcology/rSW2funs")
+# remotes::install_github("DrylandEcology/rSW2st")
+# remotes::install_github("DrylandEcology/rSOILWAT2", build_vignettes = FALSE)
+# remotes::install_github("DrylandEcology/rSW2funs")
+
 suppressMessages(library(rSOILWAT2, quiet = TRUE))
 
 suppressMessages(library(rSW2data, quiet = TRUE))
@@ -23,7 +24,7 @@ suppressMessages(library(pbdMPI, quiet = TRUE))
 
 #suppressMessages(library(pbdNCDF4, quiet = TRUE))
 suppressMessages(library(RNetCDF, quiet = TRUE))
-suppressMessages(library(ncdf4, quiet = TRUE))
+#suppressMessages(library(ncdf4, quiet = TRUE))
 
 # variables --------------------------------------------------------------------
 isParallel <- FALSE # set to FALSE if you dont want to use pbdMPI to execute runs in parallel 
@@ -56,7 +57,7 @@ if(isParallel) {
 
 # Weather and sites ------------------------------------------------------------
 weatherDB <- rSOILWAT2::dbW_setConnection(
-  dbFilePath = 'main/Data/dbWeatherData_WesternUS_gridMET_1979-2021.sqlite3')
+  dbFilePath = 'main/Data/dbWeatherData_WesternUS4km_gridMET_v20240509.sqlite3')
  
 # this stuff is on the HPC... # Alice will download to her local computer later
 Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
@@ -116,7 +117,7 @@ if(!interactive() & isParallel) comm.print('begin simulations')
 
 # Run simulation --------------------------------------------------------------
 
-for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
+for (j in 1:alljid) { # TO DO: use "while" not "for"
   i <- j
   
   ################### ------------------------------------------------------------
@@ -124,7 +125,7 @@ for (j in 1:2){#alljid) { # TO DO: use "while" not "for"
   ################### ------------------------------------------------------------
 ## should double check... do we need to have a copy of the database on each core? 
   weatherDB <- rSOILWAT2::dbW_setConnection(
-    dbFilePath = 'main/Data/dbWeatherData_WesternUS_gridMET_1979-2021.sqlite3')
+    dbFilePath = 'main/Data/dbWeatherData_WesternUS4km_gridMET_v20240509.sqlite3')
   
   Site_id <- Sites$Site_id[i]
   Lat <- Sites$Latitude[i]
