@@ -18,7 +18,7 @@ formatShriver2018 <- function(Hist_Shriver2018, Future_Shriver2018, currYear) {
   Future_ShriverMeds <- Future_Shriver2018[, .(Prob = median(Prob)), .(run_sim, Year)]
   Future_ShriverMeds$TP <- as.character(Future_ShriverMeds$Year)
   
-  return(bind(Hist_Shriver2018, Future_ShriverMeds))
+  return(raster::bind(Hist_Shriver2018, Future_ShriverMeds))
 }
 
 #' Organizes all GISSM output for passing along API
