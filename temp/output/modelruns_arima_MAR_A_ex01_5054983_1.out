@@ -1,0 +1,7 @@
+SLURM_JOB_ID: 5054983
+SLURM_JOB_NAME: modelruns_arima_MAR_A
+SLURM_JOB_NODELIST: cn063
+SLURM_ARRAY_TASK_ID: 1
+ModuleCmd_Load.c(244):ERROR:105: Unable to locate a modulefile for 'gcc/12.2.0'
+ModuleCmd_Load.c(244):ERROR:105: Unable to locate a modulefile for 'r/4.4'
+/var/spool/slurmd/job5054983/slurm_script: line 20: Rscript: command not found

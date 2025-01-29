@@ -1,0 +1,301 @@
+"CurSim","simName","missingprop_autocor","missingness","type","param","value","missingnessVersion","SE"
+201,"201","propMissAct_0.04_autoCorr_0.1","MAR","Data Deletion Simple","ar1",0.00622032602293833,"A",0.0538661582819683
+201,"201","propMissAct_0.08_autoCorr_0.05","MAR","Data Deletion Simple","ar1",0.0239733989038659,"B",0.055267082002621
+201,"201","propMissAct_0.14_autoCorr_0.03","MAR","Data Deletion Simple","ar1",-0.00848635334459143,"C",0.0576239741748044
+201,"201","propMissAct_0.2_autoCorr_0.05","MAR","Data Deletion Simple","ar1",0.0671666660975511,"D",0.0595498275130616
+201,"201","propMissAct_0.24_autoCorr_0.08","MAR","Data Deletion Simple","ar1",-0.048573537649716,"E",0.0609374696500316
+201,"201","propMissAct_0.28_autoCorr_0.05","MAR","Data Deletion Simple","ar1",0.0415743755859911,"F",0.0622283175810122
+201,"201","propMissAct_0.36_autoCorr_0.04","MAR","Data Deletion Simple","ar1",-0.116567265815623,"G",0.0656009950469222
+201,"201","propMissAct_0.38_autoCorr_0.05","MAR","Data Deletion Simple","ar1",0.01891861285508,"H",0.0688432446659619
+201,"201","propMissAct_0.45_autoCorr_0.06","MAR","Data Deletion Simple","ar1",0.0234889866250721,"I",0.0722848896865194
+201,"201","propMissAct_0.5_autoCorr_0.04","MAR","Data Deletion Simple","ar1",0.00399861750189591,"J",0.0757009812399104
+201,"201","propMissAct_0.58_autoCorr_0.03","MAR","Data Deletion Simple","ar1",0.137527812869108,"K",0.0816530083077934
+201,"201","propMissAct_0.6_autoCorr_0.03","MAR","Data Deletion Simple","ar1",-0.0627308754724581,"L",0.0832980695359965
+201,"201","propMissAct_0.65_autoCorr_0.07","MAR","Data Deletion Simple","ar1",0.0240017749300845,"M",0.0925063908391735
+201,"201","propMissAct_0.71_autoCorr_0.03","MAR","Data Deletion Simple","ar1",-0.128269637132749,"N",0.0963439478230454
+201,"201","propMissAct_0.74_autoCorr_0.1","MAR","Data Deletion Simple","ar1",0.204152048422971,"O",0.101941766738651
+201,"201","propMissAct_0.04_autoCorr_0.1","MAR","Data Deletion Simple","intercept",1.41750111516436,"A",0.0531716732822867
+201,"201","propMissAct_0.08_autoCorr_0.05","MAR","Data Deletion Simple","intercept",1.39794709529849,"B",0.0551693426778022
+201,"201","propMissAct_0.14_autoCorr_0.03","MAR","Data Deletion Simple","intercept",1.41292599027657,"C",0.054690136594982
+201,"201","propMissAct_0.2_autoCorr_0.05","MAR","Data Deletion Simple","intercept",1.38137015518813,"D",0.0621591371708251
+201,"201","propMissAct_0.24_autoCorr_0.08","MAR","Data Deletion Simple","intercept",1.42440081201425,"E",0.0574636328899278
+201,"201","propMissAct_0.28_autoCorr_0.05","MAR","Data Deletion Simple","intercept",1.39316951868932,"F",0.0630324562858524
+201,"201","propMissAct_0.36_autoCorr_0.04","MAR","Data Deletion Simple","intercept",1.37659552714779,"G",0.0560378281937253
+201,"201","propMissAct_0.38_autoCorr_0.05","MAR","Data Deletion Simple","intercept",1.42270373537116,"H",0.0671182517713976
+201,"201","propMissAct_0.45_autoCorr_0.06","MAR","Data Deletion Simple","intercept",1.42739730267861,"I",0.0704956999301272
+201,"201","propMissAct_0.5_autoCorr_0.04","MAR","Data Deletion Simple","intercept",1.46534099453166,"J",0.0707135679502591
+201,"201","propMissAct_0.58_autoCorr_0.03","MAR","Data Deletion Simple","intercept",1.4720613471191,"K",0.0891999340169578
+201,"201","propMissAct_0.6_autoCorr_0.03","MAR","Data Deletion Simple","intercept",1.33564484659062,"L",0.0723778025759887
+201,"201","propMissAct_0.65_autoCorr_0.07","MAR","Data Deletion Simple","intercept",1.48507141122162,"M",0.0938599788986503
+201,"201","propMissAct_0.71_autoCorr_0.03","MAR","Data Deletion Simple","intercept",1.41331683357723,"N",0.080281908034041
+201,"201","propMissAct_0.74_autoCorr_0.1","MAR","Data Deletion Simple","intercept",1.53605903156966,"O",0.110844172315317
+201,"201","propMissAct_0.04_autoCorr_0.1","MAR","Data Deletion Simple","light",1.69463562906384,"A",0.0551684264976003
+201,"201","propMissAct_0.08_autoCorr_0.05","MAR","Data Deletion Simple","light",1.72663127023093,"B",0.0566229854585409
+201,"201","propMissAct_0.14_autoCorr_0.03","MAR","Data Deletion Simple","light",1.74238860898354,"C",0.058405517311268
+201,"201","propMissAct_0.2_autoCorr_0.05","MAR","Data Deletion Simple","light",1.73827293190594,"D",0.0633407953177147
+201,"201","propMissAct_0.24_autoCorr_0.08","MAR","Data Deletion Simple","light",1.7057655352909,"E",0.0640085692512909
+201,"201","propMissAct_0.28_autoCorr_0.05","MAR","Data Deletion Simple","light",1.70179605329116,"F",0.0618958552046539
+201,"201","propMissAct_0.36_autoCorr_0.04","MAR","Data Deletion Simple","light",1.72095794932584,"G",0.0652187947819016
+201,"201","propMissAct_0.38_autoCorr_0.05","MAR","Data Deletion Simple","light",1.73433250259497,"H",0.069801026356455
+201,"201","propMissAct_0.45_autoCorr_0.06","MAR","Data Deletion Simple","light",1.69332001008059,"I",0.0759233065596852
+201,"201","propMissAct_0.5_autoCorr_0.04","MAR","Data Deletion Simple","light",1.74510200040205,"J",0.0803925445870903
+201,"201","propMissAct_0.58_autoCorr_0.03","MAR","Data Deletion Simple","light",1.71741767656449,"K",0.088143107019023
+201,"201","propMissAct_0.6_autoCorr_0.03","MAR","Data Deletion Simple","light",1.67474949175604,"L",0.0834498838192362
+201,"201","propMissAct_0.65_autoCorr_0.07","MAR","Data Deletion Simple","light",1.82264243451499,"M",0.0975219544258876
+201,"201","propMissAct_0.71_autoCorr_0.03","MAR","Data Deletion Simple","light",1.88068503692046,"N",0.0998142247650154
+201,"201","propMissAct_0.74_autoCorr_0.1","MAR","Data Deletion Simple","light",1.78962243818069,"O",0.0955482846778053
+201,"201","propMissAct_0.04_autoCorr_0.1","MAR","Data Deletion Simple","discharge",0.244407797588641,"A",0.051680182013609
+201,"201","propMissAct_0.08_autoCorr_0.05","MAR","Data Deletion Simple","discharge",0.231011539986249,"B",0.0521496732307468
+201,"201","propMissAct_0.14_autoCorr_0.03","MAR","Data Deletion Simple","discharge",0.239652023283955,"C",0.0543723536461059
+201,"201","propMissAct_0.2_autoCorr_0.05","MAR","Data Deletion Simple","discharge",0.251470644694066,"D",0.0565124767368215
+201,"201","propMissAct_0.24_autoCorr_0.08","MAR","Data Deletion Simple","discharge",0.237711804607872,"E",0.0588634309678565
+201,"201","propMissAct_0.28_autoCorr_0.05","MAR","Data Deletion Simple","discharge",0.252733619133603,"F",0.0605853797199982
+201,"201","propMissAct_0.36_autoCorr_0.04","MAR","Data Deletion Simple","discharge",0.188157100169716,"G",0.0572949250060585
+201,"201","propMissAct_0.38_autoCorr_0.05","MAR","Data Deletion Simple","discharge",0.268042072566289,"H",0.062662733397506
+201,"201","propMissAct_0.45_autoCorr_0.06","MAR","Data Deletion Simple","discharge",0.216286307914931,"I",0.0708372481196246
+201,"201","propMissAct_0.5_autoCorr_0.04","MAR","Data Deletion Simple","discharge",0.254869799890916,"J",0.0656010014775219
+201,"201","propMissAct_0.58_autoCorr_0.03","MAR","Data Deletion Simple","discharge",0.258834707744135,"K",0.0707930961087452
+201,"201","propMissAct_0.6_autoCorr_0.03","MAR","Data Deletion Simple","discharge",0.224762344118402,"L",0.0782066819241149
+201,"201","propMissAct_0.65_autoCorr_0.07","MAR","Data Deletion Simple","discharge",0.279381829689328,"M",0.098052293035286
+201,"201","propMissAct_0.71_autoCorr_0.03","MAR","Data Deletion Simple","discharge",0.356740289892951,"N",0.0930901618754029
+201,"201","propMissAct_0.74_autoCorr_0.1","MAR","Data Deletion Simple","discharge",0.256456655700493,"O",0.0951486002892863
+201,"201","propMissAct_0.04_autoCorr_0.1","MAR","Data Deletion Simple","sigma",0.970272687860894,"A",NA
+201,"201","propMissAct_0.08_autoCorr_0.05","MAR","Data Deletion Simple","sigma",0.964195118075517,"B",NA
+201,"201","propMissAct_0.14_autoCorr_0.03","MAR","Data Deletion Simple","sigma",0.955300208072813,"C",NA
+201,"201","propMissAct_0.2_autoCorr_0.05","MAR","Data Deletion Simple","sigma",0.975708084731366,"D",NA
+201,"201","propMissAct_0.24_autoCorr_0.08","MAR","Data Deletion Simple","sigma",0.985754907002436,"E",NA
+201,"201","propMissAct_0.28_autoCorr_0.05","MAR","Data Deletion Simple","sigma",0.948411855857446,"F",NA
+201,"201","propMissAct_0.36_autoCorr_0.04","MAR","Data Deletion Simple","sigma",0.897388216475092,"G",NA
+201,"201","propMissAct_0.38_autoCorr_0.05","MAR","Data Deletion Simple","sigma",0.978840450631116,"H",NA
+201,"201","propMissAct_0.45_autoCorr_0.06","MAR","Data Deletion Simple","sigma",0.946885149872061,"I",NA
+201,"201","propMissAct_0.5_autoCorr_0.04","MAR","Data Deletion Simple","sigma",0.880503864149304,"J",NA
+201,"201","propMissAct_0.58_autoCorr_0.03","MAR","Data Deletion Simple","sigma",0.9118096419515,"K",NA
+201,"201","propMissAct_0.6_autoCorr_0.03","MAR","Data Deletion Simple","sigma",0.850188093297408,"L",NA
+201,"201","propMissAct_0.65_autoCorr_0.07","MAR","Data Deletion Simple","sigma",1.03264398418812,"M",NA
+201,"201","propMissAct_0.71_autoCorr_0.03","MAR","Data Deletion Simple","sigma",0.874510609942819,"N",NA
+201,"201","propMissAct_0.74_autoCorr_0.1","MAR","Data Deletion Simple","sigma",0.746474680804514,"O",NA
+201,"201","propMissAct_0.04_autoCorr_0.1","MAR","Data Deletion CC","ar1",0.0172521824353275,"A",0.0549698578512124
+201,"201","propMissAct_0.08_autoCorr_0.05","MAR","Data Deletion CC","ar1",0.00876364436692874,"B",0.0575218477034006
+201,"201","propMissAct_0.14_autoCorr_0.03","MAR","Data Deletion CC","ar1",-0.0104071043489186,"C",0.0611873950960203
+201,"201","propMissAct_0.2_autoCorr_0.05","MAR","Data Deletion CC","ar1",0.100825849144976,"D",0.066184692038514
+201,"201","propMissAct_0.24_autoCorr_0.08","MAR","Data Deletion CC","ar1",0.0101910574203526,"E",0.0689685697342522
+201,"201","propMissAct_0.28_autoCorr_0.05","MAR","Data Deletion CC","ar1",0.0277813915277613,"F",0.0721282748099127
+201,"201","propMissAct_0.36_autoCorr_0.04","MAR","Data Deletion CC","ar1",-0.0331935411046902,"G",0.0820095740519612
+201,"201","propMissAct_0.38_autoCorr_0.05","MAR","Data Deletion CC","ar1",-0.0480902291624551,"H",0.0881186814980439
+201,"201","propMissAct_0.45_autoCorr_0.06","MAR","Data Deletion CC","ar1",-0.0571925066548059,"I",0.0926934548972772
+201,"201","propMissAct_0.5_autoCorr_0.04","MAR","Data Deletion CC","ar1",-0.0179418146746914,"J",0.105907876501087
+201,"201","propMissAct_0.58_autoCorr_0.03","MAR","Data Deletion CC","ar1",0.104198120027204,"K",0.123734526238293
+201,"201","propMissAct_0.6_autoCorr_0.03","MAR","Data Deletion CC","ar1",-0.0977981192363353,"L",0.133745930850466
+201,"201","propMissAct_0.65_autoCorr_0.07","MAR","Data Deletion CC","ar1",-0.040298646797223,"M",0.15025547540512
+201,"201","propMissAct_0.71_autoCorr_0.03","MAR","Data Deletion CC","ar1",-0.211941234144589,"N",0.178155551870417
+201,"201","propMissAct_0.74_autoCorr_0.1","MAR","Data Deletion CC","ar1",-0.05839537319228,"O",0.181194798400303
+201,"201","propMissAct_0.04_autoCorr_0.1","MAR","Data Deletion CC","intercept",1.42007294393158,"A",0.054642616533183
+201,"201","propMissAct_0.08_autoCorr_0.05","MAR","Data Deletion CC","intercept",1.41696463740889,"B",0.0559349008572074
+201,"201","propMissAct_0.14_autoCorr_0.03","MAR","Data Deletion CC","intercept",1.41421593088802,"C",0.0594884643957078
+201,"201","propMissAct_0.2_autoCorr_0.05","MAR","Data Deletion CC","intercept",1.40547546688032,"D",0.0721215666213662
+201,"201","propMissAct_0.24_autoCorr_0.08","MAR","Data Deletion CC","intercept",1.48037219236711,"E",0.068770916511249
+201,"201","propMissAct_0.28_autoCorr_0.05","MAR","Data Deletion CC","intercept",1.41722289620737,"F",0.0745846542316173
+201,"201","propMissAct_0.36_autoCorr_0.04","MAR","Data Deletion CC","intercept",1.41276623273626,"G",0.0779486814269349
+201,"201","propMissAct_0.38_autoCorr_0.05","MAR","Data Deletion CC","intercept",1.44903407981075,"H",0.0790927289232223
+201,"201","propMissAct_0.45_autoCorr_0.06","MAR","Data Deletion CC","intercept",1.47357122433809,"I",0.0821844640917141
+201,"201","propMissAct_0.5_autoCorr_0.04","MAR","Data Deletion CC","intercept",1.39654399849711,"J",0.0842085786964359
+201,"201","propMissAct_0.58_autoCorr_0.03","MAR","Data Deletion CC","intercept",1.38069487129109,"K",0.135740880962949
+201,"201","propMissAct_0.6_autoCorr_0.03","MAR","Data Deletion CC","intercept",1.37659659058296,"L",0.115695639988194
+201,"201","propMissAct_0.65_autoCorr_0.07","MAR","Data Deletion CC","intercept",1.04727310359846,"M",0.149210465020323
+201,"201","propMissAct_0.71_autoCorr_0.03","MAR","Data Deletion CC","intercept",1.48765817446067,"N",0.111505335439683
+201,"201","propMissAct_0.74_autoCorr_0.1","MAR","Data Deletion CC","intercept",1.56621756508682,"O",0.131868231907623
+201,"201","propMissAct_0.04_autoCorr_0.1","MAR","Data Deletion CC","light",1.71920515127668,"A",0.0559503165424682
+201,"201","propMissAct_0.08_autoCorr_0.05","MAR","Data Deletion CC","light",1.73382998291491,"B",0.0592003569886312
+201,"201","propMissAct_0.14_autoCorr_0.03","MAR","Data Deletion CC","light",1.71209491154952,"C",0.0633621758903818
+201,"201","propMissAct_0.2_autoCorr_0.05","MAR","Data Deletion CC","light",1.77056024551278,"D",0.0706089627339571
+201,"201","propMissAct_0.24_autoCorr_0.08","MAR","Data Deletion CC","light",1.70617149316908,"E",0.0720391086848409
+201,"201","propMissAct_0.28_autoCorr_0.05","MAR","Data Deletion CC","light",1.6700920785299,"F",0.0734683146859015
+201,"201","propMissAct_0.36_autoCorr_0.04","MAR","Data Deletion CC","light",1.66811222089549,"G",0.0831577184414094
+201,"201","propMissAct_0.38_autoCorr_0.05","MAR","Data Deletion CC","light",1.66282284012459,"H",0.0950214145268517
+201,"201","propMissAct_0.45_autoCorr_0.06","MAR","Data Deletion CC","light",1.79835876909558,"I",0.0922549927534964
+201,"201","propMissAct_0.5_autoCorr_0.04","MAR","Data Deletion CC","light",1.85548241052366,"J",0.0956013464157538
+201,"201","propMissAct_0.58_autoCorr_0.03","MAR","Data Deletion CC","light",1.77083928251132,"K",0.147141851022614
+201,"201","propMissAct_0.6_autoCorr_0.03","MAR","Data Deletion CC","light",1.72407937535754,"L",0.142270811666759
+201,"201","propMissAct_0.65_autoCorr_0.07","MAR","Data Deletion CC","light",1.77825505211491,"M",0.166331871627788
+201,"201","propMissAct_0.71_autoCorr_0.03","MAR","Data Deletion CC","light",2.02980881094205,"N",0.146174434556618
+201,"201","propMissAct_0.74_autoCorr_0.1","MAR","Data Deletion CC","light",1.77109165284722,"O",0.122811606355616
+201,"201","propMissAct_0.04_autoCorr_0.1","MAR","Data Deletion CC","discharge",0.246837641689391,"A",0.0519952605178981
+201,"201","propMissAct_0.08_autoCorr_0.05","MAR","Data Deletion CC","discharge",0.233787518591027,"B",0.0537165123365679
+201,"201","propMissAct_0.14_autoCorr_0.03","MAR","Data Deletion CC","discharge",0.253376356896729,"C",0.0576022672939743
+201,"201","propMissAct_0.2_autoCorr_0.05","MAR","Data Deletion CC","discharge",0.294267075035176,"D",0.0629310208344623
+201,"201","propMissAct_0.24_autoCorr_0.08","MAR","Data Deletion CC","discharge",0.234084571712902,"E",0.0655796037554153
+201,"201","propMissAct_0.28_autoCorr_0.05","MAR","Data Deletion CC","discharge",0.280130172331436,"F",0.0733438553375449
+201,"201","propMissAct_0.36_autoCorr_0.04","MAR","Data Deletion CC","discharge",0.290044778821629,"G",0.0811883116091181
+201,"201","propMissAct_0.38_autoCorr_0.05","MAR","Data Deletion CC","discharge",0.289325472930214,"H",0.0785473624835983
+201,"201","propMissAct_0.45_autoCorr_0.06","MAR","Data Deletion CC","discharge",0.20409067314403,"I",0.0834077048706712
+201,"201","propMissAct_0.5_autoCorr_0.04","MAR","Data Deletion CC","discharge",0.361105558170602,"J",0.0771150879169163
+201,"201","propMissAct_0.58_autoCorr_0.03","MAR","Data Deletion CC","discharge",0.329306786419796,"K",0.129542119693977
+201,"201","propMissAct_0.6_autoCorr_0.03","MAR","Data Deletion CC","discharge",0.25954797309563,"L",0.138706405527977
+201,"201","propMissAct_0.65_autoCorr_0.07","MAR","Data Deletion CC","discharge",0.251260384133611,"M",0.154998999812382
+201,"201","propMissAct_0.71_autoCorr_0.03","MAR","Data Deletion CC","discharge",0.324499341760603,"N",0.137406687623952
+201,"201","propMissAct_0.74_autoCorr_0.1","MAR","Data Deletion CC","discharge",0.126146863648988,"O",0.120658236705318
+201,"201","propMissAct_0.04_autoCorr_0.1","MAR","Data Deletion CC","sigma",0.964304894117874,"A",NA
+201,"201","propMissAct_0.08_autoCorr_0.05","MAR","Data Deletion CC","sigma",0.939477077420319,"B",NA
+201,"201","propMissAct_0.14_autoCorr_0.03","MAR","Data Deletion CC","sigma",0.972816924748839,"C",NA
+201,"201","propMissAct_0.2_autoCorr_0.05","MAR","Data Deletion CC","sigma",0.986253986717273,"D",NA
+201,"201","propMissAct_0.24_autoCorr_0.08","MAR","Data Deletion CC","sigma",0.984777624815957,"E",NA
+201,"201","propMissAct_0.28_autoCorr_0.05","MAR","Data Deletion CC","sigma",1.00516593550633,"F",NA
+201,"201","propMissAct_0.36_autoCorr_0.04","MAR","Data Deletion CC","sigma",0.951686965716615,"G",NA
+201,"201","propMissAct_0.38_autoCorr_0.05","MAR","Data Deletion CC","sigma",0.97224745370788,"H",NA
+201,"201","propMissAct_0.45_autoCorr_0.06","MAR","Data Deletion CC","sigma",0.855503806667602,"I",NA
+201,"201","propMissAct_0.5_autoCorr_0.04","MAR","Data Deletion CC","sigma",0.675994245090913,"J",NA
+201,"201","propMissAct_0.58_autoCorr_0.03","MAR","Data Deletion CC","sigma",0.978616685325863,"K",NA
+201,"201","propMissAct_0.6_autoCorr_0.03","MAR","Data Deletion CC","sigma",0.958445033166564,"L",NA
+201,"201","propMissAct_0.65_autoCorr_0.07","MAR","Data Deletion CC","sigma",1.13602590773216,"M",NA
+201,"201","propMissAct_0.71_autoCorr_0.03","MAR","Data Deletion CC","sigma",0.560740853938674,"N",NA
+201,"201","propMissAct_0.74_autoCorr_0.1","MAR","Data Deletion CC","sigma",0.600487800667974,"O",NA
+201,"201","propMissAct_0.04_autoCorr_0.1","MAR","Kalman filter","ar1",0.0104899491219434,"A",0.0547892586100298
+201,"201","propMissAct_0.08_autoCorr_0.05","MAR","Kalman filter","ar1",0.015246359383076,"B",0.0589984643009265
+201,"201","propMissAct_0.14_autoCorr_0.03","MAR","Kalman filter","ar1",-0.00447705879261249,"C",0.0626538432397187
+201,"201","propMissAct_0.2_autoCorr_0.05","MAR","Kalman filter","ar1",0.0924678670725557,"D",0.0646595646298874
+201,"201","propMissAct_0.24_autoCorr_0.08","MAR","Kalman filter","ar1",-0.000634788914893649,"E",0.0669325586981127
+201,"201","propMissAct_0.28_autoCorr_0.05","MAR","Kalman filter","ar1",0.0555270962130626,"F",0.0683704647487922
+201,"201","propMissAct_0.36_autoCorr_0.04","MAR","Kalman filter","ar1",0.0104920270430755,"G",0.0722415017586134
+201,"201","propMissAct_0.38_autoCorr_0.05","MAR","Kalman filter","ar1",0.0501029813553224,"H",0.0799815345784348
+201,"201","propMissAct_0.45_autoCorr_0.06","MAR","Kalman filter","ar1",0.102757941811353,"I",0.111348078215931
+201,"201","propMissAct_0.5_autoCorr_0.04","MAR","Kalman filter","ar1",0.128820007338614,"J",0.0995183867642144
+201,"201","propMissAct_0.58_autoCorr_0.03","MAR","Kalman filter","ar1",0.183076334592857,"K",0.122143723626626
+201,"201","propMissAct_0.6_autoCorr_0.03","MAR","Kalman filter","ar1",0.0158264691830167,"L",0.111466231683915
+201,"201","propMissAct_0.65_autoCorr_0.07","MAR","Kalman filter","ar1",0.0977641462399559,"M",0.124531765282097
+201,"201","propMissAct_0.71_autoCorr_0.03","MAR","Kalman filter","ar1",-0.3528401325188,"N",0.142677833957171
+201,"201","propMissAct_0.74_autoCorr_0.1","MAR","Kalman filter","ar1",0.330944742918272,"O",0.257165145126341
+201,"201","propMissAct_0.04_autoCorr_0.1","MAR","Kalman filter","intercept",1.41745912072062,"A",0.0533742683089212
+201,"201","propMissAct_0.08_autoCorr_0.05","MAR","Kalman filter","intercept",1.39788971083163,"B",0.0546267218000925
+201,"201","propMissAct_0.14_autoCorr_0.03","MAR","Kalman filter","intercept",1.41292784339222,"C",0.0549507866746439
+201,"201","propMissAct_0.2_autoCorr_0.05","MAR","Kalman filter","intercept",1.3812607536004,"D",0.0626699512615711
+201,"201","propMissAct_0.24_autoCorr_0.08","MAR","Kalman filter","intercept",1.42484406426066,"E",0.0602208706645956
+201,"201","propMissAct_0.28_autoCorr_0.05","MAR","Kalman filter","intercept",1.39246139275899,"F",0.0629717402333891
+201,"201","propMissAct_0.36_autoCorr_0.04","MAR","Kalman filter","intercept",1.37639276517125,"G",0.0633673216162272
+201,"201","propMissAct_0.38_autoCorr_0.05","MAR","Kalman filter","intercept",1.42109677772208,"H",0.0680315478072912
+201,"201","propMissAct_0.45_autoCorr_0.06","MAR","Kalman filter","intercept",1.43114730197821,"I",0.0732419382004813
+201,"201","propMissAct_0.5_autoCorr_0.04","MAR","Kalman filter","intercept",1.46879567184137,"J",0.0752136936310964
+201,"201","propMissAct_0.58_autoCorr_0.03","MAR","Kalman filter","intercept",1.47351054647338,"K",0.0844879708207574
+201,"201","propMissAct_0.6_autoCorr_0.03","MAR","Kalman filter","intercept",1.33594229051735,"L",0.0774979318880752
+201,"201","propMissAct_0.65_autoCorr_0.07","MAR","Kalman filter","intercept",1.50008109822258,"M",0.0972536733458673
+201,"201","propMissAct_0.71_autoCorr_0.03","MAR","Kalman filter","intercept",1.3993251177046,"N",0.0802155672728349
+201,"201","propMissAct_0.74_autoCorr_0.1","MAR","Kalman filter","intercept",1.51592194083069,"O",0.105980705254356
+201,"201","propMissAct_0.04_autoCorr_0.1","MAR","Kalman filter","light",1.69491744442691,"A",0.055126505444443
+201,"201","propMissAct_0.08_autoCorr_0.05","MAR","Kalman filter","light",1.72630450935901,"B",0.0566810655771322
+201,"201","propMissAct_0.14_autoCorr_0.03","MAR","Kalman filter","light",1.74306459700429,"C",0.0582881516540761
+201,"201","propMissAct_0.2_autoCorr_0.05","MAR","Kalman filter","light",1.73931544315401,"D",0.0630705855579754
+201,"201","propMissAct_0.24_autoCorr_0.08","MAR","Kalman filter","light",1.71511718683831,"E",0.0641219636553376
+201,"201","propMissAct_0.28_autoCorr_0.05","MAR","Kalman filter","light",1.70446379870323,"F",0.0620719667930035
+201,"201","propMissAct_0.36_autoCorr_0.04","MAR","Kalman filter","light",1.73147092517507,"G",0.0657540222743954
+201,"201","propMissAct_0.38_autoCorr_0.05","MAR","Kalman filter","light",1.73760693234103,"H",0.0687404020328567
+201,"201","propMissAct_0.45_autoCorr_0.06","MAR","Kalman filter","light",1.69624034084609,"I",0.0750247284602599
+201,"201","propMissAct_0.5_autoCorr_0.04","MAR","Kalman filter","light",1.75969051268147,"J",0.078546694265042
+201,"201","propMissAct_0.58_autoCorr_0.03","MAR","Kalman filter","light",1.71981390758513,"K",0.0908819765207495
+201,"201","propMissAct_0.6_autoCorr_0.03","MAR","Kalman filter","light",1.68140060775228,"L",0.0835545971928819
+201,"201","propMissAct_0.65_autoCorr_0.07","MAR","Kalman filter","light",1.8202758226799,"M",0.0973612617118143
+201,"201","propMissAct_0.71_autoCorr_0.03","MAR","Kalman filter","light",1.91307252361098,"N",0.0999547807340717
+201,"201","propMissAct_0.74_autoCorr_0.1","MAR","Kalman filter","light",1.79232522988053,"O",0.0963688041102042
+201,"201","propMissAct_0.04_autoCorr_0.1","MAR","Kalman filter","discharge",0.244829905640894,"A",0.0517113586298326
+201,"201","propMissAct_0.08_autoCorr_0.05","MAR","Kalman filter","discharge",0.229652690176334,"B",0.0521073843772919
+201,"201","propMissAct_0.14_autoCorr_0.03","MAR","Kalman filter","discharge",0.240406901645712,"C",0.0542300728754255
+201,"201","propMissAct_0.2_autoCorr_0.05","MAR","Kalman filter","discharge",0.255156386764074,"D",0.0566758096519139
+201,"201","propMissAct_0.24_autoCorr_0.08","MAR","Kalman filter","discharge",0.23817279018106,"E",0.0587372032345122
+201,"201","propMissAct_0.28_autoCorr_0.05","MAR","Kalman filter","discharge",0.251982908063956,"F",0.0603323229871799
+201,"201","propMissAct_0.36_autoCorr_0.04","MAR","Kalman filter","discharge",0.197270326030825,"G",0.0585581213437657
+201,"201","propMissAct_0.38_autoCorr_0.05","MAR","Kalman filter","discharge",0.269957923466784,"H",0.0623882987287295
+201,"201","propMissAct_0.45_autoCorr_0.06","MAR","Kalman filter","discharge",0.221749324709282,"I",0.0707079855825038
+201,"201","propMissAct_0.5_autoCorr_0.04","MAR","Kalman filter","discharge",0.258079569942193,"J",0.0656344153180059
+201,"201","propMissAct_0.58_autoCorr_0.03","MAR","Kalman filter","discharge",0.255383154501208,"K",0.0708172235814808
+201,"201","propMissAct_0.6_autoCorr_0.03","MAR","Kalman filter","discharge",0.225624301179546,"L",0.0777339806898172
+201,"201","propMissAct_0.65_autoCorr_0.07","MAR","Kalman filter","discharge",0.279267079101361,"M",0.0948965841128608
+201,"201","propMissAct_0.71_autoCorr_0.03","MAR","Kalman filter","discharge",0.346908005686361,"N",0.0884370108325222
+201,"201","propMissAct_0.74_autoCorr_0.1","MAR","Kalman filter","discharge",0.261459331438433,"O",0.0991167632809005
+201,"201","propMissAct_0.04_autoCorr_0.1","MAR","Kalman filter","sigma",0.970203823681384,"A",NA
+201,"201","propMissAct_0.08_autoCorr_0.05","MAR","Kalman filter","sigma",0.964528136958961,"B",NA
+201,"201","propMissAct_0.14_autoCorr_0.03","MAR","Kalman filter","sigma",0.955348113464605,"C",NA
+201,"201","propMissAct_0.2_autoCorr_0.05","MAR","Kalman filter","sigma",0.971582640761346,"D",NA
+201,"201","propMissAct_0.24_autoCorr_0.08","MAR","Kalman filter","sigma",0.988015148398798,"E",NA
+201,"201","propMissAct_0.28_autoCorr_0.05","MAR","Kalman filter","sigma",0.946869904554403,"F",NA
+201,"201","propMissAct_0.36_autoCorr_0.04","MAR","Kalman filter","sigma",0.909527417188251,"G",NA
+201,"201","propMissAct_0.38_autoCorr_0.05","MAR","Kalman filter","sigma",0.976599514399209,"H",NA
+201,"201","propMissAct_0.45_autoCorr_0.06","MAR","Kalman filter","sigma",0.939337769248467,"I",NA
+201,"201","propMissAct_0.5_autoCorr_0.04","MAR","Kalman filter","sigma",0.865592964916699,"J",NA
+201,"201","propMissAct_0.58_autoCorr_0.03","MAR","Kalman filter","sigma",0.899449478473229,"K",NA
+201,"201","propMissAct_0.6_autoCorr_0.03","MAR","Kalman filter","sigma",0.85329304146916,"L",NA
+201,"201","propMissAct_0.65_autoCorr_0.07","MAR","Kalman filter","sigma",1.02233869145868,"M",NA
+201,"201","propMissAct_0.71_autoCorr_0.03","MAR","Kalman filter","sigma",0.786723286467838,"N",NA
+201,"201","propMissAct_0.74_autoCorr_0.1","MAR","Kalman filter","sigma",0.713376953050621,"O",NA
+201,"201","propMissAct_0.04_autoCorr_0.1","MAR","Multiple imputations","ar1",0.00878738043264156,"A",0.0538265531400425
+201,"201","propMissAct_0.08_autoCorr_0.05","MAR","Multiple imputations","ar1",-0.00305430510641168,"B",0.0582836954716372
+201,"201","propMissAct_0.14_autoCorr_0.03","MAR","Multiple imputations","ar1",-0.0148397654750332,"C",0.0607565797550876
+201,"201","propMissAct_0.2_autoCorr_0.05","MAR","Multiple imputations","ar1",0.048247792116907,"D",0.0611635989621406
+201,"201","propMissAct_0.24_autoCorr_0.08","MAR","Multiple imputations","ar1",-0.013261839572822,"E",0.0660416866933659
+201,"201","propMissAct_0.28_autoCorr_0.05","MAR","Multiple imputations","ar1",0.0160112904565903,"F",0.0656127724849272
+201,"201","propMissAct_0.36_autoCorr_0.04","MAR","Multiple imputations","ar1",0.0353401893071558,"G",0.0580371127479241
+201,"201","propMissAct_0.38_autoCorr_0.05","MAR","Multiple imputations","ar1",-0.00399761492095901,"H",0.0628866878807142
+201,"201","propMissAct_0.45_autoCorr_0.06","MAR","Multiple imputations","ar1",-0.0087421924906776,"I",0.0565246722654333
+201,"201","propMissAct_0.5_autoCorr_0.04","MAR","Multiple imputations","ar1",0.0206999495390851,"J",0.0707936209035738
+201,"201","propMissAct_0.58_autoCorr_0.03","MAR","Multiple imputations","ar1",0.0182161001111205,"K",0.0699600959530719
+201,"201","propMissAct_0.6_autoCorr_0.03","MAR","Multiple imputations","ar1",-0.0247504410059019,"L",0.0832798520846358
+201,"201","propMissAct_0.65_autoCorr_0.07","MAR","Multiple imputations","ar1",0.040070704828402,"M",0.0869786989693196
+201,"201","propMissAct_0.71_autoCorr_0.03","MAR","Multiple imputations","ar1",-0.0363515390115963,"N",0.0899838108663391
+201,"201","propMissAct_0.74_autoCorr_0.1","MAR","Multiple imputations","ar1",0.0780816931274528,"O",0.0681521937419248
+201,"201","propMissAct_0.04_autoCorr_0.1","MAR","Multiple imputations","intercept",1.4198646533574,"A",0.0547696443314678
+201,"201","propMissAct_0.08_autoCorr_0.05","MAR","Multiple imputations","intercept",1.39708224063285,"B",0.0545396444589041
+201,"201","propMissAct_0.14_autoCorr_0.03","MAR","Multiple imputations","intercept",1.41165443041346,"C",0.0538662764852141
+201,"201","propMissAct_0.2_autoCorr_0.05","MAR","Multiple imputations","intercept",1.38930210436616,"D",0.0598615865292703
+201,"201","propMissAct_0.24_autoCorr_0.08","MAR","Multiple imputations","intercept",1.42388112043869,"E",0.0519531276952675
+201,"201","propMissAct_0.28_autoCorr_0.05","MAR","Multiple imputations","intercept",1.41538061673634,"F",0.0679648028585301
+201,"201","propMissAct_0.36_autoCorr_0.04","MAR","Multiple imputations","intercept",1.36439741745548,"G",0.0668273195208879
+201,"201","propMissAct_0.38_autoCorr_0.05","MAR","Multiple imputations","intercept",1.42953202017972,"H",0.0617147696767502
+201,"201","propMissAct_0.45_autoCorr_0.06","MAR","Multiple imputations","intercept",1.43917965484357,"I",0.0720431769635554
+201,"201","propMissAct_0.5_autoCorr_0.04","MAR","Multiple imputations","intercept",1.49169478857627,"J",0.0928934768381563
+201,"201","propMissAct_0.58_autoCorr_0.03","MAR","Multiple imputations","intercept",1.49764239915611,"K",0.0815623790105724
+201,"201","propMissAct_0.6_autoCorr_0.03","MAR","Multiple imputations","intercept",1.35803538149083,"L",0.0995963564527023
+201,"201","propMissAct_0.65_autoCorr_0.07","MAR","Multiple imputations","intercept",1.49383117436968,"M",0.1123262449806
+201,"201","propMissAct_0.71_autoCorr_0.03","MAR","Multiple imputations","intercept",1.37864956789399,"N",0.114343429172887
+201,"201","propMissAct_0.74_autoCorr_0.1","MAR","Multiple imputations","intercept",1.57894710736863,"O",0.0658898131397259
+201,"201","propMissAct_0.04_autoCorr_0.1","MAR","Multiple imputations","light",1.68556340115635,"A",0.0546055733939
+201,"201","propMissAct_0.08_autoCorr_0.05","MAR","Multiple imputations","light",1.72686258345139,"B",0.0566646928134037
+201,"201","propMissAct_0.14_autoCorr_0.03","MAR","Multiple imputations","light",1.74913339917302,"C",0.058186624533292
+201,"201","propMissAct_0.2_autoCorr_0.05","MAR","Multiple imputations","light",1.72084427507348,"D",0.0718876225372416
+201,"201","propMissAct_0.24_autoCorr_0.08","MAR","Multiple imputations","light",1.71915427738898,"E",0.0670726863835398
+201,"201","propMissAct_0.28_autoCorr_0.05","MAR","Multiple imputations","light",1.700097887876,"F",0.0691390139136956
+201,"201","propMissAct_0.36_autoCorr_0.04","MAR","Multiple imputations","light",1.74948025078718,"G",0.0639839325210736
+201,"201","propMissAct_0.38_autoCorr_0.05","MAR","Multiple imputations","light",1.73575025558642,"H",0.0771330701620361
+201,"201","propMissAct_0.45_autoCorr_0.06","MAR","Multiple imputations","light",1.7290574705372,"I",0.0915263402932195
+201,"201","propMissAct_0.5_autoCorr_0.04","MAR","Multiple imputations","light",1.75136855071357,"J",0.0862717551048558
+201,"201","propMissAct_0.58_autoCorr_0.03","MAR","Multiple imputations","light",1.67453492849368,"K",0.0957046455158346
+201,"201","propMissAct_0.6_autoCorr_0.03","MAR","Multiple imputations","light",1.69924877049112,"L",0.130117687892368
+201,"201","propMissAct_0.65_autoCorr_0.07","MAR","Multiple imputations","light",1.7903999518888,"M",0.08848124463498
+201,"201","propMissAct_0.71_autoCorr_0.03","MAR","Multiple imputations","light",1.91102989654896,"N",0.123992093847543
+201,"201","propMissAct_0.74_autoCorr_0.1","MAR","Multiple imputations","light",1.79910999292491,"O",0.104090334822135
+201,"201","propMissAct_0.04_autoCorr_0.1","MAR","Multiple imputations","discharge",0.246194985757266,"A",0.0534065793935862
+201,"201","propMissAct_0.08_autoCorr_0.05","MAR","Multiple imputations","discharge",0.223234453561308,"B",0.0512637236862393
+201,"201","propMissAct_0.14_autoCorr_0.03","MAR","Multiple imputations","discharge",0.237497986751608,"C",0.0529364886419421
+201,"201","propMissAct_0.2_autoCorr_0.05","MAR","Multiple imputations","discharge",0.252662843016222,"D",0.0608661694471583
+201,"201","propMissAct_0.24_autoCorr_0.08","MAR","Multiple imputations","discharge",0.264904909124483,"E",0.0606398286735534
+201,"201","propMissAct_0.28_autoCorr_0.05","MAR","Multiple imputations","discharge",0.236032075595063,"F",0.0622655143137193
+201,"201","propMissAct_0.36_autoCorr_0.04","MAR","Multiple imputations","discharge",0.203524827197899,"G",0.0557378993119672
+201,"201","propMissAct_0.38_autoCorr_0.05","MAR","Multiple imputations","discharge",0.30009729817987,"H",0.0591205406372297
+201,"201","propMissAct_0.45_autoCorr_0.06","MAR","Multiple imputations","discharge",0.225698816695407,"I",0.0906084871372812
+201,"201","propMissAct_0.5_autoCorr_0.04","MAR","Multiple imputations","discharge",0.23251938406474,"J",0.0544982735792125
+201,"201","propMissAct_0.58_autoCorr_0.03","MAR","Multiple imputations","discharge",0.255266969305854,"K",0.0651910908467608
+201,"201","propMissAct_0.6_autoCorr_0.03","MAR","Multiple imputations","discharge",0.214149185092694,"L",0.0929524085654854
+201,"201","propMissAct_0.65_autoCorr_0.07","MAR","Multiple imputations","discharge",0.261988121984684,"M",0.126607096311246
+201,"201","propMissAct_0.71_autoCorr_0.03","MAR","Multiple imputations","discharge",0.314964523039499,"N",0.0682957078271557
+201,"201","propMissAct_0.74_autoCorr_0.1","MAR","Multiple imputations","discharge",0.282702828593762,"O",0.143422865964711
+201,"201","propMissAct_0.04_autoCorr_0.1","MAR","Multiple imputations","sigma",0.968106766708681,"A",NA
+201,"201","propMissAct_0.08_autoCorr_0.05","MAR","Multiple imputations","sigma",0.966647312734539,"B",NA
+201,"201","propMissAct_0.14_autoCorr_0.03","MAR","Multiple imputations","sigma",0.954553542108468,"C",NA
+201,"201","propMissAct_0.2_autoCorr_0.05","MAR","Multiple imputations","sigma",0.960041004548376,"D",NA
+201,"201","propMissAct_0.24_autoCorr_0.08","MAR","Multiple imputations","sigma",0.981416291835354,"E",NA
+201,"201","propMissAct_0.28_autoCorr_0.05","MAR","Multiple imputations","sigma",0.941582598708807,"F",NA
+201,"201","propMissAct_0.36_autoCorr_0.04","MAR","Multiple imputations","sigma",0.901838715815875,"G",NA
+201,"201","propMissAct_0.38_autoCorr_0.05","MAR","Multiple imputations","sigma",0.962123710105358,"H",NA
+201,"201","propMissAct_0.45_autoCorr_0.06","MAR","Multiple imputations","sigma",0.936368938290446,"I",NA
+201,"201","propMissAct_0.5_autoCorr_0.04","MAR","Multiple imputations","sigma",0.845952004073663,"J",NA
+201,"201","propMissAct_0.58_autoCorr_0.03","MAR","Multiple imputations","sigma",0.908046639116667,"K",NA
+201,"201","propMissAct_0.6_autoCorr_0.03","MAR","Multiple imputations","sigma",0.867751551295637,"L",NA
+201,"201","propMissAct_0.65_autoCorr_0.07","MAR","Multiple imputations","sigma",1.06497172594424,"M",NA
+201,"201","propMissAct_0.71_autoCorr_0.03","MAR","Multiple imputations","sigma",0.963496070716395,"N",NA
+201,"201","propMissAct_0.74_autoCorr_0.1","MAR","Multiple imputations","sigma",0.766908143752353,"O",NA
