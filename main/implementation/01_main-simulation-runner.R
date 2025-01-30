@@ -11,12 +11,13 @@ rm(list=ls(all=TRUE))
 
 suppressMessages(library(rSOILWAT2, quiet = TRUE))
 
+suppressMessages(library(sf, quiet = TRUE))
 suppressMessages(library(rSW2data, quiet = TRUE))
 suppressMessages(library(RSQLite, quietly = TRUE))
 suppressMessages(library(DBI, quietly = TRUE))
 suppressMessages(library(rSW2st, quietly = TRUE))
 suppressMessages(library(rSW2funs, quietly = TRUE))
-suppressMessages(library(raster, quietly = TRUE))
+#suppressMessages(library(raster, quietly = TRUE))
 suppressMessages(library(data.table, quietly = TRUE))
 suppressMessages(library(lubridate, quietly = TRUE))
 
@@ -25,6 +26,25 @@ suppressMessages(library(pbdMPI, quiet = TRUE))
 #suppressMessages(library(pbdNCDF4, quiet = TRUE))
 suppressMessages(library(RNetCDF, quiet = TRUE))
 #suppressMessages(library(ncdf4, quiet = TRUE))
+
+
+# Read in sagebrush biome outline --------------------------------------------
+poly <- sf::st_read("./main/Data/SagbrushBiomeExtent/", "US_Sagebrush_Biome_2019") %>% 
+  sf::st_transform(crs("EPSG:4326"))
+
+# determine which grid-cells overlay this polygon --------------------------
+Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
+
+Sites_sfc <- st_sfc(lapply(1:nrow(Sites), FUN = function(x) {
+  #st_point(c(x[2], x[1]))
+  st_point(c(Sites[x,"Longitude"], Sites[x,"Latitude"]))
+}))
+Sites_sf <- st_sf(Sites, geometry = Sites_sfc, crs = crs("EPSG:4326"))
+
+# Find the centroids that overlap with the bounding polygon 
+whichSites <- Sites_sf[st_intersects(poly, Sites_sf)[[1]],]
+
+
 
 # variables --------------------------------------------------------------------
 isParallel <- FALSE # set to FALSE if you dont want to use pbdMPI to execute runs in parallel 
@@ -60,8 +80,10 @@ weatherDB <- rSOILWAT2::dbW_setConnection(
   dbFilePath = 'main/Data/dbWeatherData_WesternUS4km_gridMET_v20240509.sqlite3')
  
 # this stuff is on the HPC... # Alice will download to her local computer later
-Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
+#Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
 #Sites <- Sites[!is.na(Sites$region2),]
+# for version just w/ sagebrush biome 
+Sites <- whichSites 
 
 sites <- dim(Sites)[1]
 
@@ -75,12 +97,16 @@ soils_gridCoarse <- RNetCDF::open.nc(con = "./main/Data/soilsDB_new/fragvol_PED-
 soilGridLats <- var.get.nc(soils_gridClay, "latitude")
 soilGridLons <- var.get.nc(soils_gridClay, "longitude")
 
-if(isParallel) {
-  alljid <- get.jid(n = sites, method = "block", all = FALSE) 
-  comm.print(alljid) 
-} else {
-  alljid <- sites
-}
+# if(isParallel) {
+#   alljid <- get.jid(n = sites, method = "block", all = FALSE) 
+#   comm.print(alljid) 
+# } else {
+#   alljid <- sites
+# }
+
+# for version just w/ sagebrush biome 
+alljid <- sites
+
 
 # Date Info --------------------------------------------------------------------
 currDOY <- lubridate::yday(Sys.Date())
@@ -413,4 +439,3 @@ if (!interactive() & isParallel) {
         RNetCDF::close.nc(get(x))
         })
 }
-
