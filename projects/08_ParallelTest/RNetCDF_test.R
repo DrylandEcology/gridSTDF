@@ -4,8 +4,30 @@
 # If the example code is stored in a file myexample.R,
 # run R under MPI using a command similar to:
 # SHELL> srun -A swbsc --reservation=dev -N2 -n2 -c2 Rscript RNetCDF_test.R
+
+.libPaths("/home/astears/R/x86_64-redhat-linux-gnu-library/4.2")
+
 library(pbdMPI)
 library(RNetCDF)
+suppressMessages(library(rSOILWAT2, quiet = TRUE))
+
+suppressMessages(library(sf, quiet = TRUE))
+suppressMessages(library(rSW2data, quiet = TRUE))
+suppressMessages(library(RSQLite, quietly = TRUE))
+suppressMessages(library(DBI, quietly = TRUE))
+suppressMessages(library(rSW2st, quietly = TRUE))
+suppressMessages(library(rSW2funs, quietly = TRUE))
+#suppressMessages(library(raster, quietly = TRUE))
+suppressMessages(library(data.table, quietly = TRUE))
+suppressMessages(library(lubridate, quietly = TRUE))
+
+suppressMessages(library(pbdMPI, quiet = TRUE))
+
+#suppressMessages(library(pbdNCDF4, quiet = TRUE))
+suppressMessages(library(RNetCDF, quiet = TRUE))
+#suppressMessages(library(ncdf4, quiet = TRUE))
+
+
 # Get MPI parameters
 init()
 rank <- comm.rank()

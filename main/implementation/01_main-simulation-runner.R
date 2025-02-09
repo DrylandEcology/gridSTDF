@@ -8,6 +8,9 @@ rm(list=ls(all=TRUE))
 # remotes::install_github("DrylandEcology/rSW2st")
 # remotes::install_github("DrylandEcology/rSOILWAT2", build_vignettes = FALSE)
 # remotes::install_github("DrylandEcology/rSW2funs")
+ 
+# where R packages are located on the HPC
+.libPaths("/home/astears/R/x86_64-redhat-linux-gnu-library/4.2")
 
 suppressMessages(library(rSOILWAT2, quiet = TRUE))
 
@@ -29,8 +32,8 @@ suppressMessages(library(RNetCDF, quiet = TRUE))
 
 
 # Read in sagebrush biome outline --------------------------------------------
-poly <- sf::st_read("./main/Data/SagbrushBiomeExtent/", "US_Sagebrush_Biome_2019") %>% 
-  sf::st_transform(crs("EPSG:4326"))
+poly <- sf::st_read("./main/Data/SagebrushBiomeExtent/", "US_Sagebrush_Biome_2019") %>% 
+  sf::st_transform(sf::st_crs("EPSG:4326"))
 
 # determine which grid-cells overlay this polygon --------------------------
 Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
@@ -39,7 +42,7 @@ Sites_sfc <- st_sfc(lapply(1:nrow(Sites), FUN = function(x) {
   #st_point(c(x[2], x[1]))
   st_point(c(Sites[x,"Longitude"], Sites[x,"Latitude"]))
 }))
-Sites_sf <- st_sf(Sites, geometry = Sites_sfc, crs = crs("EPSG:4326"))
+Sites_sf <- st_sf(Sites, geometry = Sites_sfc, crs = sf::st_crs("EPSG:4326"))
 
 # Find the centroids that overlap with the bounding polygon 
 whichSites <- Sites_sf[st_intersects(poly, Sites_sf)[[1]],]
@@ -145,7 +148,7 @@ if(!interactive() & isParallel) comm.print('begin simulations')
 
 for (j in 1:alljid) { # TO DO: use "while" not "for"
   i <- j
-  
+ 
   ################### ------------------------------------------------------------
   # Part 1 - Getting and formatting historical weather data 
   ################### ------------------------------------------------------------
@@ -176,6 +179,14 @@ for (j in 1:alljid) { # TO DO: use "while" not "for"
 `clim` <- rSOILWAT2::calc_SiteClimate(weatherList = wdata, year.start = 1991, 
                                       year.end = 2020, do_C4vars = TRUE)
   wdata <- c(wdata, wdata_plus)
+  
+  # hack to deal with issues in input data where min temp is slightly (usually by ~.1 degrees) above max temp
+  for (k in 1:length(wdata)) {
+    if (sum((wdata[[names(wdata)[k]]]@data[, "Tmax_C"] < wdata[[names(wdata)[k]]]@data[, "Tmin_C"])) > 0) {
+      wdata[[names(wdata)[k]]]@data[wdata[[names(wdata)[k]]]@data[, "Tmax_C"] < wdata[[names(wdata)[k]]]@data[, "Tmin_C"], "Tmin_C"] <-
+        wdata[[names(wdata)[k]]]@data[wdata[[names(wdata)[k]]]@data[, "Tmax_C"] < wdata[[names(wdata)[k]]]@data[, "Tmin_C"], "Tmax_C"]
+    }
+  }
   
   ### get soils data for this gridcell
   # get indices for soil grid Lat and Lon
@@ -414,7 +425,7 @@ for (j in 1:alljid) { # TO DO: use "while" not "for"
   
   #TO DO: Make this into a function not a script 
   source('./main/implementation/01.2_input-values-into-ncdfs.R') 
-  
+
 }
 
 
@@ -439,3 +450,4 @@ if (!interactive() & isParallel) {
         RNetCDF::close.nc(get(x))
         })
 }
+
