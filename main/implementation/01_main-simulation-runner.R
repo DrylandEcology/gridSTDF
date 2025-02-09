@@ -10,11 +10,12 @@ rm(list=ls(all=TRUE))
 # remotes::install_github("DrylandEcology/rSW2funs")
  
 # where R packages are located on the HPC
-.libPaths("/home/astears/R/x86_64-redhat-linux-gnu-library/4.2")
+
+#.libPaths("/home/astears/R/x86_64-redhat-linux-gnu-library/4.2")
+
 
 suppressMessages(library(rSOILWAT2, quiet = TRUE))
 
-suppressMessages(library(sf, quiet = TRUE))
 suppressMessages(library(rSW2data, quiet = TRUE))
 suppressMessages(library(RSQLite, quietly = TRUE))
 suppressMessages(library(DBI, quietly = TRUE))
@@ -32,20 +33,7 @@ suppressMessages(library(RNetCDF, quiet = TRUE))
 
 
 # Read in sagebrush biome outline --------------------------------------------
-poly <- sf::st_read("./main/Data/SagebrushBiomeExtent/", "US_Sagebrush_Biome_2019") %>% 
-  sf::st_transform(sf::st_crs("EPSG:4326"))
-
-# determine which grid-cells overlay this polygon --------------------------
-Sites <- as.data.frame(data.table::fread("main/Data/WeatherDBSitesTable_WestIndex.csv"))
-
-Sites_sfc <- st_sfc(lapply(1:nrow(Sites), FUN = function(x) {
-  #st_point(c(x[2], x[1]))
-  st_point(c(Sites[x,"Longitude"], Sites[x,"Latitude"]))
-}))
-Sites_sf <- st_sf(Sites, geometry = Sites_sfc, crs = sf::st_crs("EPSG:4326"))
-
-# Find the centroids that overlap with the bounding polygon 
-whichSites <- Sites_sf[st_intersects(poly, Sites_sf)[[1]],]
+whichSites <- read.csv("./main/Data/SagebrushBiomeList.csv")
 
 
 
@@ -146,7 +134,7 @@ if(!interactive() & isParallel) comm.print('begin simulations')
 
 # Run simulation --------------------------------------------------------------
 
-for (j in 1:alljid) { # TO DO: use "while" not "for"
+for (j in 1:2){ #alljid) { # TO DO: use "while" not "for"
   i <- j
  
   ################### ------------------------------------------------------------
