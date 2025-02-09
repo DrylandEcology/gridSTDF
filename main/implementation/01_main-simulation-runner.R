@@ -10,7 +10,9 @@ rm(list=ls(all=TRUE))
 # remotes::install_github("DrylandEcology/rSW2funs")
  
 # where R packages are located on the HPC
+
 #.libPaths("/home/astears/R/x86_64-redhat-linux-gnu-library/4.2")
+
 
 suppressMessages(library(rSOILWAT2, quiet = TRUE))
 
@@ -436,3 +438,4 @@ if (!interactive() & isParallel) {
         RNetCDF::close.nc(get(x))
         })
 }
+
