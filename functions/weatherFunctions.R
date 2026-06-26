@@ -156,6 +156,7 @@ runFutureSWwithAnomalies <- function(sw_in0, wdata, SoilsDF,
   #saveRDS(generatedAnomData,  'ExampleData/generatedAnomData')
   ## in generatedAnomData, the rows are for each lead (12 rows), and the columns (30) are each for a different multivariate sample
   
+ 
   # Step 2.1 - Correction factor to the correction factor based on mean -------------------------------
   
   ### Temperature

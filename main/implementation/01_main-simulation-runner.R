@@ -104,7 +104,8 @@ currDOY <- lubridate::yday(Sys.Date())
 currMonth <- lubridate::month(Sys.Date())
 currYear <- lubridate::year(Sys.Date())
 currDate <- Sys.Date()
-todayMonthDay <- format(Sys.Date() , format="%m-%d")
+todayMonthDay <- #format(Sys.Date() , format="%m-%d")
+todayMonthDat <- ("02-10")
 
 # NWS Anomalies ----------------------------------------------------------------
 TempAnomsWhole <- data.table::fread('main/CurrentAnomalyTempData.csv')
@@ -134,9 +135,10 @@ if(!interactive() & isParallel) comm.print('begin simulations')
 
 # Run simulation --------------------------------------------------------------
 
-for (j in 1:2){ #alljid) { # TO DO: use "while" not "for"
+for (j in 1242:alljid) { # TO DO: use "while" not "for"
   i <- j
  
+  print(i)
   ################### ------------------------------------------------------------
   # Part 1 - Getting and formatting historical weather data 
   ################### ------------------------------------------------------------
