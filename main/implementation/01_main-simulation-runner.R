@@ -135,7 +135,7 @@ if(!interactive() & isParallel) comm.print('begin simulations')
 
 # Run simulation --------------------------------------------------------------
 
-for (j in 1242:alljid) { # TO DO: use "while" not "for"
+for (j in 1:alljid) { # TO DO: use "while" not "for"
   i <- j
  
   print(i)
