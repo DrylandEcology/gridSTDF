@@ -18,6 +18,9 @@ The goal of this project (and the code in this repository) is to generate monthl
 /projects 
 - this folder contains a series of folders, each of which corresponds to a "project" related to developing the forecaster. Each "project" is either a one-time task that was necessary to get the forecaster set up, or is code related to figuring out a specific challenge. None of this code is required to run the simulation, but can be edited if certain components they create that are used in the simulation need to be edited.
 
+## Location of data files that are not in the GitHub repository
+Due to the size constraints of public GitHub repositories, most data to run the simulation are not included. 
+Data in the "/main/Data/" folder are stored in the Dryland Ecohydrology Sharepoint site (must be accessed with USGS credentials). The one exception is the file "/main/Data/dbWeatherData_WesternUS4km_gridMET_v20240509.sqlite3", which is stored on Hovenweep. It can be found in this location: "/caldera/hovenweep/projects/usgs/centers/sbsc/DrylandEcologyTeam/Prj057a_gSTDF-WesternUS4km_Inputs/1_Inputs/results/WesternUS4km-weather/dbWeatherData_WesternUS4km_gridMET_v20240509.sqlite3""
 
 ## Methods Overview
 - Access long-lead forecasts from the National Weather Service Climate Prediction Center. These forecasts predict, for each of 102 regions in CONUS, whether precipitation and temperature over the next 12 months (in three month chunks) are likely to be above or below the 30-year normal climatology.
